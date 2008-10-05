@@ -1,0 +1,5 @@
+2008-10-05  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/*, tclxml/*, xmpp/*: Initial version of XMPP client
+	  library. It includes a Tcl-only XML parser from some old version of
+	  TclXML and a few examples.
