@@ -22,11 +22,11 @@
 #
 # Copyright (c) 1997 ANU and CSIRO on behalf of the
 # participants in the CRC for Advanced Computational Systems ('ACSys').
-# 
-# ACSys makes this software and all associated data and documentation 
-# ('Software') available free of charge for any purpose.  You may make copies 
+#
+# ACSys makes this software and all associated data and documentation
+# ('Software') available free of charge for any purpose.  You may make copies
 # of the Software but you must include all of this notice on any copy.
-# 
+#
 # The Software was developed for research purposes and ACSys does not warrant
 # that it is error free or fit for any purpose.  ACSys disclaims any
 # liability for all claims, expenses, losses, damages and costs any user may
@@ -248,7 +248,7 @@ proc sgml::parseEvent {sgml args} {
     if {!$options(-final) && ![info exists options(-statevariable)]} {
 	return -code error {option "-statevariable" required if not final}
     }
-    
+
     foreach {opt value} [array get options *command] {
 	if {[string compare $opt "-externalentitycommand"] && ![string length $value]} {
 	    set options($opt) [namespace current]::noop
@@ -299,8 +299,8 @@ proc sgml::parseEvent {sgml args} {
 
     # Mats:
     # The problem is that the state is not maintained when -final 0 !
-    # I've switched back to an older version here. 
-    
+    # I've switched back to an older version here.
+
     if {![info exists state(line)]} {
 	# Initialise the state variable
 	array set state {
@@ -1703,7 +1703,7 @@ proc sgml::ParseDTD:ProcessMarkupDecl {opts declVar valueVar delimiterVar nameVa
 			    [list unexpectedtext "unexpected text \"$r3\" in conditional section"]
 		    }
 		} else {
-		    
+
 		    lappend state(condSections) IGNORE
 
 		    if {[regexp {(.*?)]]>(.*)} $text discard t1 t2]} {
@@ -1906,7 +1906,7 @@ proc sgml::ParseDTD:External {opts dtd} {
 	}
 
 	if {!$progress} {
-	    # No parameter entity references were found and 
+	    # No parameter entity references were found and
 	    # the text does not contain a well-formed markup declaration
 	    # Avoid going into an infinite loop
 	    upvar #0 $options(-errorcommand) \
@@ -1952,8 +1952,8 @@ proc sgml::ParseDTD:External {opts dtd} {
 #			Content model is element-only.
 #		{MIXED {element1 element2 ...}}
 #			Content model is mixed (PCDATA and elements).
-#			The second element of the list contains the 
-#			elements that may occur.  #PCDATA is assumed 
+#			The second element of the list contains the
+#			elements that may occur.  #PCDATA is assumed
 #			(ie. the list is normalised).
 #
 # Arguments:
@@ -2149,7 +2149,7 @@ proc sgml::CModelSTcp {state cp rep cs} {
 	    return -code error "syntax error"
 	}
     }
-    
+
 }
 
 # sgml::CModelSTcsSet --
@@ -2335,7 +2335,7 @@ proc sgml::CModelMakeTransitionTable {state st} {
 	    }
 	    set Dtran($T,$a) $U
 	}
-	
+
     }
 
     return [list [array get Dtran] [array get sym2pos] $accepting]
@@ -2827,7 +2827,7 @@ proc sgml::DTD:NOTATION {opts name value} {
 	eval $state(-errorcommand) notationvalue [list "notation value \"$value\" incorrectly specified"]
     }
 }
-
+
 # sgml::ResolveEntity --
 #
 #	Default entity resolution routine

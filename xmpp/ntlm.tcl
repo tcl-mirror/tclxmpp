@@ -220,7 +220,7 @@ proc NTLM::parseType2Message {token args} {
     if {![string equal [string range $msg2 8 11] $NTLM(TYPE2_MARKER)]} {
         return -code error "Invalid NTLM message type (must be equal to 2)"
     }
-    
+
     # storing target name (NTLM realm)
     binary scan [string range $msg2 12 13] s target_len
     binary scan [string range $msg2 16 19] i target_offset
@@ -287,7 +287,7 @@ proc NTLM::type3Message {token} {
     } else {
         set lm_hash [LmHash $state(-password)]
         set lm_response [LmResponse $lm_hash $challenge]
-        
+
         set ntlm_hash [NtlmHash $state(-password)]
         set ntlm_response [LmResponse $ntlm_hash $challenge]
     }

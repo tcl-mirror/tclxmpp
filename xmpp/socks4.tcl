@@ -190,7 +190,7 @@ proc socks4::Response {token} {
         Finish $token $iconst($status)
         return
     }
-        
+
     # Read and parse port (2 bytes) and ip (4 bytes).
     if {[catch {read $sock 6} data] || [eof $sock]} {
         Finish $token network-failure

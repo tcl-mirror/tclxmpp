@@ -6,12 +6,12 @@
 #
 # Copyright (c) 2000 Zveno Pty Ltd
 # http://www.zveno.com/
-# 
+#
 # Zveno makes this software and all associated data and documentation
 # ('Software') available free of charge for any purpose.
 # Copies may be made of this Software but all of this notice must be included
 # on any copy.
-# 
+#
 # The Software was developed for research purposes and Zveno does not warrant
 # that it is error free or fit for any purpose.  Zveno disclaims any
 # liability for all claims, expenses, losses, damages and costs any user may
@@ -38,7 +38,7 @@ namespace eval xml {
     # Counter for generating unique names
     variable counter 0
 }
-
+
 # xml::configure --
 #
 #	Configure the xml package
@@ -50,7 +50,7 @@ namespace eval xml {
 #	None (not yet implemented)
 
 proc xml::configure args {}
-
+
 # xml::parserclass --
 #
 #	Implements the xml::parserclass command for managing
@@ -117,7 +117,7 @@ proc xml::parserclass {method args} {
 		    return [array names classes]
 		}
 		default {
-		    return $default 
+		    return $default
 		}
 	    }
 	}
@@ -129,7 +129,7 @@ proc xml::parserclass {method args} {
 
     return {}
 }
-
+
 # xml::parser --
 #
 #	Create a parser object instance
@@ -191,7 +191,7 @@ proc xml::parser {args} {
 
     return $parserName
 }
-
+
 # xml::FindUniqueName --
 #
 #	Generate unique object name
@@ -206,7 +206,7 @@ proc xml::FindUniqueName {} {
     variable counter
     return xmlparser[incr counter]
 }
-
+
 # xml::ParserCmd --
 #
 #	Implements parser object command
@@ -284,7 +284,7 @@ proc xml::ParserCmd {name method args} {
 
     return {}
 }
-
+
 # xml::noop --
 #
 #	Do nothing utility proc

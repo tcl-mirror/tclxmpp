@@ -229,60 +229,60 @@ proc Turn {jid gid xmlElements} {
     set move 0
     set draw 0
     foreach element $xmlElements {
-	::xmpp::xml::split $element tag xmlns attrs cdata subels
-	switch -- $tag {
-	    move {
-		set pos [::xmpp::xml::getAttr $attrs pos]
-		set poss [split $pos ";"]
-		if {[llength $poss] == 2} {
-		    set pos1 [split [lindex $poss 0] ,]
-		    set pos2 [split [lindex $poss 1] ,]
-		    if {[llength $pos1] == 2 && [llength $pos2] == 2} {
-			set cf [string map $map [lindex $pos1 0]]
-			set rf [lindex $pos1 1]
+        ::xmpp::xml::split $element tag xmlns attrs cdata subels
+        switch -- $tag {
+            move {
+                set pos [::xmpp::xml::getAttr $attrs pos]
+                set poss [split $pos ";"]
+                if {[llength $poss] == 2} {
+                    set pos1 [split [lindex $poss 0] ,]
+                    set pos2 [split [lindex $poss 1] ,]
+                    if {[llength $pos1] == 2 && [llength $pos2] == 2} {
+                        set cf [string map $map [lindex $pos1 0]]
+                        set rf [lindex $pos1 1]
                         incr rf
-			set ct [string map $map [lindex $pos2 0]]
-			set rt [lindex $pos2 1]
+                        set ct [string map $map [lindex $pos2 0]]
+                        set rt [lindex $pos2 1]
                         incr rt
-			set prom ""
-			foreach selement $subels {
-			    ::xmpp::xml::split $selement stag sxmlns sattrs \
+                        set prom ""
+                        foreach selement $subels {
+                            ::xmpp::xml::split $selement stag sxmlns sattrs \
                                                          scdata ssubels
-			    if {[string equal $stag promotion]} {
+                            if {[string equal $stag promotion]} {
                                 switch -- $scdata {
                                     queen  {set prom q}
                                     rook   {set prom r}
                                     bishop {set prom b}
                                     knight {set prom n}
                                 }
-			    }
-			}
-			set move 1
-		    }
-		}
-	    }
-	    resign {
-		WriteToChessEngine $jid $gid quit
-		return [list result [::xmpp::xml::create turn \
-                                             -xmlns games::board \
-					     -attrs [list type chess \
-						          id $gid]]]
-	    }
-	    accept {
-                # TODO
-		if {0} {
-		    WriteToChessEngine $jid $gid quit
-		    return [list result [::xmpp::xml::create turn \
-                                                 -xmlns games::board \
-					         -attrs [list type chess \
-						              id $gid]]]
-		} else {
-		    return {error modify not-acceptable}
-		}
+                            }
+                        }
+                        set move 1
+                    }
+                }
             }
-	    draw {
-		set draw 1
-	    }
+            resign {
+                WriteToChessEngine $jid $gid quit
+                return [list result [::xmpp::xml::create turn \
+                                             -xmlns games::board \
+                                             -attrs [list type chess \
+                                                          id $gid]]]
+            }
+            accept {
+                # TODO
+                if {0} {
+                    WriteToChessEngine $jid $gid quit
+                    return [list result [::xmpp::xml::create turn \
+                                                 -xmlns games::board \
+                                                 -attrs [list type chess \
+                                                              id $gid]]]
+                } else {
+                    return {error modify not-acceptable}
+                }
+            }
+            draw {
+                set draw 1
+            }
         }
     }
 
@@ -291,9 +291,9 @@ proc Turn {jid gid xmlElements} {
         if {$draw} {
             WriteToChessEngine $jid $gid draw
         }
-	return [list result [::xmpp::xml::create turn \
+        return [list result [::xmpp::xml::create turn \
                                      -xmlns games:board \
-				     -attrs [list type chess id $gid]]]
+                                     -attrs [list type chess id $gid]]]
     } else {
         return {error modify not-acceptable}
     }
@@ -327,9 +327,9 @@ proc CreateGame {xlib jid gid color} {
     }
 
     return [list result \
-		 [::xmpp::xml::create create \
+                 [::xmpp::xml::create create \
                           -xmlns games:board \
-			  -attrs [list type chess id $gid]]]
+                          -attrs [list type chess id $gid]]]
 }
 
 # Exists --
@@ -348,7 +348,7 @@ proc CreateGame {xlib jid gid color} {
 
 proc Exists {jid gid} {
     global games
-    
+
     return [info exists games([list $jid $gid])]
 }
 
@@ -383,18 +383,18 @@ proc ProcessGamesBoard {xlib from xmlElement args} {
 
     switch -- $tag {
         create {
-	    if {[::xmpp::xml::isAttr $attrs color]} {
-	        set color [::xmpp::xml::getAttr $attrs color]
-	        switch -- $color {
-		    white -
-		    black {}
-		    default {
-		        return {error modify bad-request}
-		    }
-	        }
-	    } else {
-	        set color white
-	    }
+            if {[::xmpp::xml::isAttr $attrs color]} {
+                set color [::xmpp::xml::getAttr $attrs color]
+                switch -- $color {
+                    white -
+                    black {}
+                    default {
+                        return {error modify bad-request}
+                    }
+                }
+            } else {
+                set color white
+            }
             if {[Exists $from $gid]} {
                 return {error modify bad-request}
             } else {

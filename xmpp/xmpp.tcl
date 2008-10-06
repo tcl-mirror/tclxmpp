@@ -22,7 +22,7 @@ package provide xmpp 0.1
 
 namespace eval ::xmpp {
     variable debug 0
-} 
+}
 
 ######################################################################
 
@@ -578,10 +578,10 @@ proc ::xmpp::disconnect {xlib} {
         default {
             set state(status) disconnecting
 
-	    catch {
+            catch {
                 closeStream $xlib
                 transport::use $state(transport) close
-	    }
+            }
 
             ClearState $xlib
         }
@@ -623,7 +623,7 @@ proc ::xmpp::ClearState {xlib} {
     array unset state sessionID
 
     # TraceStreamFeatures
-    array unset state features 
+    array unset state features
 }
 
 ######################################################################

@@ -366,7 +366,7 @@ proc ::xmpp::transport::poll::Poll {token text} {
     }
 
     if {$state(-usekeys)} {
-        # regenerate 
+        # regenerate
         set firstkey [lindex $state(keys) end]
         set secondkey ""
         if {[llength $state(keys)] == 1} {

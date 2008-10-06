@@ -65,7 +65,7 @@ proc ::pconnect::https::connect {sock addr port args} {
         -password   ""
         -useragent  ""
         async       0
-        status	    ""
+        status      ""
     }
     array set state [list   \
         addr        $addr \

@@ -68,7 +68,7 @@ proc ::pconnect::proxies {} {
 
 # ::pconnect::socket --
 #
-#       Client side socket through a proxy. 
+#       Client side socket through a proxy.
 #
 # Arguments:
 #       host:            the peer address, not SOCKS server

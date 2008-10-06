@@ -1,11 +1,11 @@
 #  dns.tcl --
-#  
+#
 #      This file is part of the XMPP library. It provides support for
 #      Jabber Client SRV DNS records (RFC 3920) and
 #      DNS TXT Resource Record Format (XEP-0156).
-#      
+#
 #  Copyright (c) 2006-2008 Sergei Golovan <sgolovan@nes.ru>
-#  
+#
 # $Id$
 #
 #  SYNOPSIS

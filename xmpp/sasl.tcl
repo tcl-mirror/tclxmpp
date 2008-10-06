@@ -44,12 +44,12 @@ namespace eval ::xmpp::sasl {
     }
 
     switch -- $saslpack {
-	tclsasl {
-	    sasl::client_init -callbacks {}
-	}
-	default {
-	    # empty
-	}
+        tclsasl {
+            sasl::client_init -callbacks {}
+        }
+        default {
+            # empty
+        }
     }
 
     # SASL error messages

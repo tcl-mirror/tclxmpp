@@ -8,23 +8,23 @@
 #
 # Copyright (c) 1998-2002 Zveno Pty Ltd
 # http://www.zveno.com/
-# 
+#
 # Zveno makes this software and all associated data and documentation
 # ('Software') available free of charge for any purpose.
 # Copies may be made of this Software but all of this notice must be included
 # on any copy.
-# 
+#
 # The Software was developed for research purposes and Zveno does not warrant
 # that it is error free or fit for any purpose.  Zveno disclaims any
 # liability for all claims, expenses, losses, damages and costs any user may
 # incur as a result of using, copying or modifying the Software.
 #
 # Copyright (c) 1997 Australian National University (ANU).
-# 
+#
 # ANU makes this software and all associated data and documentation
 # ('Software') available free of charge for any purpose. You may make copies
 # of the Software but you must include all of this notice on any copy.
-# 
+#
 # The Software was developed for research purposes and ANU does not warrant
 # that it is error free or fit for any purpose.  ANU disclaims any
 # liability for all claims, expenses, losses, damages and costs any user may
@@ -61,7 +61,7 @@ namespace eval xml::tclparser {
 	    -configurecommand [namespace code configure] \
 	    -deletecommand [namespace code delete]
 }
-
+
 # xml::tclparser::create --
 #
 #	Creates XML parser object.
@@ -99,7 +99,7 @@ proc xml::tclparser::create name {
 
     return $name
 }
-
+
 # xml::tclparser::createentityparser --
 #
 #	Creates XML parser object for an entity.
@@ -128,7 +128,7 @@ proc xml::tclparser::createentityparser {parent name} {
 
     return $name
 }
-
+
 # xml::tclparser::configure --
 #
 #	Configures a XML parser object.
@@ -183,7 +183,7 @@ proc xml::tclparser::configure {name args} {
 
     return {}
 }
-
+
 # xml::tclparser::parse --
 #
 #	Parses document instance data
@@ -263,13 +263,13 @@ proc xml::tclparser::parse {name xml args} {
 
     lappend tokenOptions  \
 	    -internaldtdvariable [namespace current]::${name}(internaldtd)
-    
+
     # Mats: If -final 0 we also need to maintain the state with a -statevariable !
     if {!$parser(-final)} {
 	eval lappend tokenOptions [array get parser -statevariable] \
 	  [array get parser -final]
     }
-    
+
     # Mats:
     # Why not the first four? Just padding? Lrange undos \n interp.
     # It is necessary to have the first four as well if chopped off in
@@ -283,7 +283,7 @@ proc xml::tclparser::parse {name xml args} {
 
     return {}
 }
-
+
 # xml::tclparser::ParseEmpty --  Tcl 8.1+ version
 #
 #	Used by parser to determine whether an element is empty.
@@ -311,7 +311,7 @@ proc xml::tclparser::ParseEmpty {tag attr e} {
 	}
     }
 }
-
+
 # xml::tclparser::ParseAttrs -- Tcl 8.1+ version
 #
 #	Parse element attributes.
@@ -326,7 +326,7 @@ proc xml::tclparser::ParseEmpty {tag attr e} {
 #	attrs	attribute string given in a tag
 #
 # Results:
-#	Returns a Tcl list representing the name-value pairs in the 
+#	Returns a Tcl list representing the name-value pairs in the
 #	attribute string
 #
 #	A ">" occurring in the attribute list causes problems when parsing
@@ -461,7 +461,7 @@ proc xml::tclparser::NormalizeAttValue:DeRef {opts ref} {
 	}
     }
 }
-
+
 # xml::tclparser::ParseEntity --
 #
 #	Parse general entity declaration
@@ -490,7 +490,7 @@ proc xml::tclparser::ParseEntity data {
 	return -code error "badly formed entity declaration"
     }
 }
-
+
 # xml::tclparser::delete --
 #
 #	Destroy parser data
@@ -507,7 +507,7 @@ proc xml::tclparser::delete name {
     catch {unset parser}
     return {}
 }
-
+
 # xml::tclparser::get --
 #
 #	Retrieve additional information from the parser
@@ -579,7 +579,7 @@ proc xml::tclparser::get {name method args} {
 
     return {}
 }
-
+
 # xml::tclparser::ExternalEntity --
 #
 #	Resolve and parse external entity

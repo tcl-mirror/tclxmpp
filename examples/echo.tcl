@@ -46,7 +46,7 @@ proc ProcessPacket {xlib xmlElement} {
     set tmp(to)   $from
     set tmp(from) $to
     set attrs [array get tmp]
-    
+
     set packet \
         [::xmpp::xml::merge $tag $xmlns $attrs $cdata $subels $nextCdata]
 

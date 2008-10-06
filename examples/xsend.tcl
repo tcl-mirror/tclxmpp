@@ -194,7 +194,7 @@ proc xsend::sendit {stayP to args} {
         set roster [::xmpp::roster::new $xlib]
         ::xmpp::roster::get $roster
     }
-    
+
     if {[string equal $options(-to) "-"]} {
         set options(-to) [::xmpp::roster::items $roster]
     }
@@ -224,7 +224,7 @@ proc xsend::sendit {stayP to args} {
                 eval $cmd [list "error writing to socket, continuing..."]
                 return 0
             }
-    
+
             default {}
         }
     }

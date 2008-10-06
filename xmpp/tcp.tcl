@@ -226,11 +226,11 @@ proc ::xmpp::transport::tcp::closeStream {token args} {
 
     # TODO
     if {1} {
-	::flush $state(sock)
+        ::flush $state(sock)
     } else {
-	fconfigure $state(sock) -blocking 1
-	::flush $state(sock)
-	vwait $token\(sock)
+        fconfigure $state(sock) -blocking 1
+        ::flush $state(sock)
+        vwait $token\(sock)
     }
 
     return $len

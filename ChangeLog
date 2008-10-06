@@ -1,3 +1,8 @@
+2008-10-06  Sergei Golovan  <sgolovan@nes.ru>
+
+	* */*: Removed spaces at the end of lines and expanded tabs in all
+	  sources (except TclXML code).
+
 2008-10-05  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/*, tclxml/*, xmpp/*: Initial version of XMPP client

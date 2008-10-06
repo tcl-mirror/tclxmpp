@@ -19,7 +19,7 @@ namespace eval ::xmpp::transport {
 
     # A list of registered XMPP transports (tcp, tls etc.)
     variable TransportsList {}
-} 
+}
 
 # ::xmpp::transport::list --
 #
@@ -155,7 +155,7 @@ proc ::xmpp::transport::unregister {transport} {
         return -code error \
                -errorinfo [::msgcat::mc "Unknown transport \"%s\"" $transport]
     } else {
-        set TransportsList [lreplace $TransportsList $idx $idx] 
+        set TransportsList [lreplace $TransportsList $idx $idx]
         unset $Transports($transport)
     }
 

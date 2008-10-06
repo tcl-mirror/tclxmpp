@@ -165,7 +165,7 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
     } else {
         foreach idx [lsort [array names IqCmd]] {
             foreach {pxlib ptype ptag pxmlns} $idx break
-        
+
             if {[string match $pxlib $xlib] && \
                     [string equal $ptype $type] && \
                     [string match $ptag $tag] && \

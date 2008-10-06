@@ -245,13 +245,13 @@ proc ::xmpp::transport::zlib::closeStream {token args} {
 
     # TODO
     if {1} {
-	::flush $state(sock)
-	fconfigure $state(sock) -finish output
+        ::flush $state(sock)
+        fconfigure $state(sock) -finish output
     } else {
-	fconfigure $state(sock) -blocking 1
-	::flush $state(sock)
-	fconfigure $state(sock) -finish output
-	vwait $token\(sock)
+        fconfigure $state(sock) -blocking 1
+        ::flush $state(sock)
+        fconfigure $state(sock) -finish output
+        vwait $token\(sock)
     }
 
     return $len
