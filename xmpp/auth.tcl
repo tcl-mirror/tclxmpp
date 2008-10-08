@@ -70,9 +70,10 @@ proc ::xmpp::auth::auth {xlib args} {
     variable $token
     upvar 0 $token state
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
-    array unset state
+    ::xmpp::Set $xlib abortCommand [namespace code [abort $token]]
+
     set state(xlib) $xlib
     set state(-digest)  1
     set timeout 0
@@ -201,7 +202,7 @@ proc ::xmpp::auth::AbortAuth {token status msg} {
 
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     ::xmpp::RemoveTraceStreamFeatures $xlib \
                                       [namespace code [list Continue $token]]
@@ -239,7 +240,7 @@ proc ::xmpp::auth::Continue {token featuresList} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $featuresList"
+    ::xmpp::Debug $xlib 2 "$token $featuresList"
 
     if {![FindFeature $featuresList]} {
         Finish $token error \
@@ -254,9 +255,9 @@ proc ::xmpp::auth::Continue {token featuresList} {
                     -subelement [::xmpp::xml::create username \
                                        -cdata $state(-username)]]
 
-    ::xmpp::client $xlib \
-                   status [::msgcat::mc "Waiting for non-SASL authentication\
-                                         fields"]
+    ::xmpp::CallBack $xlib \
+                     status [::msgcat::mc "Waiting for non-SASL \
+                                           authentication fields"]
 
     set state(id) \
         [::xmpp::sendIQ $xlib get \
@@ -315,7 +316,7 @@ proc ::xmpp::auth::Continue2 {token status xmldata} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $status"
+    ::xmpp::Debug $xlib 2 "$token $status"
 
     if {![string equal $status ok]} {
         Finish $token $status $xmldata
@@ -399,8 +400,9 @@ proc ::xmpp::auth::Continue2 {token status xmldata} {
         }
     }
 
-    ::xmpp::client $xlib status \
-                   [::msgcat::mc "Waiting for non-SASL authentication results"]
+    ::xmpp::CallBack $xlib status \
+                     [::msgcat::mc "Waiting for non-SASL authentication\
+                                    results"]
 
     set state(id) \
         [::xmpp::sendIQ $xlib set \
@@ -437,8 +439,10 @@ proc ::xmpp::auth::Finish {token status xmlData} {
         after cancel $state(afterid)
     }
 
+    ::xmpp::Unset $xlib abortCommand
+
     set jid [::xmpp::jid::jid $state(-username) \
-                              [::xmpp::server $xlib] \
+                              [::xmpp::Set $xlib server] \
                               $state(-resource)]
 
     # Cleanup in asynchronous mode
@@ -447,14 +451,16 @@ proc ::xmpp::auth::Finish {token status xmlData} {
         unset state
     }
 
-    ::xmpp::Debug 2 $xlib "$token $status $xmlData"
+    ::xmpp::Debug $xlib 2 "$token $status $xmlData"
 
     if {[string equal $status ok]} {
         set msg $jid
-        ::xmpp::client $xlib status [::msgcat::mc "Non-SASL authentication succeeded"]
+        ::xmpp::CallBack $xlib status \
+                         [::msgcat::mc "Non-SASL authentication succeeded"]
     } else {
         set msg [::xmpp::stanzaerror::message $xmlData]
-        ::xmpp::client $xlib status [::msgcat::mc "Non-SASL authentication failed"]
+        ::xmpp::CallBack $xlib status \
+                         [::msgcat::mc "Non-SASL authentication failed"]
     }
 
     if {[info exists cmd]} {

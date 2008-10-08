@@ -168,7 +168,7 @@ proc socks4::Response {token} {
     variable const
     variable iconst
 
-    Debug 2 "socks4::response"
+    Debug $token 2 ""
 
     set sock $state(sock)
     fileevent $sock readable {}
@@ -274,7 +274,7 @@ proc socks4::Finish {token {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "socks4::Finish token=$token, errormsg=$errormsg"
+    Debug $token 2 "$errormsg"
 
     catch {after cancel $state(timeoutid)}
 
@@ -305,8 +305,9 @@ proc socks4::Finish {token {errormsg ""}} {
 #       Prints debug information.
 #
 # Arguments:
-#       num        A debug level.
-#       str        A debug message.
+#       token       Token.
+#       num         Debug level.
+#       str         Debug message.
 #
 # Result:
 #       An empty string.
@@ -315,11 +316,14 @@ proc socks4::Finish {token {errormsg ""}} {
 #       A debug message is printed to the console if the value of
 #       https::debug variable is not less than num.
 
-proc socks4::Debug {num str} {
+proc socks4::Debug {token level str} {
     variable debug
-    if {$num <= $debug} {
-        puts $str
+
+    if {$debug >= $level} {
+        puts "[lindex [info level -1] 0] $token: $str"
     }
+
+    return
 }
 
 # Test

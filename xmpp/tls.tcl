@@ -19,7 +19,7 @@ package require xmpp::xml
 package provide xmpp::transport::tls 0.1
 
 namespace eval ::xmpp::transport::tls {
-    namespace export open abort close reset flush outXML outText \
+    namespace export open abort close reset flush ip outXML outText \
                      openStream closeStream import
 
     ::xmpp::transport::register tls \
@@ -28,6 +28,7 @@ namespace eval ::xmpp::transport::tls {
             -closeCommand       [namespace code close]       \
             -resetCommand       [namespace code reset]       \
             -flushCommand       [namespace code flush]       \
+            -ipCommand          [namespace code ip]          \
             -outXMLCommand      [namespace code outXML]      \
             -outTextCommand     [namespace code outText]     \
             -openStreamCommand  [namespace code openStream]  \
@@ -314,6 +315,13 @@ proc ::xmpp::transport::tls::flush {token} {
     upvar 0 $token state
 
     ::flush $state(sock)
+}
+
+proc ::xmpp::transport::tls::ip {token} {
+    variable $token
+    upvar 0 $token state
+
+    return [lindex [fconfigure $state(sock) -sockname] 0]
 }
 
 proc ::xmpp::transport::tls::close {token} {

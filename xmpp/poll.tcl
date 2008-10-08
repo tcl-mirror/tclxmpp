@@ -18,7 +18,7 @@ package require xmpp::xml
 package provide xmpp::transport::poll 0.1
 
 namespace eval ::xmpp::transport::poll {
-    namespace export open abort close reset flush outXML outText \
+    namespace export open abort close reset flush ip outXML outText \
                      openStream closeStream
 
     ::xmpp::transport::register poll \
@@ -27,6 +27,7 @@ namespace eval ::xmpp::transport::poll {
             -closeCommand       [namespace code close]      \
             -resetCommand       [namespace code reset]      \
             -flushCommand       [namespace code flush]      \
+            -ipCommand          [namespace code ip]      \
             -outXMLCommand      [namespace code outXML]     \
             -outTextCommand     [namespace code outText]    \
             -openStreamCommand  [namespace code openStream] \
@@ -108,7 +109,7 @@ proc ::xmpp::transport::poll::open {server port args} {
     }
 
     if {$state(-usekeys)} {
-        Debug 2 $token "generating keys"
+        Debug $token 2 "generating keys"
         set state(keys) [GenKeys $state(-numkeys)]
     }
 
@@ -189,6 +190,13 @@ proc ::xmpp::transport::poll::flush {token} {
     # TODO
 }
 
+proc ::xmpp::transport::tcp::ip {token} {
+    variable $token
+    upvar 0 $token state
+
+    return ""
+}
+
 proc ::xmpp::transport::poll::close {token} {
     variable $token
     upvar 0 $token state
@@ -262,7 +270,7 @@ proc ::xmpp::transport::poll::ProcessReply {token try query httpToken} {
     upvar #0 $httpToken httpState
 
     if {[::http::ncode $httpToken] != 200} {
-        Debug 1 $token "HTTP returned [::http::ncode $httpToken]\
+        Debug $token 1 "HTTP returned [::http::ncode $httpToken]\
                                       $httpState(status)"
 
         if {$try < 3} {
@@ -278,10 +286,10 @@ proc ::xmpp::transport::poll::ProcessReply {token try query httpToken} {
     foreach {name value} $httpState(meta) {
         if {[string equal -nocase $name Set-Cookie] && \
                             [regexp {^ID=([^;]*);?} $value -> match]} {
-            Debug 2 $token "Set-Cookie: $value -> $match"
+            Debug $token 2 "Set-Cookie: $value -> $match"
 
             if {[string match *:0 $match] || [string match *%3A0 $match]} {
-                Debug 1 $token "Cookie Error"
+                Debug $token 1 "Cookie Error"
 
                 SetWait $token disconnected
                 InEmpty $state(eofCmd)
@@ -298,7 +306,7 @@ proc ::xmpp::transport::poll::ProcessReply {token try query httpToken} {
     set inmsg [encoding convertfrom utf-8 $httpState(body)]
     ::http::cleanup $httpToken
 
-    Debug 2 $token '$inmsg'
+    Debug $token 2 '$inmsg'
 
     if {[string length $inmsg] > 5 } {
         set state(int) [expr {$state(int) / 2}]
@@ -328,7 +336,7 @@ proc ::xmpp::transport::poll::Poll {token text} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 $token '$text'
+    Debug $token 2 '$text'
 
     if {![info exists state(wait)]} {
         # Trying to poll an already disconnected connection
@@ -339,12 +347,12 @@ proc ::xmpp::transport::poll::Poll {token text} {
 
     switch -- $state(wait) {
         disconnected {
-            Debug 2 $token DISCONNECTED
+            Debug $token 2 DISCONNECTED
 
             return
         }
         disconnecting {
-            Debug 2 $token DISCONNECTING
+            Debug $token 2 DISCONNECTING
 
             if {[string equal $state(outdata) ""]} {
                 SetWait $token disconnected
@@ -353,11 +361,11 @@ proc ::xmpp::transport::poll::Poll {token text} {
         }
         waiting -
         polling {
-            Debug 2 $token RESCHEDULING
+            Debug $token 2 RESCHEDULING
 
             after cancel $state(id)
 
-            Debug 2 $token $state(int)
+            Debug $token 2 $state(int)
 
             set state(id) \
                 [after $state(int) [namespace code [list Poll $token ""]]]
@@ -370,7 +378,7 @@ proc ::xmpp::transport::poll::Poll {token text} {
         set firstkey [lindex $state(keys) end]
         set secondkey ""
         if {[llength $state(keys)] == 1} {
-            Debug 2 $token "regenerating keys"
+            Debug $token 2 "regenerating keys"
             set state(keys) [GenKeys $state(-numkeys)]
             set secondkey [lindex $state(keys) end]
         }
@@ -399,7 +407,7 @@ proc ::xmpp::transport::poll::Poll {token text} {
         }
     }
 
-    Debug 2 $token "query: '$query'"
+    Debug $token 2 "query: '$query'"
 
     GetURL $token 0 [encoding convertto utf-8 $query]
 
@@ -407,7 +415,7 @@ proc ::xmpp::transport::poll::Poll {token text} {
 
     after cancel $state(id)
 
-    Debug 2 $token $state(int)
+    Debug $token 2 $state(int)
 
     set state(id) \
         [after $state(int) [namespace code [list Poll $token ""]]]
@@ -418,7 +426,7 @@ proc ::xmpp::transport::poll::GetURL {token try query} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 $token $try
+    Debug $token 2 $try
 
     ::http::geturl $state(-url) \
                    -binary  1 \
@@ -451,8 +459,9 @@ proc ::xmpp::transport::poll::GenKeys {numKeys} {
 #       Prints debug information.
 #
 # Arguments:
-#       level   A debug level.
-#       str     A debug message.
+#       token   Transport token.
+#       level   Debug level.
+#       str     Debug message.
 #
 # Result:
 #       An empty string.
@@ -461,7 +470,7 @@ proc ::xmpp::transport::poll::GenKeys {numKeys} {
 #       A debug message is printed to the console if the value of
 #       ::xmpp::transport::poll::debug variable is not less than num.
 
-proc ::xmpp::transport::poll::Debug {level token str} {
+proc ::xmpp::transport::poll::Debug {token level str} {
     variable debug
 
     if {$debug >= $level} {

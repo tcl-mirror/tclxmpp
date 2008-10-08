@@ -21,26 +21,41 @@ package require xmpp::iq
 package provide xmpp 0.1
 
 namespace eval ::xmpp {
+
+    # Default debug level (0: no debug, 1: light debug, 2: heavy debug).
+
     variable debug 0
 }
 
-######################################################################
-
-proc ::xmpp::client {xlib command args} {
-    variable $xlib
-    upvar 0 $xlib state
-
-    Debug 2 $xlib "$command"
-
-    set cmd -${command}Command
-
-    if {[info exists state($cmd)]} {
-        uplevel #0 $state($cmd) [list $xlib] $args
-    }
-    return
-}
-
-######################################################################
+# ::xmpp::new --
+#
+#       Create a new XMPP token and assigns client callbacks for XMPP events.
+#
+# Arguments:
+#       token                   (optional, if missing then token is created
+#                               automatically, if present then it must be a
+#                               fully namespaced nonexistent variable) XMPP
+#                               token to create.
+#       -packetCommand     cmd  (optional) Command to call on every incoming
+#                               XMPP packet except stream errors.
+#       -messageCommand    cmd  (optional) Command to call on every XMPP
+#                               message packet (overrides -packetCommand).
+#       -presenceCommand   cmd  (optional) Command to call on every XMPP
+#                               presence packet (overrides -packetCommand).
+#       -disconnectCommand cmd  (optional) Command to call on forced disconnect
+#                               from XMPP server.
+#       -statusCommand     cmd  (optional) Command to call when XMPP connection
+#                               status is changed (e.g. after successful
+#                               authentication).
+#       -errorCommand      cmd  (optional) Command to call on XMPP stream error
+#                               packet.
+#
+# Result:
+#       XMPP token name or error if the supplied variable exists or illegal
+#       option is listed.
+#
+# Side effects:
+#       A new variable is created.
 
 proc ::xmpp::new {args} {
     variable id
@@ -74,10 +89,15 @@ proc ::xmpp::new {args} {
             -packetCommand -
             -messageCommand -
             -presenceCommand -
-            -reconnectCommand -
             -disconnectCommand -
             -statusCommand -
-            -errorMsgCommand {set attrs($key) $val}
+            -errorCommand {
+                set attrs($key) $val
+            }
+            default {
+                return -code error \
+                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+            }
         }
     }
 
@@ -110,19 +130,33 @@ proc ::xmpp::new {args} {
     RegisterElement $xlib features http://etherx.jabber.org/streams \
                     [namespace code [list ParseStreamFeatures $xlib]]
 
-    Debug 2 $xlib ""
+    Debug $xlib 2 ""
 
     return $xlib
 }
+
+# ::xmpp::free --
+#
+#       Destroy an existing XMPP token.
+#
+# Arguments:
+#       xlib            XMPP token to destroy.
+#
+# Result:
+#       Empty string or error if the token is still connected.
+#
+# Side effects:
+#       The variable which contains token state is destroyed.
 
 proc ::xmpp::free {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib ""
+    Debug $xlib 2 ""
 
     if {![status $xlib disconnected]} {
-        return -code error -errorinfo [::msgcat::mc "Free without disconnect"]
+        return -code error \
+               -errorinfo [::msgcat::mc "Free without disconnect"]
     }
 
     if {[info exists state(-messageCommand)]} {
@@ -142,18 +176,39 @@ proc ::xmpp::free {xlib} {
     return
 }
 
-proc ::xmpp::status {xlib {status ""}} {
-    variable $xlib
-    upvar 0 $xlib state
-
-    if {![info exists $xlib]} {
-        return ""
-    } elseif {![string equal $status ""]} {
-        return [string equal $state(status) $status]
-    } else {
-        return $state(status)
-    }
-}
+# ::xmpp::connect --
+#
+#       Connect to XMPP server.
+#
+# Arguments:
+#       xlib                    XMPP token.
+#       -transport transport    (optional, defaults to "tcp") Transport to use
+#                               when connecting to an XMPP server. May be one
+#                               of "tcp", "tls", "poll", "zlib" (though none of
+#                               the servers support zlib compressed sockets
+#                               without prior negotiating).
+#       -host hostname          (optional, defaults to "localhost") Server name
+#                               to connect. It isn't used when transport is
+#                               "poll".
+#       -port port              (optional, defaults to 5222) Port to connect.
+#                               It isn't used for "poll" transport.
+#       -command cmd            (optional) If present then the connection becomes
+#                               asynchronous and the command is called upon
+#                               connection success or failure. Otherwise the
+#                               connection is in synchronous mode.
+#       Other arguments are passed unchanged to corresponding transport open
+#       routine.
+#
+# Result:
+#       Empty string on success or error on failure in synchronous mode.
+#       Connection token to make it possible to abort connection in
+#       asynchronous mode.
+#
+# Side effects:
+#       A new connection to an XMPP server is started (or is opened). In
+#       synchronous mode connection status is set to "connected". In
+#       asynchronous mode an abort command is stored to be called if a user
+#       will decide to abort connection procedure.
 
 proc ::xmpp::connect {xlib args} {
     variable $xlib
@@ -174,10 +229,12 @@ proc ::xmpp::connect {xlib args} {
         }
     }
 
-    Debug 2 $xlib "$host $port $transport"
+    Debug $xlib 2 "$host $port $transport"
 
     if {![info exists cmd]} {
-        # Propagate error (if any) up
+        # TODO: Allow abortions in synchronous mode too.
+
+        # Propagate error (if any) up.
         set state(transport) \
             [eval [list transport::open $transport $host $port \
                         -streamHeaderCommand \
@@ -189,10 +246,11 @@ proc ::xmpp::connect {xlib args} {
                         -eofCommand \
                                 [namespace code [list EndOfFile $xlib]]] \
                         $argList]
+
         set state(status) connected
-        return $xlib
+        return
     } else {
-        set ttoken \
+        set token \
             [eval [list transport::open $transport $host $port \
                         -streamHeaderCommand \
                                 [namespace code [list GotStream $xlib ok]] \
@@ -205,31 +263,114 @@ proc ::xmpp::connect {xlib args} {
                         -command \
                                 [namespace code [list ConnectAux $xlib $cmd]]] \
                         $argList]
-        return $ttoken
+
+        set state(abortCommand) \
+            [namespace code [list transport::use $token abort]]
+        return $token
     }
 }
+
+# ::xmpp::ConnectAux --
+#
+#       A helper procedure which calls back with connection to XMPP server
+#       result.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       cmd             Callback to call.
+#       status          "ok", "error", "abort", or "timeout".
+#       msg             Transport token in case of success or error message in
+#                       case of failure.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A callback is called and a stored abort command is emptied (it is no
+#       longer needed as the connect procedure is finished).
 
 proc ::xmpp::ConnectAux {xlib cmd status msg} {
     variable $xlib
     upvar 0 $xlib state
 
+    unset state(abortCommand)
+
     if {[string equal $status ok]} {
         set state(transport) $msg
         set state(status) connected
-        uplevel #0 $cmd [list ok $xlib]
+        uplevel #0 $cmd [list ok ""]
     } else {
         uplevel #0 $cmd [list $status $msg]
     }
     return
 }
 
-######################################################################
+# ::xmpp::openStream --
+#
+#       Open XMPP stream over the already opened connection.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       server          XMPP server to which the stream is opened.
+#       -xmlns:stream ns (optional, defaults to
+#                       http://etherx.jabber.org/streams, if present must be
+#                       http://etherx.jabber.org/streams). XMLNS for stream
+#                       prefix.
+#       -xmlns xmlns    (optional, defaults to jabber:client) Stream default
+#                       XMLNS.
+#       -xml:lang lang  (optional, defaults to language from msgcat
+#                       preferences) Stream default xml:lang attribute.
+#       -version ver    (optional) Stream XMPP version. Must be "1.0" if any
+#                       XMPP feature is used (SASL, STARTTLS, stream
+#                       compression).
+#       -timeout num    (optional, defaults to 0 which means infinity) Timeout
+#                       after which the operation is finished with failure.
+#       -command cmd    (optional) If present then the stream opens in
+#                       asynchronous mode and the command "cmd" is called upon
+#                       success or failure. Otherwise the mode is synchronous.
+#
+# Result:
+#       The same as in [OpenStreamAux].
+#
+# Side effects:
+#       The same as in [OpenStreamAux]. Also, server state variable is set.
+
+proc ::xmpp::openStream {xlib server args} {
+    variable $xlib
+    upvar 0 $xlib state
+
+    Debug $xlib 2 "$server $args"
+
+    set state(server) $server
+
+    eval [list OpenStreamAux $xlib] $args
+}
+
+# ::xmpp::ReopenStream --
+#
+#       Reset underlying XML parser and reopen XMPP stream. This procedure
+#       is useful when changing transport (from tcp to tls or zlib) and
+#       when resetting stream after SASL authentication. It's never called
+#       by user directly.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       args            Additional arguments to pass to OpenStreamAux. They are
+#                       the same as for [openStream]. But usually the only
+#                       useful options are -command and -timeout.
+#
+# Result:
+#       The same as in [OpenStreamAux].
+#
+# Side effects:
+#       In addition to [OpenStreamAux] side effects, an XML parser in transport
+#       is reset.
 
 proc ::xmpp::ReopenStream {xlib args} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$args"
+    Debug $xlib 2 "$args"
 
     transport::use $state(transport) reset
 
@@ -242,23 +383,36 @@ proc ::xmpp::ReopenStream {xlib args} {
         set vargs {}
     }
 
-    eval [list openStream $xlib $state(server) \
-                                -xmlns:stream $state(-xmlns:stream) \
-                                -xmlns $state(-xmlns) \
-                                -xml:lang $state(-xml:lang)] $vargs $args
+    eval [list OpenStreamAux $xlib \
+                             -xmlns:stream $state(-xmlns:stream) \
+                             -xmlns $state(-xmlns) \
+                             -xml:lang $state(-xml:lang)] $vargs $args
 }
 
+# ::xmpp::OpenStreamAux --
+#
+#       A helper procedure which contains common code for opening and
+#       reopening XMPP streams.
+#
+# Arguments:
+#       The same as for openStream (except server which is taken from state
+#       variable).
+#
+# Result:
+#       Empty string in asynchronous mode, session id or error in synchronous
+#       mode.
+#
+# Side effects:
+#       Stream header is sent to an open channel. An abort command is stored
+#       to be called if a user will decide to abort stream opening procedure.
+#
 # Bugs:
 #       Only stream XMLNS http://etherx.jabber.org/streams is supported.
-#       Though there's no other defined stream XMLNS currently.
+#       On the other hand there's no other defined stream XMLNS currently.
 
-proc ::xmpp::openStream {xlib server args} {
+proc ::xmpp::OpenStreamAux {xlib args} {
     variable $xlib
     upvar 0 $xlib state
-
-    Debug 2 $xlib "$server $args"
-
-    set state(server) $server
 
     array set params [list -xmlns:stream http://etherx.jabber.org/streams \
                            -xmlns jabber:client \
@@ -301,12 +455,20 @@ proc ::xmpp::openStream {xlib server args} {
             [after $timeout [namespace code [list GotStream $xlib timeout {}]]]
     }
 
-    eval [list transport::use $state(transport) openStream $server] \
+    # Stream may be reopened inside STARTTLS, or compression, or SASL
+    # procedure, so set abort command only if it isn't defined already.
+
+    if {![info exists state(abortCommand)]} {
+        set state(abortCommand) \
+            [namespace code [list GotStream $xlib abort {}]]
+    }
+
+    eval [list transport::use $state(transport) openStream $state(server)] \
          [array get params]
 
     if {[info exists state(openStreamCommand)]} {
         # Asynchronous mode
-        return $xlib
+        return ""
     } else {
         # Synchronous mode
         vwait $xlib\(openStatus)
@@ -319,11 +481,29 @@ proc ::xmpp::openStream {xlib server args} {
     }
 }
 
+# ::xmpp::GotStream --
+#
+#       A helper procedure which is invoked when an incoming XMPP stream
+#       header is parsed by a transport. It finishes headers exchange.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       status          "ok", "abort", or "timeout".
+#       attrs           List of XMPP stream attributes.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A callback is called in asynchronous mode or [vwait] is triggered
+#       in synchronous mode. Also, a stored abort command is emptied (it is no
+#       longer needed as the connect procedure is finished).
+
 proc ::xmpp::GotStream {xlib status attrs} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$status $attrs"
+    Debug $xlib 2 "$status $attrs"
 
     if {[info exists state(openStreamCommand)]} {
         set cmd $state(openStreamCommand)
@@ -335,16 +515,39 @@ proc ::xmpp::GotStream {xlib status attrs} {
         unset state(streamAfterId)
     }
 
-    if {[string equal $status timeout]} {
-        set state(sessionID) [::msgcat::mc "Timeout while opening stream"]
-        # Trigger vwait in [openStream] in synchronous mode
-        set state(openStatus) $status
+    # Stream may be reopened inside STARTTLS, or compression, or SASL
+    # procedure, so unset abort command only if it was set in [openStream]
 
-        if {[info exists cmd]} {
-            # Invoke callback in asynchronous mode
-            uplevel #0 $cmd [list $status $state(sessionID)]
+    if {[string equal $state(abortCommand) \
+                      [namespace code [list GotStream $xlib abort {}]]]} {
+        unset state(abortCommand)
+    }
+
+    switch -- $status {
+        timeout {
+            set state(sessionID) [::msgcat::mc "Opening stream timed out"]
+
+            # Trigger vwait in [openStream] in synchronous mode
+            set state(openStatus) $status
+
+            if {[info exists cmd]} {
+                # Invoke callback in asynchronous mode
+                uplevel #0 $cmd [list $status $state(sessionID)]
+            }
+            return
         }
-        return
+        abort {
+            set state(sessionID) [::msgcat::mc "Opening stream aborted"]
+
+            # Trigger vwait in [openStream] in synchronous mode
+            set state(openStatus) $status
+
+            if {[info exists cmd]} {
+                # Invoke callback in asynchronous mode
+                uplevel #0 $cmd [list $status $state(sessionID)]
+            }
+            return
+        }
     }
 
     if {[xml::isAttr $attrs from]} {
@@ -365,12 +568,12 @@ proc ::xmpp::GotStream {xlib status attrs} {
 
     set sessionID [xml::getAttr $attrs id]
 
-    Debug 2 $xlib "server = $state(server), sessionID = $sessionID,\
+    Debug $xlib 2 "server = $state(server), sessionID = $sessionID,\
                    version = $version"
 
     if {$version < 1.0} {
         # Register iq-auth and iq-register namespaces to allow
-        # authenticate and register in-band on non-XMPP server
+        # authenticate and register in-band on pre-XMPP server
         ParseStreamFeatures $xlib \
             [xml::create features \
                   -xmlns http://etherx.jabber.org/streams \
@@ -395,14 +598,52 @@ proc ::xmpp::GotStream {xlib status attrs} {
     return
 }
 
-proc ::xmpp::server {xlib} {
+# ::xmpp::ParseStreamFeatures --
+#
+#       A helper procedure which is called when stream features are received.
+#       It stores features list (as a list of XML elements, because it may be
+#       a deep list) in a variable. This procedure is registered as a handler
+#       for features element in http://etherx.jabber.org/streams XMLNS in
+#       [new].
+#
+# Arguments:
+#       xlib            XMPP token.
+#       xmlElement      Features XML element to store.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Features list is stored in a state variable.
+
+proc ::xmpp::ParseStreamFeatures {xlib xmlElement} {
     variable $xlib
     upvar 0 $xlib state
 
-    return $state(server)
+    Debug $xlib 2 "$xmlElement"
+
+    xml::split $xmlElement tag xmlns attrs cdata subels
+
+    set state(features) $subels
+    return
 }
 
-######################################################################
+# ::xmpp::TraceStreamFeatures --
+#
+#       Call the specified command back if stream features are already
+#       received, or set a trace to call the command upon receiving them.
+#       Trace syntax is old-style to make it work in Tcl 8.3.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       cmd             Command to call.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       If stream features aren't received yet then a trace is added for
+#       variable state(features).
 
 proc ::xmpp::TraceStreamFeatures {xlib cmd} {
     variable $xlib
@@ -419,16 +660,49 @@ proc ::xmpp::TraceStreamFeatures {xlib cmd} {
     return
 }
 
+# ::xmpp::TraceStreamFeaturesAux --
+#
+#       A helper procedure which is called by a trace of state(features)
+#       variable. It in turn removes trace and calls a specified command back.
+#       Trace syntax is old-style to make it work in Tcl 8.3.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       cmd             Command to call.
+#       args            Arguments, added by trace.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Trace of state(features) variable is removed.
+
 proc ::xmpp::TraceStreamFeaturesAux {xlib cmd args} {
     variable $xlib
     upvar 0 $xlib state
 
-    trace vdelete $xlib\(features) w \
-          [namespace code [list TraceStreamFeaturesAux $xlib $cmd]]
+    RemoveTraceStreamFeatures $xlib $cmd
 
     uplevel #0 $cmd [list $state(features)]
     return
 }
+
+# ::xmpp::RemoveTraceStreamFeatures --
+#
+#       Remove trace of state(features) variable if it's set. This procedure
+#       may be called in case if it's needed to abort connection process, or
+#       in case when stream features are received (see
+#       [TraceStreamFeaturesAux]).
+#
+# Arguments:
+#       xlib            XMPP token.
+#       cmd             Command that was to be called.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Trace of state(features) is removed if it was set.
 
 proc ::xmpp::RemoveTraceStreamFeatures {xlib cmd} {
     variable $xlib
@@ -440,84 +714,153 @@ proc ::xmpp::RemoveTraceStreamFeatures {xlib cmd} {
     return
 }
 
-######################################################################
-
-proc ::xmpp::ParseStreamFeatures {xlib xmlElement} {
-    variable $xlib
-    upvar 0 $xlib state
-
-    Debug 2 $xlib "$xmlElement"
-
-    xml::split $xmlElement tag xmlns attrs cdata subels
-
-    set state(features) $subels
-    return
-}
+# ::xmpp::ParseStreamError --
+#
+#       A helper procedure which is called when stream error is received.
+#       It calls back error command (-errorCommand option in [new]) with
+#       appended error message. This procedure is registered as a handler
+#       for error element in http://etherx.jabber.org/streams XMLNS in [new].
+#
+# Arguments:
+#       xlib            XMPP token.
+#       xmlElement      Stream error XML element.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A client error callback is invoked.
 
 proc ::xmpp::ParseStreamError {xlib xmlElement} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$xmlElement"
+    Debug $xlib 2 "$xmlElement"
 
-    client $xlib errorMsg [streamerror::message $xmlElement]
+    CallBack $xlib error [streamerror::message $xmlElement]
     return
 }
 
-######################################################################
+# ::xmpp::SwitchTransport --
+#
+#       Switch XMPP transport. This procedure is helpful if STARTTLS or
+#       stream compression over TCP is used.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       transport       Transport name to switch to.
+#
+# Result:
+#       Empty string or error.
+#
+# Side effects:
+#       Transport is changed if it's possible.
 
 proc ::xmpp::SwitchTransport {xlib transport} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$transport"
+    Debug $xlib 2 "$transport"
 
     set state(transport) \
         [transport::switch $state(transport) $transport]
+    return
 }
 
-######################################################################
+# ::xmpp::outXML --
+#
+#       Output XML element to an XMPP channel.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       xmlElement      XML element to send.
+#
+# Result:
+#       Length of the sent textual XML representation.
+#
+# Side effects:
+#       XML element is sent to the server.
 
 proc ::xmpp::outXML {xlib xmlElement} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$xmlElement"
+    Debug $xlib 2 "[xml::toText $xmlElement]"
     ::LOG_OUTPUT_XML $xlib $xmlElement
 
     transport::use $state(transport) outXML $xmlElement
 }
 
+# ::xmpp::outText --
+#
+#       Output text string to an XMPP channel. If the text doesn't represent
+#       valid XML then server will likely disconnect the XMPP session.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       text            Text to send.
+#
+# Result:
+#       Length of the sent XML textual representation.
+#
+# Side effects:
+#       XML element is sent to the server.
+
 proc ::xmpp::outText {xlib text} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$text"
+    Debug $xlib 2 "$text"
     ::LOG_OUTPUT $xlib $text
 
     transport::use $state(transport) outText $xmlElement
 }
 
-######################################################################
+# ::xmpp::closeStream --
+#
+#       Close XMPP stream (usually by sending </stream:stream>).
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Length of the sent stream trailer.
+#
+# Side effects:
+#       XMPP stream trailer is sent to the server.
 
 proc ::xmpp::closeStream {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
     set msg [xml::streamTrailer]
-    Debug 2 $xlib "$msg"
+    Debug $xlib 2 "$msg"
     ::LOG_OUTPUT $xlib $msg
 
     transport::use $state(transport) closeStream
 }
 
-######################################################################
+# ::xmpp::EndOfParse --
+#
+#       A callback procedure which is called if end of stream is received from
+#       an XMPP server. If it's intentional (XMPP token is in disconnecting
+#       state) then do nothing, otherwise disconnect.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       In disconnected or disconnecting state none, otherwise ForcedDisconnect
+#       procedure is called.
 
 proc ::xmpp::EndOfParse {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib ""
+    Debug $xlib 2 ""
 
     switch -- $state(status) {
         disconnecting -
@@ -526,13 +869,31 @@ proc ::xmpp::EndOfParse {xlib} {
             after idle [namespace code [list ForcedDisconnect $xlib]]
         }
     }
+
+    return
 }
+
+# ::xmpp::EndOfFile --
+#
+#       A callback procedure which is called if an XMPP server has closed
+#       connection. If it's intentional (XMPP token is in disconnecting
+#       state) then do nothing, otherwise disconnect.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       In disconnected or disconnecting state none, otherwise ForcedDisconnect
+#       procedure is called.
 
 proc ::xmpp::EndOfFile {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib ""
+    Debug $xlib 2 ""
 
     switch -- $state(status) {
         disconnecting -
@@ -541,42 +902,87 @@ proc ::xmpp::EndOfFile {xlib} {
             after idle [namespace code [list ForcedDisconnect $xlib]]
         }
     }
+
+    return
 }
+
+# ::xmpp::ForcedDisconnect --
+#
+#       Disconnect from an XMPP server if this disconnect id forced by the
+#       server itself.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       In disconnected or disconnecting state none, otherwise this procedure
+#       aborts any pending operation, closes the XMPP channel, calls back
+#       "disconnect" client function and clears the token state.
 
 proc ::xmpp::ForcedDisconnect {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib ""
+    Debug $xlib 2 ""
 
     switch -- $state(status) {
         disconnecting -
         disconnected {}
         default {
             set state(status) disconnecting
+
+            if {[info exists state(abortCommand)]} {
+                uplevel #0 $state(abortCommand)
+                unset state(abortCommand)
+            }
 
             catch {
                 transport::use $state(transport) close
             }
 
-            client $xlib disconnect
+            CallBack $xlib disconnect
 
             ClearState $xlib
         }
     }
+
+    return
 }
+
+# ::xmpp::ForcedDisconnect --
+#
+#       Disconnect from an XMPP server.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       In disconnected or disconnecting state none, otherwise this procedure
+#       aborts any pending operation, closes the XMPP stream and channel, and
+#       clears the token state.
 
 proc ::xmpp::disconnect {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib ""
+    Debug $xlib 2 ""
 
     switch -- $state(status) {
         disconnecting -
         disconnected {}
         default {
             set state(status) disconnecting
+
+            if {[info exists state(abortCommand)]} {
+                uplevel #0 $state(abortCommand)
+                unset state(abortCommand)
+            }
 
             catch {
                 closeStream $xlib
@@ -588,13 +994,24 @@ proc ::xmpp::disconnect {xlib} {
     }
 }
 
-######################################################################
+#  ::xmpp::ClearState --
+#
+#       Clean XMPP token state.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       All pending IQ callbacks are called and state array is cleaned up.
 
 proc ::xmpp::ClearState {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib ""
+    Debug $xlib 2 ""
 
     foreach idx [array names state {iq *}] {
         set cmd $state($idx)
@@ -624,56 +1041,102 @@ proc ::xmpp::ClearState {xlib} {
 
     # TraceStreamFeatures
     array unset state features
+
+    # various
+    array unset state abortCommand
+
+    return
 }
 
-######################################################################
+# ::xmpp::RegisterElement --
+#
+#       Register callback for XMPP top-level stanza in a stream.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       tag             XML element tag pattern.
+#       xmlns           XMLNS pattern.
+#       cmd             Command to call when the top-level stanza in XMPP
+#                       stream matches tag ans XMLNS patterns.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Command is pushed to a stack of registered commands for given tag and
+#       XMLNS patterns.
 
 proc ::xmpp::RegisterElement {xlib tag xmlns cmd} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$tag $xmlns $cmd"
+    Debug $xlib 2 "$tag $xmlns $cmd"
 
-    if {![info exists state([list registered $tag $xmlns])]} {
-        set state([list registered $tag $xmlns]) {}
-    }
-    lappend state([list registered $tag $xmlns]) $cmd
+    lappend state(registered,$tag,$xmlns) $cmd
     return
 }
+
+# ::xmpp::UnregisterElement --
+#
+#       Unregister the last callback for XMPP top-level stanza in a stream.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       tag             XML element tag pattern.
+#       xmlns           XMLNS pattern.
+#
+# Result:
+#       Empty string. Error is raised if there wasn't a registered command for
+#       specified tag ans XMLNS patterns.
+#
+# Side effects:
+#       The last registered command is popped from a stack of registered
+#       commands for given tag and XMLNS patterns.
 
 proc ::xmpp::UnregisterElement {xlib tag xmlns} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$tag $xmlns"
+    Debug $xlib 2 "$tag $xmlns"
 
-    if {[info exists state([list registered $tag $xmlns])]} {
-        set state([list registered $tag $xmlns]) \
-            [lreplace $state([list registered $tag $xmlns]) end end]
-
-        if {[llength $state([list registered $tag $xmlns])] == 0} {
-            unset state([list registered $tag $xmlns])
-        }
-    }
+    set state(registered,$tag,$xmlns) \
+        [lreplace $state(registered,$tag,$xmlns) end end]
     return
 }
+
+# ::xmpp::ElementCommand --
+#
+#       Return the last registerd command for XMPP top-level stanza.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       tag             XML element tag.
+#       xmlns           XMLNS.
+#
+# Result:
+#       Command which was registered for specified tag and XMLNS if any.
+#       Otherwise a command which was registered for patterns which match tag
+#       and XMLNS if any. Otherwise an empty string.
+#
+# Side effects:
+#       None.
 
 proc ::xmpp::ElementCommand {xlib tag xmlns} {
     variable $xlib
     upvar 0 $xlib state
 
     # If there's an exact match, return it
-    if {[info exists state([list registered $tag $xmlns])]} {
-        return [lindex $state([list registered $tag $xmlns]) end]
+    if {[info exists state(registered,$tag,$xmlns)]} {
+        return [lindex $state(registered,$tag,$xmlns) end]
     }
 
     # Otherwise find matching indices
-    foreach idx [lsort [array names state {registered *}]] {
-        foreach {ptype ptag pxmlns} $idx break
+    foreach idx [lsort [array names state registered,*]] {
+        set fields [split $idx ,]
+        set ptag [lindex $fields 1]
+        set pxmlns [join [lrange $fields 2 end] ,]
 
-        if {[string equal $ptype registered] && \
-                [string match $ptag $tag] && \
-                [string match $pxmlns $xmlns]} {
+        if {[string match $ptag $tag] && [string match $pxmlns $xmlns]} {
             return [lindex $state($idx) end]
         }
     }
@@ -682,31 +1145,76 @@ proc ::xmpp::ElementCommand {xlib tag xmlns} {
     return
 }
 
-######################################################################
+# ::xmpp::Parse --
+#
+#       A callback procedure which is called when a top-level XMPP stanza is
+#       received. It in turn calls a procedure which parses and processes the
+#       stanza.
+#
+# Arguments:
+#       xlib            XMPP token
+#       xmlElement      Top-level XML stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A registered command for the xmlElement tag and XMLNS is called if any,
+#       or general "packet" callback is invoked.
 
 proc ::xmpp::Parse {xlib xmlElement} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$xmlElement"
+    Debug $xlib 2 "$xmlElement"
     ::LOG_INPUT_XML $xlib $xmlElement
 
     if {![info exists state(transport)]} {
-        Debug 1 $xlib "Connection doesn't exist"
+        Debug $xlib 1 "Connection doesn't exist"
         return -1
     }
 
     xml::split $xmlElement tag xmlns attrs cdata subels
 
     set cmd [ElementCommand $xlib $tag $xmlns]
-    if {[string length $cmd] > 0} {
+    if {![string equal $cmd ""]} {
         uplevel #0 $cmd [list $xmlElement]
         return
     }
 
-    client $xlib packet $xmlElement
+    CallBack $xlib packet $xmlElement
     return
 }
+
+# ::xmpp::ParseMessage --
+#
+#       Parse XMPP message and invoke "message" client callback. The callback
+#       must take the following arguments:
+#       (Mandatory)
+#           xlib                XMPP token.
+#           from                From JID.
+#           type                Message type ("", "error", "normal", "chat",
+#                               "groupchat", "headline").
+#           x                   Extra subelements (attachments).
+#       (Optional)
+#           -x keypairs         Key-valus pairs of extra attributes.
+#           -lang lang          xml:lang
+#           -to to              To JID (usually own JID).
+#           -id id              Stanza ID (string).
+#           -subject subject    Message subject (string).
+#           -thread thread      Message thread (string).
+#           -body body          Message body (string).
+#           -error error        Error stanza (XML element).
+#
+# Arguments:
+#       xlib            XMPP token
+#       xmlElement      XMPP <message/> stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A message callback is called if defined.
 
 proc ::xmpp::ParseMessage {xlib xmlElement} {
     variable $xlib
@@ -743,8 +1251,41 @@ proc ::xmpp::ParseMessage {xlib xmlElement} {
         }
     }
 
-    eval [list client $xlib message $from $type $x -x $xparam] $params
+    eval [list CallBack $xlib message $from $type $x -x $xparam] $params
+    return
 }
+
+# ::xmpp::ParsePresence --
+#
+#       Parse XMPP presence and invoke "presence" client callback. The callback
+#       must take the following arguments:
+#       (Mandatory)
+#           xlib                XMPP token.
+#           from                From JID.
+#           type                Presence type ("", "error", "unavailable",
+#                               "probe", "subscribe", "subscribed",
+#                               "unsubscribe", "unsubscribed").
+#           x                   Extra subelements (attachments).
+#       (Optional)
+#           -x keypairs         Key-valus pairs of extra attributes.
+#           -lang lang          xml:lang
+#           -to to              To JID (usually own JID).
+#           -id id              Stanza ID (string).
+#           -priority priority  Presence priority (number).
+#           -show show          Presence status (missing, "away", "chat", "dnd",
+#                               "xa").
+#           -status status      Presence extended status (string).
+#           -error error        Error stanza (XML element).
+#
+# Arguments:
+#       xlib            XMPP token
+#       xmlElement      XMPP <presence/> stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A presence callback is called if defined.
 
 proc ::xmpp::ParsePresence {xlib xmlElement} {
     variable $xlib
@@ -781,14 +1322,32 @@ proc ::xmpp::ParsePresence {xlib xmlElement} {
         }
     }
 
-    eval [list client $xlib presence $from $type $x -x $xparam] $params
+    eval [list CallBack $xlib presence $from $type $x -x $xparam] $params
+    return
 }
+
+# ::xmpp::ParseIQ --
+#
+#       Parse XMPP IQ. For get or set IQ type invoke [iq::process] command
+#       which will find and invoke the corresponding handler. For result or
+#       error IQ type find and call the callback stored in [sendIQ].
+#
+# Arguments:
+#       xlib            XMPP token
+#       xmlElement      XMPP <iq/> stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       An IQ handler or the callback specified when IQ was sent is called if
+#       defined.
 
 proc ::xmpp::ParseIQ {xlib xmlElement} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib $xmlElement
+    Debug $xlib 2 $xmlElement
 
     xml::split $xmlElement tag xmlns attrs cdata subels
 
@@ -805,13 +1364,13 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
             from     {set from $val}
             type     {set type $val}
             xml:lang {lappend params -lang $val}
-            id       {
-                set id $val
-                lappend params -id $val
-            }
             to       {
                 set to $val
                 lappend params -to $val
+            }
+            id       {
+                set id $val
+                lappend params -id $val
             }
             default  {lappend xparam $key $val}
         }
@@ -834,6 +1393,7 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
         set {
             eval [list iq::process $xlib $from $type \
                                    [lindex $subels 0]] $params
+            return
         }
         result {
             foreach from $pfrom {
@@ -846,7 +1406,7 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
                 }
             }
 
-            Debug 2 $xlib [::msgcat::mc "IQ id doesn't exists in memory"]
+            Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
             return
         }
         error {
@@ -869,31 +1429,54 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
                 }
             }
 
-            Debug 2 $xlib [::msgcat::mc "IQ id doesn't exists in memory"]
+            Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
             return
         }
         default {
-            Debug 2 $xlib [::msgcat::mc "Unknown IQ type \"%s\"" $type]
+            Debug $xlib 1 [::msgcat::mc "Unknown IQ type \"%s\"" $type]
             return
         }
     }
 }
 
-######################################################################
+# ::xmpp::sendMessage --
+#
+#       Send XMPP message.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       to              JID to send message to.
+#       -from from      From attribute (it's usually overwritten by server)
+#       -type type      Message type ("", "normal", "chat", "groupchat",
+#                       "headline", "error").
+#       -id id          Stanza ID.
+#       -subject subj   Message subject.
+#       -thread thread  Message thread.
+#       -body body      Message body.
+#       -error error    Error stanza.
+#       -xlist elements List of attachments.
+#
+# Result:
+#       Length of sent textual representation of message stanza. If negative
+#       then the operation is failed.
+#
+# Side effects:
+#       Presence stanza is set to a server.
+
 proc ::xmpp::sendMessage {xlib to args} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$to $args"
+    Debug $xlib 2 "$to $args"
 
     if {![info exists state(transport)]} {
-        Debug 1 $xlib "Connection doesn't exist"
+        Debug $xlib 1 "Connection doesn't exist"
         return -1
     }
 
     set attrs(to) $to
     set attrs(xml:lang) [xml::lang]
-    set subelements [list]
+    set subelements {}
 
     foreach {key val} $args {
         switch -- $key {
@@ -914,20 +1497,41 @@ proc ::xmpp::sendMessage {xlib to args} {
 
     set data [xml::create message -attrs [array get attrs] \
                                   -subelements $subelements]
-    ::LOG_OUTPUT_XML $xlib $data
-    outXML $xlib $data
-    return
+    return [outXML $xlib $data]
 }
 
-######################################################################
+# ::xmpp::sendPresence --
+#
+#       Send XMPP presence.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       -from from      From attribute (it's usually overwritten by server)
+#       -to to          JID to send message to.
+#       -type type      Presence type (missing, "unavailable", "probe", "subscribe",
+#                       "subscribed", "unsubscribe", "unsubscribed", "error").
+#       -id id          Stanza ID.
+#       -show show      Presence status (missing, "chat", "away", "xa", "dnd").
+#       -status status  Presence extended status.
+#       -priority prio  Presence priority (-128 <= prio <= 127).
+#       -error error    Error stanza.
+#       -xlist elements List of attachments.
+#
+# Result:
+#       Length of sent textual representation of presence stanza. If negative
+#       then the operation is failed.
+#
+# Side effects:
+#       Presence stanza is set to a server.
+
 proc ::xmpp::sendPresence {xlib args} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$args"
+    Debug $xlib 2 "$args"
 
     if {![info exists state(transport)]} {
-        Debug 1 $xlib "Connection doesn't exist"
+        Debug $xlib 1 "Connection doesn't exist"
         return -1
     }
 
@@ -954,18 +1558,39 @@ proc ::xmpp::sendPresence {xlib args} {
 
     set data [xml::create presence -attrs [array get attrs] \
                                    -subelements $subelements]
-    ::LOG_OUTPUT_XML $xlib $data
-    outXML $xlib $data
-    return
+    return [outXML $xlib $data]
 }
 
-######################################################################
+# ::xmpp::sendIQ --
+#
+#       Send XMPP IQ.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       type            IQ type ("get", "set", "result", "error").
+#       -from from      From attribute (it's usually overwritten by server)
+#       -to to          JID to send message to.
+#       -id id          Stanza ID.
+#       -command        Command to call when the result IQ will be received.
+#                       This option is allowed for "get" and "set" types only.
+#       -timeout num    Timeout for waiting an answer (in milliseconds).
+#       -query query    Query stanza.
+#       -error error    Error stanza.
+#
+# Result:
+#       Id of the sent stanza.
+#
+# Side effects:
+#       IQ stanza is set to a server. If it's a "get" or "set" stanza then
+#       depending on -command and -timeout options the command is stored for
+#       calling it back later, and the IQ abortion is scheduled.
+
 
 proc ::xmpp::sendIQ {xlib type args} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$type $args"
+    Debug $xlib 2 "$type $args"
 
     switch -- $type {
         get -
@@ -1027,13 +1652,13 @@ proc ::xmpp::sendIQ {xlib type args} {
     }
 
     if {![info exists state(transport)]} {
-        Debug 1 $xlib "Connection doesn't exist"
+        Debug $xlib 1 "Connection doesn't exist"
         if {[info exists cmd]} {
             uplevel #0 $cmd [list abort \
                                   [xml::create error \
                                         -cdata [::msgcat::mc "Disconnected"]]]
         }
-        return -1
+        return
     }
 
     if {[info exists cmd]} {
@@ -1048,8 +1673,15 @@ proc ::xmpp::sendIQ {xlib type args} {
     set data [xml::create iq -attrs [array get attrs] \
                              -subelements $subelements]
 
-    ::LOG_OUTPUT_XML $xlib $data
-    outXML $xlib $data
+    set res [outXML $xlib $data]
+
+    if {[info exists cmd] && $res < 0} {
+        unset state([list iq $attrs(id) $to])
+        uplevel #0 $cmd [list abort \
+                              [xml::create error \
+                                    -cdata [::msgcat::mc "Disconnected"]]]
+        
+    }
 
     if {$getset && [info exists attrs(id)]} {
         return $attrs(id)
@@ -1058,15 +1690,29 @@ proc ::xmpp::sendIQ {xlib type args} {
     }
 }
 
-######################################################################
-
-# status: abort, timeout
+# ::xmpp::abortIQ --
+#
+#       Abort a pending IQ request and call its pending command with a
+#       specified status.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       id              IQ identity attribute.
+#       status          "ok", "abort", "timeout", or "error".
+#       error           Error XML stanza. (If status is "ok" then error must be
+#                       a result stanza).
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Side effects from the called command.
 
 proc ::xmpp::abortIQ {xlib id status error} {
     variable $xlib
     upvar 0 $xlib state
 
-    Debug 2 $xlib "$id"
+    Debug $xlib 2 "$id"
 
     foreach idx [array names state [list iq $id *]] {
         set cmd $state($idx)
@@ -1074,29 +1720,124 @@ proc ::xmpp::abortIQ {xlib id status error} {
 
         uplevel #0 $cmd [list $status $error]
     }
+    return
 }
 
-######################################################################
+# ::xmpp::CallBack --
 #
-proc ::LOG {text} {
+#       Call a client callback procedure if it was defined in [new].
 #
-# For debugging purposes.
+# Arguments:
+#       xlib            XMPP token.
+#       command         Callback type.
+#       args            Arguments for callback.
 #
-    puts "LOG: $text\n"
+# Result:
+#       Empty string:
+#
+# Side effects:
+#       Side effects from the callback.
+
+proc ::xmpp::CallBack {xlib command args} {
+    variable $xlib
+    upvar 0 $xlib state
+
+    Debug $xlib 2 "$command"
+
+    set cmd -${command}Command
+
+    if {[info exists state($cmd)]} {
+        uplevel #0 $state($cmd) [list $xlib] $args
+    }
+    return
 }
 
-proc ::LOG_OUTPUT      {connid t} {}
-proc ::LOG_OUTPUT_XML  {connid x} {}
-proc ::LOG_OUTPUT_SIZE {connid x size} {}
-proc ::LOG_INPUT       {connid t} {}
-proc ::LOG_INPUT_XML   {connid x} {}
-proc ::LOG_INPUT_SIZE  {connid x size} {}
+# ::xmpp::Set --
+#
+#       Set the specified XMPP token property or get it value.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       property        Property to set or get.
+#       value           (optional) If present then state variable is set.
+#                       If missing then its value is returned.
+#
+# Result:
+#       Value of a corresponding state variable.
+#
+# Side effects:
+#       If value is present then variable state($property) is set.
+
+proc ::xmpp::Set {xlib property args} {
+    variable $xlib
+    upvar 0 $xlib state
+
+    switch -- [llength $args] {
+        0 {
+            return $state($property)
+        }
+        1 {
+            return [set state($property) [lindex $args 0]]
+        }
+        default {
+            return -code error \
+                   -errorcode [::msgcat::mc "Usage: ::xmpp::Set xlib\
+                                             property ?value?"]
+        }
+    }
+}
+
+# ::xmpp::Unset --
+#
+#       Unset the specified XMPP token property.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       property        Property to unset.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Variable state($property) is unset.
+
+
+proc ::xmpp::Unset {xlib property} {
+    variable $xlib
+    upvar 0 $xlib state
+
+    catch {unset state($property)}
+    return
+}
+
+# ::xmpp::ip --
+#
+#       Return IP of low level TCP socket.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Socket IP or empty string.
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::ip {xlib} {
+    variable $xlib
+    upvar 0 $xlib state
+
+    Debug $xlib 2 ""
+
+    return [transport::use $state(transport) ip]
+}
 
 # ::xmpp::Debug --
 #
 #       Prints debug information.
 #
 # Arguments:
+#       xlib    XMPP token.
 #       level   A debug level.
 #       str     A debug message.
 #
@@ -1107,7 +1848,7 @@ proc ::LOG_INPUT_SIZE  {connid x size} {}
 #       A debug message is printed to the console if the value of
 #       ::xmpp::debug variable is not less than num.
 
-proc ::xmpp::Debug {level xlib str} {
+proc ::xmpp::Debug {xlib level str} {
     variable debug
 
     if {$debug >= $level} {
@@ -1118,18 +1859,12 @@ proc ::xmpp::Debug {level xlib str} {
 }
 
 ######################################################################
-######################################################################
-######################################################################
 
-proc ::xmpp::socket_ip {connid} {
-    variable lib
-
-    if {[info exists lib($connid,sck)] && \
-        ![catch {fconfigure $lib($connid,sck) -sockname} sock]} {
-        return [lindex $sock 0]
-    } else {
-        return ""
-    }
-}
+proc ::LOG_OUTPUT      {xlib t} {}
+proc ::LOG_OUTPUT_XML  {xlib x} {}
+proc ::LOG_OUTPUT_SIZE {xlib x size} {}
+proc ::LOG_INPUT       {xlib t} {}
+proc ::LOG_INPUT_XML   {xlib x} {}
+proc ::LOG_INPUT_SIZE  {xlib x size} {}
 
 # vim:ts=8:sw=4:sts=4:et

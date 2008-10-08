@@ -62,9 +62,10 @@ proc ::xmpp::component::auth {xlib args} {
     variable $token
     upvar 0 $token state
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
-    array unset state
+    ::xmpp::Set $xlib abortCommand [namespace code [abort $token]]
+
     set state(xlib) $xlib
     set timeout 0
 
@@ -115,10 +116,10 @@ proc ::xmpp::component::auth {xlib args} {
     set digest [sha1::sha1 $secret]
     set data [::xmpp::xml::create handshake -cdata $digest]
 
-    ::xmpp::Debug 2 $xlib "$token digest = $digest"
+    ::xmpp::Debug $xlib 2 "$token digest = $digest"
 
-    ::xmpp::client $xlib status \
-                   [::msgcat::mc "Waiting for component handshake result"]
+    ::xmpp::CallBack $xlib status \
+                     [::msgcat::mc "Waiting for component handshake result"]
 
     ::xmpp::outXML $xlib $data
 
@@ -189,7 +190,7 @@ proc ::xmpp::component::AbortAuth {token status msg} {
 
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     if {[info exists $xlib]} {
         Finish $token $status $msg
@@ -218,7 +219,7 @@ proc ::xmpp::component::Parse {token xmlElement} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $xmlElement"
+    ::xmpp::Debug $xlib 2 "$token $xmlElement"
 
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
@@ -261,20 +262,22 @@ proc ::xmpp::component::Finish {token status msg} {
         after cancel $state(afterid)
     }
 
+    ::xmpp::Unset $xlib abortCommand
+
     # Cleanup in asynchronous mode
     if {[info exists state(-command)]} {
         set cmd $state(-command)
         unset state
     }
 
-    ::xmpp::Debug 2 $xlib "$token $status"
+    ::xmpp::Debug $xlib 2 "$token $status"
 
     if {[string equal $status ok]} {
-        ::xmpp::client $xlib status \
-                       [::msgcat::mc "Component handshake succeeded"]
+        ::xmpp::CallBack $xlib status \
+                         [::msgcat::mc "Component handshake succeeded"]
     } else {
-        ::xmpp::client $xlib status \
-                       [::msgcat::mc "Component handshake failed"]
+        ::xmpp::CallBack $xlib status \
+                         [::msgcat::mc "Component handshake failed"]
     }
 
     # Unregister elements after handshake

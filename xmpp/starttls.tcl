@@ -27,9 +27,10 @@ proc ::xmpp::starttls::starttls {xlib args} {
     variable $token
     upvar 0 $token state
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
-    array unset state
+    ::xmpp::Set $xlib abortCommand [namespace code [abort $token]]
+
     set state(xlib) $xlib
     set state(tlsArgs) {}
     set timeout 0
@@ -142,9 +143,12 @@ proc ::xmpp::starttls::AbortStarttls {token status msg} {
 
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
-    # TODO: abort stream reopening
+    if {[info exists state(reopenStream)]} {
+        ::xmpp::GotStream $xlib abort {}
+        return
+    }
 
     ::xmpp::RemoveTraceStreamFeatures $xlib \
                                 [namespace code [list Continue $token]]
@@ -159,7 +163,7 @@ proc ::xmpp::starttls::Continue {token featuresList} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     set starttlsFeature 0
     foreach feature $featuresList {
@@ -191,7 +195,7 @@ proc ::xmpp::starttls::Parse {token xmlElement} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
@@ -212,7 +216,7 @@ proc ::xmpp::starttls::Proceed {token} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     eval [list ::xmpp::SwitchTransport $xlib tls] $state(tlsArgs)
 
@@ -224,9 +228,26 @@ proc ::xmpp::starttls::Proceed {token} {
     #    return
     #}
 
-    ::xmpp::ReopenStream $state(xlib) -command #
+    set state(reopenStream) \
+        [::xmpp::ReopenStream $xlib \
+                              -command [namespace code [list Reopened $token]]]
+    return
+}
 
-    Finish $token ok {}
+proc ::xmpp::starttls::Reopened {token status sessionid} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    unset state(reopenStream)
+
+    ::xmpp::Debug $xlib 2 "$token $status $sessionid"
+
+    if {[string equal $status $ok]} {
+        Finish $token ok {}
+    } else {
+        Finish $token $status [::xmpp::xml::create error -cdata $sessionid]
+    }
 }
 
 ##########################################################################
@@ -236,7 +257,7 @@ proc ::xmpp::starttls::Failure {token xmlElements} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     set error [lindex $xmlElements 0]
     if {[string equal $error ""]} {
@@ -260,7 +281,9 @@ proc ::xmpp::starttls::Finish {token status xmlData} {
         after cancel $state(afterid)
     }
 
-    ::xmpp::Debug 2 $xlib "$token $status"
+    ::xmpp::Unset $xlib abortCommand
+
+    ::xmpp::Debug $xlib 2 "$token $status"
 
     ::xmpp::UnregisterElement $xlib * urn:ietf:params:xml:ns:xmpp-tls
 
@@ -272,10 +295,10 @@ proc ::xmpp::starttls::Finish {token status xmlData} {
 
     if {[string equal $status ok]} {
         set msg ""
-        ::xmpp::client $xlib status [::msgcat::mc "STARTTLS successful"]
+        ::xmpp::CallBack $xlib status [::msgcat::mc "STARTTLS successful"]
     } else {
         set msg [::xmpp::stanzaerror::message $xmlData]
-        ::xmpp::client $xlib status [::msgcat::mc "STARTTLS failed"]
+        ::xmpp::CallBack $xlib status [::msgcat::mc "STARTTLS failed"]
     }
 
     if {[info exists cmd]} {

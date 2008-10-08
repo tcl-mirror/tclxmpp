@@ -7,21 +7,6 @@
 #  Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
 #
 # $Id$
-#
-# SYNOPSIS
-#   jlibsasl::new connid args
-#       creates auth token
-#       args:
-#             -username    username
-#             -server      server
-#             -resource    resource
-#             -password    password
-#             -allow_plain boolean
-#             -command     callback
-#
-#   token auth args
-#       starts authenticating procedure
-#       args: the same as in jlibsasl::new
 
 package require base64
 package require xmpp::stanzaerror
@@ -83,10 +68,12 @@ proc ::xmpp::sasl::auth {xlib args} {
     variable $token
     upvar 0 $token state
 
-    ::xmpp::Debug 2 $xlib $token
+    ::xmpp::Debug $xlib 2 $token
+
+    ::xmpp::Set $xlib abortCommand [namespace code [abort $token]]
 
     set state(xlib) $xlib
-    set state(-server)  [::xmpp::server $xlib]
+    set state(-server)  [::xmpp::Set $xlib server]
     set state(-digest)  1
     set state(-disable) {}
     set timeout 0
@@ -288,13 +275,17 @@ proc ::xmpp::sasl::abort {token} {
 proc ::xmpp::sasl::AbortAuth {token status msg} {
     variable $token
     upvar 0 $token state
-    set xlib $state(xlib)
 
     if {![info exists state(xlib)]} return
 
-    ::xmpp::Debug 2 $xlib "$token"
+    set xlib $state(xlib)
 
-    # TODO: abort stream reopening
+    ::xmpp::Debug $xlib 2 "$token"
+
+    if {[info exists state(reopenStream)]} {
+        ::xmpp::GotStream $xlib abort {}
+        return
+    }
 
     ::xmpp::RemoveTraceStreamFeatures $xlib \
                                 [namespace code [list AuthContinue $token]]
@@ -338,7 +329,7 @@ proc ::xmpp::sasl::AuthContinue {token featuresList} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $featuresList"
+    ::xmpp::Debug $xlib 2 "$token $featuresList"
 
     if {[catch {FindMechanisms $featuresList} mechanisms]} {
         Finish $token error \
@@ -348,7 +339,7 @@ proc ::xmpp::sasl::AuthContinue {token featuresList} {
         return
     }
 
-    ::xmpp::Debug 2 $xlib "$token mechs: $mechanisms"
+    ::xmpp::Debug $xlib 2 "$token mechs: $mechanisms"
 
     switch -- $saslpack {
         tclsasl {
@@ -385,7 +376,7 @@ proc ::xmpp::sasl::AuthContinue {token featuresList} {
         }
     }
 
-    ::xmpp::Debug 2 $xlib "$token SASL code $code: $result"
+    ::xmpp::Debug $xlib 2 "$token SASL code $code: $result"
 
     switch -- $code {
         0 -
@@ -500,7 +491,7 @@ proc ::xmpp::sasl::Step {token serverin64} {
         }
     }
 
-    ::xmpp::Debug 2 $xlib "$token SASL code $code: $result"
+    ::xmpp::Debug $xlib 2 "$token SASL code $code: $result"
 
     switch -- $code {
         0 -
@@ -526,7 +517,7 @@ proc ::xmpp::sasl::TclsaslCallback {token data} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $data"
+    ::xmpp::Debug $xlib 2 "$token $data"
 
     array set params $data
 
@@ -573,7 +564,7 @@ proc ::xmpp::sasl::TcllibCallback {token stoken command args} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $stoken $command"
+    ::xmpp::Debug $xlib 2 "$token $stoken $command"
 
     switch -- $command {
         login {
@@ -620,7 +611,7 @@ proc ::xmpp::sasl::Interact {token data} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $data"
+    ::xmpp::Debug $xlib 2 "$token $data"
     # empty
 }
 
@@ -631,7 +622,7 @@ proc ::xmpp::sasl::Failure {token xmlElements} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     set error [lindex $xmlElements 0]
     if {$error == ""} {
@@ -650,7 +641,7 @@ proc ::xmpp::sasl::Success {token} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     # XMPP core section 6.2:
     # Upon receiving the <success/> element,
@@ -659,11 +650,31 @@ proc ::xmpp::sasl::Success {token} {
     # necessary to send a closing </stream> tag first...
     # Moreover, some servers (ejabberd) won't work if stream is closed.
 
-    # TODO: Add a real -command
-    ::xmpp::ReopenStream $xlib -command #
+    set state(reopenStream) \
+        [::xmpp::ReopenStream $xlib \
+                              -command [namespace code [list Reopened $token]]]
+    return
+}
+
+##########################################################################
+
+proc ::xmpp::sasl::Reopened {token status sessionid} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    unset state(reopenStream)
+
+    ::xmpp::Debug $xlib 2 "$token $status $sessionid"
+
+    if {![string equal $status ok]} {
+        Finish $token $status [::xmpp::xml::create error -cdata $sessionid]
+        return
+    }
 
     ::xmpp::TraceStreamFeatures $xlib \
                     [namespace code [list ResourceBind $token]]
+    return
 }
 
 ##########################################################################
@@ -733,7 +744,7 @@ proc ::xmpp::sasl::SendSession {token status xmlData} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$xmlData"
+    ::xmpp::Debug $xlib 2 "$xmlData"
 
     switch -- $status {
         ok {
@@ -775,6 +786,8 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
         after cancel $state(afterid)
     }
 
+    ::xmpp::Unset $xlib abortCommand
+
     if {[info exists state(jid)]} {
         set jid $state(jid)
     } elseif {[info exists state(-username)]} {
@@ -785,7 +798,7 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
         set jid $state(-domain)
     }
 
-    ::xmpp::Debug 2 $xlib "$status"
+    ::xmpp::Debug $xlib 2 "$status"
 
     ::xmpp::UnregisterElement $xlib * urn:ietf:params:xml:ns:xmpp-sasl
     ::xmpp::UnregisterElement $xlib iq *
@@ -809,10 +822,10 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
 
     if {[string equal $status ok]} {
         set msg $jid
-        ::xmpp::client $xlib status [::msgcat::mc "Authentication succeeded"]
+        ::xmpp::CallBack $xlib status [::msgcat::mc "Authentication succeeded"]
     } else {
         set msg [::xmpp::stanzaerror::message $xmlData]
-        ::xmpp::client $xlib status [::msgcat::mc "Authentication failed"]
+        ::xmpp::CallBack $xlib status [::msgcat::mc "Authentication failed"]
     }
 
     if {[info exists cmd]} {

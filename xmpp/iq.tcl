@@ -102,7 +102,7 @@ proc ::xmpp::iq::RegisterIQ {xlib type tag xmlns cmd} {
         }
     }
 
-    set IqCmd([list $xlib $type $tag $xmlns]) $cmd
+    set IqCmd($xlib,$type,$tag,$xmlns) $cmd
 
     # TODO: Work with patterns
     if {[string equal $xmlns *]} return
@@ -119,11 +119,11 @@ proc ::xmpp::iq::UnregisterIQ {xlib type tag xmlns} {
     variable IqCmd
     variable SupportedNS
 
-    if {![info exists IqCmd([list $xlib $type $tag $xmlns])]} {
+    if {![info exists IqCmd($xlib,$type,$tag,$xmlns)]} {
         return
     }
 
-    unset IqCmd([list $xlib $type $tag $xmlns])
+    unset IqCmd($xlib,$type,$tag,$xmlns)
 
     if {![info exists SupportedNS($xlib)]} return
 
@@ -160,32 +160,30 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
 
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
-    if {[info exists IqCmd([list * $type $tag $xmlns])]} {
-        set cmd $IqCmd([list * $type $tag $xmlns])
+    if {[info exists IqCmd(*,$type,$tag,$xmlns])]} {
+        set cmd $IqCmd(*,$type,$tag,$xmlns])
     } else {
-        foreach idx [lsort [array names IqCmd]] {
-            foreach {pxlib ptype ptag pxmlns} $idx break
+        foreach idx [lsort [array names IqCmd \\*,$type,*]] {
+            set fields [split $idx ,]
+            set ptag [lindex $fields 2]
+            set pxmlns [join [lrange $fields 3 end] ,]
 
-            if {[string match $pxlib $xlib] && \
-                    [string equal $ptype $type] && \
-                    [string match $ptag $tag] && \
-                    [string match $pxmlns $xmlns]} {
+            if {[string match $ptag $tag] && [string match $pxmlns $xmlns]} {
                 set cmd $IqCmd($idx)
                 break
             }
         }
     }
 
-    if {[info exists IqCmd([list $xlib $type $tag $xmlns])]} {
-        set cmd $IqCmd([list $xlib $type $tag $xmlns])
+    if {[info exists IqCmd($xlib,$type,$tag,$xmlns)]} {
+        set cmd $IqCmd($xlib,$type,$tag,$xmlns)
     } else {
-        foreach idx [lsort [array names IqCmd]] {
-            foreach {pxlib ptype ptag pxmlns} $idx break
+        foreach idx [lsort [array names IqCmd $xlib,$type,*]] {
+            set fields [split $idx ,]
+            set ptag [lindex $fields 2]
+            set pxmlns [join [lrange $fields 3 end] ,]
 
-            if {[string equal $pxlib $xlib] && \
-                    [string equal $ptype $type] && \
-                    [string match $ptag $tag] && \
-                    [string match $pxmlns $xmlns]} {
+            if {[string match $ptag $tag] && [string match $pxmlns $xmlns]} {
                 set cmd $IqCmd($idx)
                 break
             }
@@ -195,7 +193,7 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
     set id [::xmpp::xml::getAttr $args -id]
 
     if {![info exists cmd]} {
-        ::xmpp::Debug 2 $xlib "unsupported $from $id $xmlns"
+        ::xmpp::Debug $xlib 2 "unsupported $from $id $xmlns"
         ::xmpp::sendIQ $xlib error \
                        -query $xmlElement \
                        -error [::xmpp::stanzaerror::error \
@@ -207,14 +205,14 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
 
         switch -- [lindex $status 0] {
             result {
-                ::xmpp::Debug 2 $xlib "result $from $id $xmlns"
+                ::xmpp::Debug $xlib 2 "result $from $id $xmlns"
                 ::xmpp::sendIQ $xlib result \
                                -query [lindex $status 1] \
                                -to $from \
                                -id $id
             }
             error {
-                ::xmpp::Debug 2 $xlib "error $from $id $xmlns"
+                ::xmpp::Debug $xlib 2 "error $from $id $xmlns"
                 ::xmpp::sendIQ $xlib error \
                                -query $xmlElement \
                                -error [eval ::xmpp::stanzaerror::error \
@@ -223,7 +221,7 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
                                -id $id
             }
             ignore {
-                ::xmpp::Debug 2 $xlib "ignore $from $id $xmlns"
+                ::xmpp::Debug $xlib 2 "ignore $from $id $xmlns"
                 # Do nothing, the request is supposed to be replied separately
             }
         }

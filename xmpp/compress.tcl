@@ -41,7 +41,9 @@ proc ::xmpp::compress::compress {xlib args} {
     variable $token
     upvar 0 $token state
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
+
+    ::xmpp::Set $xlib abortCommand [namespace code [abort $token]]
 
     set state(xlib) $xlib
     set timeout 0
@@ -142,9 +144,12 @@ proc ::xmpp::compress::AbortCompression {token status msg} {
 
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
-    # TODO: abort stream reopening
+    if {[info exists state(reopenStream)]} {
+        ::xmpp::GotStream $xlib abort {}
+        return
+    }
 
     ::xmpp::RemoveTraceStreamFeatures $xlib \
                                 [namespace code [list Continue $token]]
@@ -178,7 +183,7 @@ proc ::xmpp::compress::Continue {token featuresList} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $featuresList"
+    ::xmpp::Debug $xlib 2 "$token $featuresList"
 
     if {[catch {FindMethods $featuresList} methods]} {
         Finish $token error \
@@ -188,7 +193,7 @@ proc ::xmpp::compress::Continue {token featuresList} {
         return
     }
 
-    ::xmpp::Debug 2 $xlib "$token methods: $methods"
+    ::xmpp::Debug $xlib 2 "$token methods: $methods"
 
     foreach m $SupportedMethods {
         if {[lsearch -exact $methods $m] >= 0} {
@@ -248,7 +253,7 @@ proc ::xmpp::compress::Failure {token xmlElements} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     set error [lindex $xmlElements 0]
     if {[string equal $error ""]} {
@@ -268,14 +273,30 @@ proc ::xmpp::compress::Compressed {token} {
     upvar 0 $token state
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token"
+    ::xmpp::Debug $xlib 2 "$token"
 
     ::xmpp::SwitchTransport $xlib $state(method)
 
-    # TODO: Add a real -command
-    ::xmpp::ReopenStream $xlib -command #
+    set state(reopenStream) \
+        [::xmpp::ReopenStream $xlib \
+                              -command [namespace code [list Reopened $token]]]
+    return
+}
 
-    Finish $token ok {}
+proc ::xmpp::compress::Reopened {token status sessionid} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    unset state(reopenStream)
+
+    ::xmpp::Debug $xlib 2 "$token $status $sessionid"
+
+    if {[string equal $status $ok]} {
+        Finish $token ok {}
+    } else {
+        Finish $token $status [::xmpp::xml::create error -cdata $sessionid]
+    }
 }
 
 ##########################################################################
@@ -289,6 +310,8 @@ proc ::xmpp::compress::Finish {token status xmlData} {
         after cancel $state(afterid)
     }
 
+    ::xmpp::Unset $xlib abortCommand
+
     ::xmpp::UnregisterElement $xlib * http://jabber.org/protocol/compress
 
     # Cleanup in asynchronous mode
@@ -297,14 +320,16 @@ proc ::xmpp::compress::Finish {token status xmlData} {
         unset state
     }
 
-    ::xmpp::Debug 2 $xlib "$token $status"
+    ::xmpp::Debug $xlib 2 "$token $status"
 
     if {[string equal $status ok]} {
         set msg ""
-        ::xmpp::client $xlib status [::msgcat::mc "Compression negotiation successful"]
+        ::xmpp::CallBack $xlib status \
+                         [::msgcat::mc "Compression negotiation successful"]
     } else {
         set msg [::xmpp::stanzaerror::message $xmlData]
-        ::xmpp::client $xlib status [::msgcat::mc "Compression negotiation failed"]
+        ::xmpp::CallBack $xlib status \
+                         [::msgcat::mc "Compression negotiation failed"]
     }
 
     if {[info exists cmd]} {

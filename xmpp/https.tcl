@@ -56,7 +56,7 @@ proc ::pconnect::https::connect {sock addr port args} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token, sock=$sock, addr=$addr, port=$port, args=$args"
+    Debug $token 2 "sock=$sock, addr=$addr, port=$port, args=$args"
 
     array set state {
         -command    ""
@@ -158,7 +158,7 @@ proc ::pconnect::https::Readable {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token"
+    Debug $token 2 ""
 
     fileevent $state(sock) readable {}
     set code [ReadProxyAnswer $token]
@@ -218,7 +218,7 @@ proc ::pconnect::https::Authorize {token method} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token, method=$method"
+    Debug $token 2 "$method"
 
     fileevent $state(sock) writable {}
 
@@ -252,7 +252,7 @@ proc ::pconnect::https::AuthorizeBasicStep1 {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token"
+    Debug $token 2 ""
 
     set auth \
         [string map {\n {}} \
@@ -285,7 +285,7 @@ proc ::pconnect::https::AuthorizeBasicStep2 {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token"
+    Debug $token 2 ""
 
     fileevent $state(sock) readable {}
 
@@ -320,7 +320,7 @@ proc ::pconnect::https::AuthorizeNtlmStep1 {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token"
+    Debug $token 2 ""
 
     set domain ""
     set host [info hostname]
@@ -363,7 +363,7 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token"
+    Debug $token 2 ""
 
     fileevent $state(sock) readable {}
 
@@ -427,7 +427,7 @@ proc ::pconnect::https::AuthorizeNtlmStep3 {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token"
+    Debug $token 2 ""
 
     fileevent $state(sock) readable {}
 
@@ -462,7 +462,7 @@ proc ::pconnect::https::PutsConnectQuery {token {auth ""}} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token auth=$auth"
+    Debug $token 2 "$auth"
 
     fconfigure $state(sock) -buffering line -translation auto
 
@@ -496,7 +496,7 @@ proc ::pconnect::https::ReadProxyAnswer {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token"
+    Debug $token 2 ""
 
     fconfigure $state(sock) -buffering line -translation auto
 
@@ -527,7 +527,7 @@ proc ::pconnect::https::ReadProxyJunk {token length} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token, length=$length"
+    Debug $token 2 "$length"
 
     fconfigure $state(sock) -buffering none -translation binary
     if {$length != -1} {
@@ -637,7 +637,7 @@ proc ::pconnect::https::Finish {token status {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token, status=$status, errormsg=$errormsg"
+    Debug $token 2 "status=$status, errormsg=$errormsg"
 
     catch {after cancel $state(timeoutid)}
 
@@ -668,8 +668,9 @@ proc ::pconnect::https::Finish {token status {errormsg ""}} {
 #       Prints debug information.
 #
 # Arguments:
-#       level   A debug level.
-#       str     A debug message.
+#       token       Token.
+#       level       Debug level.
+#       str         Debug message.
 #
 # Result:
 #       An empty string.
@@ -678,11 +679,11 @@ proc ::pconnect::https::Finish {token status {errormsg ""}} {
 #       A debug message is printed to the console if the value of
 #       https::debug variable is not less than num.
 
-proc ::pconnect::https::Debug {level str} {
+proc ::pconnect::https::Debug {token level str} {
     variable debug
 
     if {$debug >= $level} {
-        puts "[lindex [info level -1] 0]: $str"
+        puts "[lindex [info level -1] 0] $token: $str"
     }
 
     return

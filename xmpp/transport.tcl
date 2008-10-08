@@ -90,6 +90,7 @@ proc ::xmpp::transport::register {transport args} {
             -closeCommand       -
             -resetCommand       -
             -flushCommand       -
+            -ipCommand          -
             -outXMLCommand      -
             -outTextCommand     -
             -openStreamCommand  -
@@ -110,6 +111,7 @@ proc ::xmpp::transport::register {transport args} {
                  -closeCommand
                  -resetCommand
                  -flushCommand
+                 -ipCommand
                  -outXMLCommand
                  -outTextCommand
                  -openStreamCommand
@@ -212,6 +214,7 @@ proc ::xmpp::transport::use {token command args} {
         close       {set key -closeCommand}
         reset       {set key -resetCommand}
         flush       {set key -flushCommand}
+        ip          {set key -ipCommand}
         outXML      {set key -outXMLCommand}
         outText     {set key -outTextCommand}
         openStream  {set key -openStreamCommand}

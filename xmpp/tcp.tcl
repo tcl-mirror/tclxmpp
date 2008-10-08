@@ -17,7 +17,7 @@ package require xmpp::xml
 package provide xmpp::transport::tcp 0.1
 
 namespace eval ::xmpp::transport::tcp {
-    namespace export open abort close reset flush outXML outText \
+    namespace export open abort close reset flush ip outXML outText \
                      openStream closeStream
 
     ::xmpp::transport::register tcp \
@@ -26,6 +26,7 @@ namespace eval ::xmpp::transport::tcp {
             -closeCommand       [namespace code close]      \
             -resetCommand       [namespace code reset]      \
             -flushCommand       [namespace code flush]      \
+            -ipCommand          [namespace code ip]         \
             -outXMLCommand      [namespace code outXML]     \
             -outTextCommand     [namespace code outText]    \
             -openStreamCommand  [namespace code openStream] \
@@ -241,6 +242,13 @@ proc ::xmpp::transport::tcp::flush {token} {
     upvar 0 $token state
 
     ::flush $state(sock)
+}
+
+proc ::xmpp::transport::tcp::ip {token} {
+    variable $token
+    upvar 0 $token state
+
+    return [lindex [fconfigure $state(sock)) -sockname] 0]
 }
 
 proc ::xmpp::transport::tcp::close {token} {

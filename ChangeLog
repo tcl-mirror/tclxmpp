@@ -1,3 +1,26 @@
+2008-10-08  Sergei Golovan  <sgolovan@nes.ru>
+
+	* transport.tcl, poll.tcl, tcp.tcl, tls.tcl, zlib.tcl: Added ip
+	  command (it will be used when IP should be reported to another JID,
+	  e.g. in file transfer).
+
+	* auth.tcl, component.tcl, compress.tcl, sasl.tcl, starttls.tcl,
+	  xmpp.tcl: Added a simple way to abort long procedures (connection,
+	  stream opening, STARTTLS, compress, SASL, authentication). The
+	  corresponding abortion procedure is stored in a variable and is
+	  called if necessary.
+
+	* auth.tcl, component.tcl, compress.tcl, https.tcl, iq.tcl, poll.tcl,
+	  roster.tcl, sasl.tcl, socks4.tcl, socks5.tcl, starttls.tcl,
+	  xmpp.tcl: Changed syntax of debug calls.
+
+	* roster.tcl: Made parsing the server answer a bit more efficient.
+
+	* iq.tcl: Changed the way registered IQ handlers are stored in an
+	  array.
+
+	* xmpp.tcl: Added comments before all defined procedures.
+
 2008-10-06  Sergei Golovan  <sgolovan@nes.ru>
 
 	* */*: Removed spaces at the end of lines and expanded tabs in all

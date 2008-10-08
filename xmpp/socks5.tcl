@@ -111,14 +111,14 @@ proc socks5::connect {sock addr port args} {
     variable msg
     variable const
 
-    Debug 2 "$addr $port $args"
-
     # Initialize the state variable, an array.  We'll return the
     # name of this array as the token for the transaction.
 
     set token [namespace current]::$sock
     variable $token
     upvar 0 $token state
+
+    Debug $token 2 "$addr $port $args"
 
     array set state {
         -password         ""
@@ -154,7 +154,7 @@ proc socks5::connect {sock addr port args} {
     fconfigure $sock -translation {binary binary} -blocking 0
     fileevent $sock writable {}
 
-    Debug 2 "send: ver nmethods methods"
+    Debug $token 2 "send: ver nmethods methods"
 
     # Request authorization methods
     if {[catch {
@@ -218,7 +218,7 @@ proc socks5::ResponseMethod {token} {
     variable const
     upvar 0 $token state
 
-    Debug 2 "$token"
+    Debug $token 2 ""
 
     set sock $state(sock)
 
@@ -229,7 +229,7 @@ proc socks5::ResponseMethod {token} {
     set serv_ver ""
     set method $const(nomatchingmethod)
     binary scan $data cc serv_ver smethod
-    Debug 2 "serv_ver=$serv_ver, smethod=$smethod"
+    Debug $token 2 "serv_ver=$serv_ver, smethod=$smethod"
 
     if {![string equal $serv_ver 5]} {
         Finish $token err_version
@@ -250,7 +250,7 @@ proc socks5::ResponseMethod {token} {
         set ulen [binary format c [string length $state(-username)]]
         set plen [binary format c [string length $state(-password)]]
 
-        Debug 2 "send: auth_userpass ulen -username plen -password"
+        Debug $token 2 "send: auth_userpass ulen -username plen -password"
         if {[catch {
             puts -nonewline $sock  \
                  "$const(auth_userpass)$ulen$state(-username)$plen$state(-password)"
@@ -286,7 +286,7 @@ proc socks5::ResponseAuth {token} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "$token"
+    Debug $token 2 ""
 
     set sock $state(sock)
 
@@ -298,7 +298,7 @@ proc socks5::ResponseAuth {token} {
     set auth_ver -1
     set status -1
     binary scan $data cc auth_ver status
-    Debug 2 "auth_ver=$auth_ver, status=$status"
+    Debug $token 2 "auth_ver=$auth_ver, status=$status"
 
     if {![string equal $auth_ver 1]} {
         Finish $token err_authentication_unsupported
@@ -333,7 +333,7 @@ proc socks5::Request {token} {
     variable const
     upvar 0 $token state
 
-    Debug 2 "$token"
+    Debug $token 2 ""
 
     set sock $state(sock)
 
@@ -342,7 +342,7 @@ proc socks5::Request {token} {
 
     # Figure out type of address given to us.
     if {[ip::version $state(addr)] == 4} {
-        Debug 2 "ipv4"
+        Debug $token 2 "ipv4"
 
         # IPv4 numerical address.
         set atyp_addr_port $const(atyp_ipv4)
@@ -351,7 +351,7 @@ proc socks5::Request {token} {
         }
         append atyp_addr_port $bport
     } elseif {[ip::version $state(addr)] == 6} {
-        Debug 2 "ipv6"
+        Debug $token 2 "ipv6"
 
         # IPv6 numerical address.
         set atyp_addr_port $const(atyp_ipv6)
@@ -360,7 +360,7 @@ proc socks5::Request {token} {
         }
         append atyp_addr_port $bport
     } else {
-        Debug 2 "domainname"
+        Debug $token 2 "domainname"
 
         # Domain name.
         # Domain length (binary 1 byte)
@@ -369,7 +369,7 @@ proc socks5::Request {token} {
     }
 
     # We send request for connect
-    Debug 2 "send: ver cmd_connect rsv atyp_domainname dlen addr port"
+    Debug $token 2 "send: ver cmd_connect rsv atyp_domainname dlen addr port"
     set aconst "$const(ver)$const(cmd_connect)$const(rsv)"
     if {[catch {
         puts -nonewline $sock "$aconst$atyp_addr_port"
@@ -402,7 +402,7 @@ proc socks5::Response {token} {
     upvar 0 $token state
     variable iconst
 
-    Debug 2 "$token"
+    Debug $token 2 ""
 
     set sock $state(sock)
     fileevent $sock readable {}
@@ -467,7 +467,7 @@ proc socks5::ParseAtypAddr {token addrVar portVar} {
     upvar 1 $addrVar addr
     upvar 1 $portVar port
 
-    Debug 2 "$token"
+    Debug $token 2 ""
 
     set sock $state(sock)
 
@@ -477,7 +477,7 @@ proc socks5::ParseAtypAddr {token addrVar portVar} {
     }
     set atyp ""
     binary scan $data c atyp
-    Debug 2 "atyp=$atyp"
+    Debug $token 2 "atyp=$atyp"
 
     # Treat the three address types in order.
     switch -- $atyp {
@@ -502,20 +502,20 @@ proc socks5::ParseAtypAddr {token addrVar portVar} {
                 return -code error network-failure
             }
             binary scan $data c len
-            Debug 2 "len=$len"
+            Debug $token 2 "len=$len"
             set len [expr ( $len + 0x100 ) % 0x100]
             if {[catch {read $sock $len} data] || [eof $sock]} {
                 return -code error network-failure
             }
             set addr $data
-            Debug 2 "addr=$addr"
+            Debug $token 2 "addr=$addr"
             if {[catch {read $sock 2} data] || [eof $sock]} {
                 return -code error network-failure
             }
             binary scan $data S port
             # Translate to unsigned!
             set port [expr ( $port + 0x10000 ) % 0x10000]
-            Debug 2 "port=$port"
+            Debug $token 2 "port=$port"
         }
         4 {
             # todo
@@ -591,7 +591,7 @@ proc socks5::Finish {token {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
-    Debug 2 "token=$token errormsg=$errormsg"
+    Debug $token 2 "$errormsg"
 
     catch {after cancel $state(timeoutid)}
 
@@ -622,8 +622,9 @@ proc socks5::Finish {token {errormsg ""}} {
 #       Prints debug information.
 #
 # Arguments:
-#       level   A debug level.
-#       str     A debug message.
+#       token       Token.
+#       level       Debug level.
+#       str         Debug message.
 #
 # Result:
 #       An empty string.
@@ -632,11 +633,11 @@ proc socks5::Finish {token {errormsg ""}} {
 #       A debug message is printed to the console if the value of
 #       https::debug variable is not less than num.
 
-proc socks5::Debug {level str} {
+proc socks5::Debug {token level str} {
     variable debug
 
     if {$debug >= $level} {
-        puts "[lindex [info level -1] 0]: $str"
+        puts "[lindex [info level -1] 0] $token: $str"
     }
 
     return

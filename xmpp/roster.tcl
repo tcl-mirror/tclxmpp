@@ -233,10 +233,8 @@ proc ::xmpp::roster::get {token args} {
         # Synchronous mode
         vwait $token\(status,$rid)
 
-        set status $state(status,$rid)
-        set msg $state(msg,$rid)
+        foreach {status msg} $state(status,$rid) break
         unset state(status,$rid)
-        unset state(msg,$rid)
 
         if {[string equal $status ok]} {
             return $msg
@@ -285,27 +283,18 @@ proc ::xmpp::roster::ParseAnswer {token rid cmd status xmlElement} {
 
     set xlib $state(xlib)
 
-    ::xmpp::Debug 2 $xlib "$token $rid '$cmd' $status"
+    ::xmpp::Debug $xlib 2 "$token $rid '$cmd' $status"
 
-    if {![string equal $status ok]} {
-        if {[llength $cmd] > 0} {
-            uplevel #0 [lindex $cmd 0] [list $status $xmlElement]
-        } else {
-            # Trigger vwait in [roster]
-            set state(msg,$rid) $xmlElement
-            set state(status,$rid) $status
-        }
-        return
+    if {[string equal $status ok]} {
+        ParseItems $token $xmlElement
+        set xmlElement ""
     }
 
-    ParseItems $token $xmlElement
-
     if {[llength $cmd] > 0} {
-        uplevel #0 [lindex $cmd 0] [list ok ""]
+        uplevel #0 [lindex $cmd 0] [list $status $xmlElement]
     } else {
         # Trigger vwait in [roster]
-        set state(msg,$rid) ""
-        set state(status,$rid) ok
+        set state(status,$rid) [list $status $xmlElement]
     }
     return
 }
