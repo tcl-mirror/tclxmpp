@@ -1,25 +1,32 @@
+2008-10-09  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/auth.tcl: Added a few checks for existing authentication token
+	  in callbacks. Also, did a little code cleanup and clarified
+	  comments.
+
 2008-10-08  Sergei Golovan  <sgolovan@nes.ru>
 
-	* transport.tcl, poll.tcl, tcp.tcl, tls.tcl, zlib.tcl: Added ip
-	  command (it will be used when IP should be reported to another JID,
-	  e.g. in file transfer).
+	* xmpp/transport.tcl, xmpp/poll.tcl, xmpp/tcp.tcl, xmpp/tls.tcl,
+	  xmpp/zlib.tcl: Added ip command (it will be used when IP should be
+	  reported to another JID, e.g. in file transfer).
 
-	* auth.tcl, component.tcl, compress.tcl, sasl.tcl, starttls.tcl,
-	  xmpp.tcl: Added a simple way to abort long procedures (connection,
-	  stream opening, STARTTLS, compress, SASL, authentication). The
-	  corresponding abortion procedure is stored in a variable and is
-	  called if necessary.
+	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/compress.tcl, xmpp/sasl.tcl,
+	  xmpp/starttls.tcl, xmpp/xmpp.tcl: Added a simple way to abort long
+	  procedures (connection, stream opening, STARTTLS, compress, SASL,
+	  authentication). The corresponding abortion procedure is stored in a
+	  variable and is called if necessary.
 
-	* auth.tcl, component.tcl, compress.tcl, https.tcl, iq.tcl, poll.tcl,
-	  roster.tcl, sasl.tcl, socks4.tcl, socks5.tcl, starttls.tcl,
-	  xmpp.tcl: Changed syntax of debug calls.
+	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/compress.tcl, xmpp/https.tcl,
+	  xmpp/iq.tcl, xmpp/poll.tcl, xmpp/roster.tcl, xmpp/sasl.tcl,
+	  xmpp/socks4.tcl, xmpp/socks5.tcl, xmpp/starttls.tcl, xmpp/xmpp.tcl:
+	  Changed syntax of debug calls.
 
-	* roster.tcl: Made parsing the server answer a bit more efficient.
+	* xmpp/roster.tcl: Made parsing the server answer a bit more efficient.
 
-	* iq.tcl: Changed the way registered IQ handlers are stored in an
+	* xmpp/iq.tcl: Changed the way registered IQ handlers are stored in an
 	  array.
 
-	* xmpp.tcl: Added comments before all defined procedures.
+	* xmpp/xmpp.tcl: Added comments before all defined procedures.
 
 2008-10-06  Sergei Golovan  <sgolovan@nes.ru>
 

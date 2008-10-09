@@ -26,7 +26,7 @@ namespace eval ::xmpp::auth {
 #
 # Arguments:
 #       xlib                    XMPP token. It must be connected and XMPP
-#                               stream must be started.
+#                               stream must be opened.
 #       -sessionID  sessionid   Stream session ID (as returned by server in
 #                               stream header.
 #       -username   username    Username to authenticate.
@@ -45,8 +45,9 @@ namespace eval ::xmpp::auth {
 #       -command    callback    (optional) If present, it turns on asynchronous
 #                               mode. After successful or failed authentication
 #                               "callback" is invoked with two appended
-#                               arguments: status (ok, error, abort or timeout)
-#                               and either IQ result or error.
+#                               arguments: status ("ok", "error", "abort" or
+#                               "timeout") and either authenticated JID if
+#                               status is "ok", or error stanza otherwise.
 #
 # Result:
 #       In asynchronous mode a control token is returned (it allows to abort
@@ -56,8 +57,8 @@ namespace eval ::xmpp::auth {
 #
 # Side effects:
 #       A variable in ::xmpp::auth namespace is created and auth state is
-#       stored in it in asunchronous mode. In synchronous mode there are no
-#       side effects.
+#       stored in it in asunchronous mode. In synchronous mode the Tcl event
+#       loop is entered and processing until return.
 
 proc ::xmpp::auth::auth {xlib args} {
     variable id
@@ -142,8 +143,7 @@ proc ::xmpp::auth::auth {xlib args} {
         # Synchronous mode
         vwait $token\(status)
 
-        set status $state(status)
-        set msg $state(msg)
+        foreach {status msg} $state(status) break
         unset state
 
         if {[string equal $status ok]} {
@@ -238,6 +238,9 @@ proc ::xmpp::auth::AbortAuth {token status msg} {
 proc ::xmpp::auth::Continue {token featuresList} {
     variable $token
     upvar 0 $token state
+
+    if {![info exists state(xlib)]} return
+
     set xlib $state(xlib)
 
     ::xmpp::Debug $xlib 2 "$token $featuresList"
@@ -284,9 +287,10 @@ proc ::xmpp::auth::FindFeature {featuresList} {
     foreach feature $featuresList {
         ::xmpp::xml::split $feature tag xmlns attrs cdata subels
 
-        if {[string equal $xmlns http://jabber.org/features/iq-auth] && \
-                [string equal $tag auth]} {
-            return 1
+        switch -- $tag/$xmlns {
+            auth/http://jabber.org/features/iq-auth {
+                return 1
+            }
         }
     }
     return 0
@@ -314,6 +318,9 @@ proc ::xmpp::auth::FindFeature {featuresList} {
 proc ::xmpp::auth::Continue2 {token status xmldata} {
     variable $token
     upvar 0 $token state
+
+    if {![info exists state(xlib)]} return
+
     set xlib $state(xlib)
 
     ::xmpp::Debug $xlib 2 "$token $status"
@@ -433,6 +440,9 @@ proc ::xmpp::auth::Continue2 {token status xmldata} {
 proc ::xmpp::auth::Finish {token status xmlData} {
     variable $token
     upvar 0 $token state
+
+    if {![info exists state(xlib)]} return
+
     set xlib $state(xlib)
 
     if {[info exists state(afterid)]} {
@@ -468,9 +478,8 @@ proc ::xmpp::auth::Finish {token status xmlData} {
         uplevel #0 $cmd [list $status $msg]
     } else {
         # Synchronous mode
-        set state(msg) $msg
         # Trigger vwait in [auth]
-        set state(status) $status
+        set state(status) [list $status $msg]
     }
     return
 }
