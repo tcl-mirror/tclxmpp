@@ -45,26 +45,26 @@ proc ::xmpp::transport::list {} {
 #
 # Arguments:
 #       transport                   Transport name.
-#       -openCommand        cmd0    Command to call when opening connection
+#       -opencommand        cmd0    Command to call when opening connection
 #                                   (e.g. TCP socket).
-#       -abortCommand       cmd1    Command to call when aborting connection if
+#       -abortcommand       cmd1    Command to call when aborting connection if
 #                                   opening is asynchronous.
-#       -closeCommand       cmd2    Command to call when closing an opened
+#       -closecommand       cmd2    Command to call when closing an opened
 #                                   connection.
-#       -resetCommand       cmd3    Command to call when resetting an opened
+#       -resetcommand       cmd3    Command to call when resetting an opened
 #                                   connection (usually it resets XML parser).
-#       -flushCommand       cmd4    Command to flush buffer (if any) to a
+#       -flushcommand       cmd4    Command to flush buffer (if any) to a
 #                                   connection.
-#       -outXMLCommand      cmd5    Command which converts XML (e.g. returned
+#       -outxmlcommand      cmd5    Command which converts XML (e.g. returned
 #                                   by ::xmpp::xml::create) to text and sends
 #                                   it to a connection.
-#       -outTextCommand     cmd6    Command which sends raw text to a
+#       -outtextcommand     cmd6    Command which sends raw text to a
 #                                   connection.
-#       -openStreamCommand  cmd7    Command which opens XMPP stream over a
+#       -openstreamcommand  cmd7    Command which opens XMPP stream over a
 #                                   connection.
-#       -closeStreamCommand cmd8    Command which closes XMPP stream over a
+#       -closestreamcommand cmd8    Command which closes XMPP stream over a
 #                                   connection.
-#       -importCommand      icmd    (optional) Import command
+#       -importcommand      icmd    (optional) Import command
 #
 # Result:
 #       Transport name in case of success or error if the specified transport
@@ -85,17 +85,17 @@ proc ::xmpp::transport::register {transport args} {
 
     foreach {key val} $args {
         ::switch -- $key {
-            -openCommand        -
-            -abortCommand       -
-            -closeCommand       -
-            -resetCommand       -
-            -flushCommand       -
-            -ipCommand          -
-            -outXMLCommand      -
-            -outTextCommand     -
-            -openStreamCommand  -
-            -closeStreamCommand -
-            -importCommand {
+            -opencommand        -
+            -abortcommand       -
+            -closecommand       -
+            -resetcommand       -
+            -flushcommand       -
+            -ipcommand          -
+            -outxmlcommand      -
+            -outtextcommand     -
+            -openstreamcommand  -
+            -closestreamcommand -
+            -importcommand {
                 set attrs($key) $val
             }
             default {
@@ -106,16 +106,16 @@ proc ::xmpp::transport::register {transport args} {
     }
 
     set Transports($transport) {}
-    foreach key {-openCommand
-                 -abortCommand
-                 -closeCommand
-                 -resetCommand
-                 -flushCommand
-                 -ipCommand
-                 -outXMLCommand
-                 -outTextCommand
-                 -openStreamCommand
-                 -closeStreamCommand} {
+    foreach key {-opencommand
+                 -abortcommand
+                 -closecommand
+                 -resetcommand
+                 -flushcommand
+                 -ipcommand
+                 -outxmlcommand
+                 -outtextcommand
+                 -openstreamcommand
+                 -closestreamcommand} {
         if {![info exists attrs($key)]} {
             unset Transports($transport)
             return -code error \
@@ -125,7 +125,7 @@ proc ::xmpp::transport::register {transport args} {
         }
     }
 
-    foreach key {-importCommand} {
+    foreach key {-importcommand} {
         if {[info exists attrs($key)]} {
             lappend Transports($transport) $key $attrs($key)
         }
@@ -175,7 +175,7 @@ proc ::xmpp::transport::open {transport args} {
 
     array set attrs $Transports($transport)
 
-    return [uplevel #0 $attrs(-openCommand) $args]
+    return [uplevel #0 $attrs(-opencommand) $args]
 }
 
 # ::xmpp::transport::use --
@@ -210,15 +210,15 @@ proc ::xmpp::transport::use {token command args} {
     }
 
     ::switch -- $command {
-        abort       {set key -abortCommand}
-        close       {set key -closeCommand}
-        reset       {set key -resetCommand}
-        flush       {set key -flushCommand}
-        ip          {set key -ipCommand}
-        outXML      {set key -outXMLCommand}
-        outText     {set key -outTextCommand}
-        openStream  {set key -openStreamCommand}
-        closeStream {set key -closeStreamCommand}
+        abort       {set key -abortcommand}
+        close       {set key -closecommand}
+        reset       {set key -resetcommand}
+        flush       {set key -flushcommand}
+        ip          {set key -ipcommand}
+        outXML      {set key -outxmlcommand}
+        outText     {set key -outtextcommand}
+        openStream  {set key -openstreamcommand}
+        closeStream {set key -closestreamcommand}
         default {
             return -code error \
                    -errorinfo [::msgcat::mc "Illegal command \"%s\"" $command]
@@ -258,7 +258,7 @@ proc ::xmpp::transport::switch {token transport args} {
     array set attrs $Transports($transport)
 
     if {[catch {
-            uplevel #0 $attrs(-importCommand) [::list $token] $args
+            uplevel #0 $attrs(-importcommand) [::list $token] $args
         } token2]} {
 
         return -code error \

@@ -35,7 +35,7 @@ proc ::xmpp::roster::new {xlib args} {
 
     foreach {key val} $args {
         switch -- $key {
-            -itemCommand {
+            -itemcommand {
                 set state($key) $val
             }
             default {
@@ -353,8 +353,8 @@ proc ::xmpp::roster::ParseItems {token xmlElement} {
             }
         }
 
-        if {[info exists state(-itemCommand)]} {
-            uplevel #0 $state(-itemCommand) [list $token        $njid \
+        if {[info exists state(-itemcommand)]} {
+            uplevel #0 $state(-itemcommand) [list $token        $njid \
                                                   -jid          $jid \
                                                   -name         $name \
                                                   -subscription $subsc \

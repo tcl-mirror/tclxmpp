@@ -28,7 +28,7 @@ namespace eval ::xmpp::component {
 #       xlib                    XMPP token. It must be connected and XMPP
 #                               stream with XMLNS jabber:component:accept must
 #                               be started.
-#       -sessionID  sessionid   Stream session ID (as returned by server in
+#       -sessionid  sessionid   Stream session ID (as returned by server in
 #                               stream header.
 #       -secret     secret      Shared secret to use in authentication.
 #       -timeout    timeout     (optional, defaults to 0 which means infinity)
@@ -71,7 +71,7 @@ proc ::xmpp::component::auth {xlib args} {
 
     foreach {key val} $args {
         switch -- $key {
-            -sessionID -
+            -sessionid -
             -secret    -
             -command {
                 set state($key) $val
@@ -87,7 +87,7 @@ proc ::xmpp::component::auth {xlib args} {
         }
     }
 
-    foreach key {-sessionID
+    foreach key {-sessionid
                  -secret} {
         if {![info exists state($key)]} {
             unset state
@@ -111,7 +111,7 @@ proc ::xmpp::component::auth {xlib args} {
     ::xmpp::RegisterElement $xlib error http://etherx.jabber.org/streams \
                             [namespace code [list Parse $token]]
 
-    set secret [encoding convertto utf-8 $state(-sessionID)]
+    set secret [encoding convertto utf-8 $state(-sessionid)]
     append secret [encoding convertto utf-8 $state(-secret)]
     set digest [sha1::sha1 $secret]
     set data [::xmpp::xml::create handshake -cdata $digest]

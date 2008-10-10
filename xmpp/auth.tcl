@@ -27,7 +27,7 @@ namespace eval ::xmpp::auth {
 # Arguments:
 #       xlib                    XMPP token. It must be connected and XMPP
 #                               stream must be opened.
-#       -sessionID  sessionid   Stream session ID (as returned by server in
+#       -sessionid  sessionid   Stream session ID (as returned by server in
 #                               stream header.
 #       -username   username    Username to authenticate.
 #       -password   password    Password to use in authentication.
@@ -81,7 +81,7 @@ proc ::xmpp::auth::auth {xlib args} {
 
     foreach {key val} $args {
         switch -- $key {
-            -sessionID -
+            -sessionid -
             -username  -
             -password  -
             -resource  -
@@ -114,7 +114,7 @@ proc ::xmpp::auth::auth {xlib args} {
         }
     }
 
-    foreach key {-sessionID
+    foreach key {-sessionid
                  -username
                  -password
                  -resource} {
@@ -372,7 +372,7 @@ proc ::xmpp::auth::Continue2 {token status xmldata} {
                                                   -cdata $state(-resource)]]]
         }
         digest/* {
-            set secret [encoding convertto utf-8 $state(-sessionID)]
+            set secret [encoding convertto utf-8 $state(-sessionid)]
             append secret [encoding convertto utf-8 $state(-password)]
             set digest [sha1::sha1 $secret]
             set data [::xmpp::xml::create query \

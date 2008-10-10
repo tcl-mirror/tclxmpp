@@ -22,16 +22,16 @@ namespace eval ::xmpp::transport::poll {
                      openStream closeStream
 
     ::xmpp::transport::register poll \
-            -openCommand        [namespace code open]       \
-            -abortCommand       [namespace code abort]      \
-            -closeCommand       [namespace code close]      \
-            -resetCommand       [namespace code reset]      \
-            -flushCommand       [namespace code flush]      \
-            -ipCommand          [namespace code ip]         \
-            -outXMLCommand      [namespace code outXML]     \
-            -outTextCommand     [namespace code outText]    \
-            -openStreamCommand  [namespace code openStream] \
-            -closeStreamCommand [namespace code closeStream]
+            -opencommand        [namespace code open]       \
+            -abortcommand       [namespace code abort]      \
+            -closecommand       [namespace code close]      \
+            -resetcommand       [namespace code reset]      \
+            -flushcommand       [namespace code flush]      \
+            -ipcommand          [namespace code ip]         \
+            -outxmlcommand      [namespace code outXML]     \
+            -outtextcommand     [namespace code outText]    \
+            -openstreamcommand  [namespace code openStream] \
+            -closestreamcommand [namespace code closeStream]
 
     if {![catch { package require tls 1.4 }]} {
         ::http::register https 443 ::tls::socket
@@ -52,13 +52,13 @@ namespace eval ::xmpp::transport::poll {
 #       port                        (ignored, -url option is used) XMPP server
 #                                   port.
 #       -url url                    (mandatory) HTTP-poll URL to request.
-#       -streamHeaderCommand cmd    Command to call when server stream header
+#       -streamheadercommand cmd    Command to call when server stream header
 #                                   is parsed.
-#       -streamTrailerCommand cmd   Command to call when server stream trailer
+#       -streamtrailercommand cmd   Command to call when server stream trailer
 #                                   is parsed.
-#       -stanzaCommand cmd          Command to call when top-level stream
+#       -stanzacommand cmd          Command to call when top-level stream
 #                                   stanza is parsed.
-#       -eofCommand cmd             Command to call when server (or proxy)
+#       -eofcommand cmd             Command to call when server (or proxy)
 #                                   breaks connection.
 #       -command cmd                Command to call upon a successfull or
 #                                   failed connect (for this transport failing
@@ -110,10 +110,10 @@ proc ::xmpp::transport::poll::open {server port args} {
 
     foreach {key val} $args {
         switch -- $key {
-            -streamHeaderCommand  {set state(streamHeaderCmd)  $val}
-            -streamTrailerCommand {set state(streamTrailerCmd) $val}
-            -stanzaCommand        {set state(stanzaCmd)        $val}
-            -eofCommand           {set state(eofCmd)           $val}
+            -streamheadercommand  {set state(streamHeaderCmd)  $val}
+            -streamtrailercommand {set state(streamTrailerCmd) $val}
+            -stanzacommand        {set state(stanzaCmd)        $val}
+            -eofcommand           {set state(eofCmd)           $val}
             -command              {set cmd                     $val}
             -timeout   -
             -min       -

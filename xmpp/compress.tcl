@@ -45,6 +45,7 @@ namespace eval ::xmpp::compress {
 #                               arguments: status ("ok", "error", "abort" or
 #                               "timeout") and either empty string if
 #                               status is "ok", or error stanza otherwise.
+#       -level level            Compression level.
 #
 # Result:
 #       In asynchronous mode a control token is returned (it allows to abort
@@ -73,10 +74,14 @@ proc ::xmpp::compress::compress {xlib args} {
     ::xmpp::Set $xlib abortCommand [namespace code [abort $token]]
 
     set state(xlib) $xlib
+    set state(zlibArgs) {}
     set timeout 0
 
     foreach {key val} $args {
         switch -- $key {
+            -level {
+                lappend state(zlibArgs) $key $val
+            }
             -command {
                 set state($key) $val
             }
@@ -373,7 +378,7 @@ proc ::xmpp::compress::Compressed {token} {
 
     ::xmpp::Debug $xlib 2 "$token"
 
-    ::xmpp::SwitchTransport $xlib $state(method)
+    eval [list ::xmpp::SwitchTransport $xlib $state(method)] $state(zlibArgs)
 
     set state(reopenStream) \
         [::xmpp::ReopenStream $xlib \

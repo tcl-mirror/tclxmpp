@@ -93,7 +93,7 @@ if {[string equal $options(-host) ""]} {
 }
 
 # Create an XMPP instance.
-set xlib [::xmpp::new -packetCommand ProcessPacket]
+set xlib [::xmpp::new -packetcommand ProcessPacket]
 
 # Connect to an XMPP server.
 ::xmpp::connect $xlib -host $options(-host) -port $options(-port)
@@ -126,7 +126,7 @@ if {!$options(-jcp)} {
                             -xmlns jabber:component:accept]
 
     # Authenticate as a component (XEP-0114).
-    ::xmpp::component::auth $xlib -sessionID $sessionID \
+    ::xmpp::component::auth $xlib -sessionid $sessionID \
                                   -secret $options(-secret)
 }
 

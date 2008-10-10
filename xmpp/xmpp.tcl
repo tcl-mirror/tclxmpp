@@ -36,18 +36,18 @@ namespace eval ::xmpp {
 #                               automatically, if present then it must be a
 #                               fully namespaced nonexistent variable) XMPP
 #                               token to create.
-#       -packetCommand     cmd  (optional) Command to call on every incoming
+#       -packetcommand     cmd  (optional) Command to call on every incoming
 #                               XMPP packet except stream errors.
-#       -messageCommand    cmd  (optional) Command to call on every XMPP
+#       -messagecommand    cmd  (optional) Command to call on every XMPP
 #                               message packet (overrides -packetCommand).
-#       -presenceCommand   cmd  (optional) Command to call on every XMPP
+#       -presencecommand   cmd  (optional) Command to call on every XMPP
 #                               presence packet (overrides -packetCommand).
-#       -disconnectCommand cmd  (optional) Command to call on forced disconnect
+#       -disconnectcommand cmd  (optional) Command to call on forced disconnect
 #                               from XMPP server.
-#       -statusCommand     cmd  (optional) Command to call when XMPP connection
+#       -statuscommand     cmd  (optional) Command to call when XMPP connection
 #                               status is changed (e.g. after successful
 #                               authentication).
-#       -errorCommand      cmd  (optional) Command to call on XMPP stream error
+#       -errorcommand      cmd  (optional) Command to call on XMPP stream error
 #                               packet.
 #
 # Result:
@@ -86,12 +86,12 @@ proc ::xmpp::new {args} {
 
     foreach {key val} $args {
         switch -- $key {
-            -packetCommand -
-            -messageCommand -
-            -presenceCommand -
-            -disconnectCommand -
-            -statusCommand -
-            -errorCommand {
+            -packetcommand -
+            -messagecommand -
+            -presencecommand -
+            -disconnectcommand -
+            -statuscommand -
+            -errorcommand {
                 set attrs($key) $val
             }
             default {
@@ -112,15 +112,15 @@ proc ::xmpp::new {args} {
 
     array set state [array get attrs]
 
-    if {[info exists state(-messageCommand)]} {
+    if {[info exists state(-messagecommand)]} {
         RegisterElement $xlib message * \
                         [namespace code [list ParseMessage $xlib]]
     }
-    if {[info exists state(-presenceCommand)]} {
+    if {[info exists state(-presencecommand)]} {
         RegisterElement $xlib presence * \
                         [namespace code [list ParsePresence $xlib]]
     }
-    if {![info exists state(-packetCommand)]} {
+    if {![info exists state(-packetcommand)]} {
         RegisterElement $xlib iq * \
                         [namespace code [list ParseIQ $xlib]]
     }
@@ -159,13 +159,13 @@ proc ::xmpp::free {xlib} {
                -errorinfo [::msgcat::mc "Free without disconnect"]
     }
 
-    if {[info exists state(-messageCommand)]} {
+    if {[info exists state(-messagecommand)]} {
         UnregisterElement $xlib message *
     }
-    if {[info exists state(-presenceCommand)]} {
+    if {[info exists state(-presencecommand)]} {
         UnregisterElement $xlib presence *
     }
-    if {![info exists state(-packetCommand)]} {
+    if {![info exists state(-packetcommand)]} {
         UnregisterElement $xlib iq *
     }
 
@@ -237,13 +237,13 @@ proc ::xmpp::connect {xlib args} {
         # Propagate error (if any) up.
         set state(transport) \
             [eval [list transport::open $transport $host $port \
-                        -streamHeaderCommand \
+                        -streamheadercommand \
                                 [namespace code [list GotStream $xlib ok]] \
-                        -streamTrailerCommand \
+                        -streamtrailercommand \
                                 [namespace code [list EndOfParse $xlib]] \
-                        -stanzaCommand \
+                        -stanzacommand \
                                 [namespace code [list Parse $xlib]] \
-                        -eofCommand \
+                        -eofcommand \
                                 [namespace code [list EndOfFile $xlib]]] \
                         $argList]
 
@@ -252,13 +252,13 @@ proc ::xmpp::connect {xlib args} {
     } else {
         set token \
             [eval [list transport::open $transport $host $port \
-                        -streamHeaderCommand \
+                        -streamheadercommand \
                                 [namespace code [list GotStream $xlib ok]] \
-                        -streamTrailerCommand \
+                        -streamtrailercommand \
                                 [namespace code [list EndOfParse $xlib]] \
-                        -stanzaCommand \
+                        -stanzacommand \
                                 [namespace code [list Parse $xlib]] \
-                        -eofCommand \
+                        -eofcommand \
                                 [namespace code [list EndOfFile $xlib]] \
                         -command \
                                 [namespace code [list ConnectAux $xlib $cmd]]] \
@@ -717,7 +717,7 @@ proc ::xmpp::RemoveTraceStreamFeatures {xlib cmd} {
 # ::xmpp::ParseStreamError --
 #
 #       A helper procedure which is called when stream error is received.
-#       It calls back error command (-errorCommand option in [new]) with
+#       It calls back error command (-errorcommand option in [new]) with
 #       appended error message. This procedure is registered as a handler
 #       for error element in http://etherx.jabber.org/streams XMLNS in [new].
 #
@@ -1745,7 +1745,7 @@ proc ::xmpp::CallBack {xlib command args} {
 
     Debug $xlib 2 "$command"
 
-    set cmd -${command}Command
+    set cmd -${command}command
 
     if {[info exists state($cmd)]} {
         uplevel #0 $state($cmd) [list $xlib] $args

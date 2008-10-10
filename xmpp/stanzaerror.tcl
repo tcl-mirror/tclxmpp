@@ -292,20 +292,33 @@ proc ::xmpp::stanzaerror::ToList {xmlElement} {
 # Arguments:
 #       type                        Error type.
 #       cond                        Error condition.
+#       -old boolean                Create legacy error if true.
 #       -text text                  Human readable description.
 #       -application-specific xml   Application-specific error condition.
 #
 # Result:
-#       Generated XMPP error XML element (as if [xmppError] were called).
+#       Generated error XML element.
 #
 # Side effects:
 #       None.
 
 proc ::xmpp::stanzaerror::error {type cond args} {
-    return [eval [list xmppError $type $cond] $args]
+    set old false
+    foreach {key val} $args {
+        switch -- $key {
+            -old {
+                set old $val
+            }
+        }
+    }
+    if {$old} {
+        return [eval [list LegacyError $type $cond] $args]
+    } else {
+        return [eval [list XMPPError $type $cond] $args]
+    }
 }
 
-# ::xmpp::stanzaerror::legacyError --
+# ::xmpp::stanzaerror::LegacyError --
 #
 #       Create legacy (pre-XMPP) error stanza.
 #
@@ -321,7 +334,7 @@ proc ::xmpp::stanzaerror::error {type cond args} {
 # Side effects:
 #       None.
 
-proc ::xmpp::stanzaerror::legacyError {type cond args} {
+proc ::xmpp::stanzaerror::LegacyError {type cond args} {
     variable LegacyCodes
     variable Description
 
@@ -349,7 +362,7 @@ proc ::xmpp::stanzaerror::legacyError {type cond args} {
                                       -cdata $description]
 }
 
-# ::xmpp::stanzaerror::xmppError --
+# ::xmpp::stanzaerror::XMPPError --
 #
 #       Create XMPP error stanza.
 #
@@ -365,7 +378,7 @@ proc ::xmpp::stanzaerror::legacyError {type cond args} {
 # Side effects:
 #       None.
 
-proc ::xmpp::stanzaerror::xmppError {type cond args} {
+proc ::xmpp::stanzaerror::XMPPError {type cond args} {
     variable LegacyCodes
 
     set subels [list [::xmpp::xml::create $cond \

@@ -507,7 +507,7 @@ if {$options(-sasl) || \
     set sessionID [::xmpp::openStream $xlib $options(-server)]
 
     # Authenticate
-    ::xmpp::auth::auth $xlib -sessionID $sessionID \
+    ::xmpp::auth::auth $xlib -sessionid $sessionID \
                              -username  $options(-username) \
                              -password  $options(-password) \
                              -resource  $options(-resource)

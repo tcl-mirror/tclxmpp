@@ -23,17 +23,17 @@ namespace eval ::xmpp::transport::tls {
                      openStream closeStream import
 
     ::xmpp::transport::register tls \
-            -openCommand        [namespace code open]        \
-            -abortCommand       [namespace code abort]       \
-            -closeCommand       [namespace code close]       \
-            -resetCommand       [namespace code reset]       \
-            -flushCommand       [namespace code flush]       \
-            -ipCommand          [namespace code ip]          \
-            -outXMLCommand      [namespace code outXML]      \
-            -outTextCommand     [namespace code outText]     \
-            -openStreamCommand  [namespace code openStream]  \
-            -closeStreamCommand [namespace code closeStream] \
-            -importCommand      [namespace code import]
+            -opencommand        [namespace code open]        \
+            -abortcommand       [namespace code abort]       \
+            -closecommand       [namespace code close]       \
+            -resetcommand       [namespace code reset]       \
+            -flushcommand       [namespace code flush]       \
+            -ipcommand          [namespace code ip]          \
+            -outxmlcommand      [namespace code outXML]      \
+            -outtextcommand     [namespace code outText]     \
+            -openstreamcommand  [namespace code openStream]  \
+            -closestreamcommand [namespace code closeStream] \
+            -importcommand      [namespace code import]
 }
 
 # ::xmpp::transport::tls::open --
@@ -50,13 +50,13 @@ namespace eval ::xmpp::transport::tls {
 #                                   synchronous mode is set and function
 #                                   doesn't return until connect succeded or
 #                                   failed.
-#       -streamHeaderCommand  cmd1  Command to call when XMPP stream header
+#       -streamheadercommand  cmd1  Command to call when XMPP stream header
 #                                   (<stream:stream>) is received.
-#       -streamTrailerCommand cmd2  Command to call when XMPP stream trailer
+#       -streamtrailercommand cmd2  Command to call when XMPP stream trailer
 #                                   (</stream:stream>) is received.
-#       -stanzaCommand        cmd3  Command to call when XMPP stanza is
+#       -stanzacommand        cmd3  Command to call when XMPP stanza is
 #                                   received.
-#       -eofCommand           cmd4  End-of-file callback.
+#       -eofcommand           cmd4  End-of-file callback.
 #       -callback               TLS callback (it turns into -command option
 #                               for ::tls::import).
 #       -castore                If this option points to a file then it's
@@ -111,10 +111,10 @@ proc ::xmpp::transport::tls::open {host port args} {
     foreach {key val} $args {
         switch -- $key {
             -command              {set cmd                     $val}
-            -streamHeaderCommand  {set state(streamHeaderCmd)  $val}
-            -streamTrailerCommand {set state(streamTrailerCmd) $val}
-            -stanzaCommand        {set state(stanzaCmd)        $val}
-            -eofCommand           {set state(eofCmd)           $val}
+            -streamheadercommand  {set state(streamHeaderCmd)  $val}
+            -streamtrailercommand {set state(streamTrailerCmd) $val}
+            -stanzacommand        {set state(stanzaCmd)        $val}
+            -eofcommand           {set state(eofCmd)           $val}
             -castore              -
             -cadir                -
             -cafile               -

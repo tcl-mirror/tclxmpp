@@ -199,7 +199,7 @@ proc xsend::sendit {stayP to args} {
             set sessionID [::xmpp::openStream $xlib $aprops(domain)]
 
             # Authenticate
-            ::xmpp::auth::auth $xlib -sessionID $sessionID \
+            ::xmpp::auth::auth $xlib -sessionid $sessionID \
                                      -username  $aprops(local) \
                                      -password  $options(-password) \
                                      -resource  $aprops(resource)

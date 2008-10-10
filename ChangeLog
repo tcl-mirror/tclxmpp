@@ -45,6 +45,14 @@
 	  xmpp/starttls.tcl, xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/transport.tcl,
 	  xmpp/zlib.tcl: Added descriptions to all defined procedures.
 
+	* xmpp/compress.tcl: Added -level option to choose compression level
+	  when switching transport to zlib.
+
+	* examples/chessbot.tcl, examples/echo.tcl, examples/xsend.tcl,
+	  xmpp/auth.tcl, xmpp/component.tcl, xmpp/poll.tcl, xmpp/roster.tcl,
+	  xmpp/stanzaerror.tcl, xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/transport.tcl,
+	  xmpp/xmpp.tcl, xmpp/zlib.tcl: Removed camel case from dash-options.
+
 2008-10-09  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/auth.tcl: Added a few checks for existing authentication token

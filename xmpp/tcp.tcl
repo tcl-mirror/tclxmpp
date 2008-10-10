@@ -21,16 +21,16 @@ namespace eval ::xmpp::transport::tcp {
                      openStream closeStream
 
     ::xmpp::transport::register tcp \
-            -openCommand        [namespace code open]       \
-            -abortCommand       [namespace code abort]      \
-            -closeCommand       [namespace code close]      \
-            -resetCommand       [namespace code reset]      \
-            -flushCommand       [namespace code flush]      \
-            -ipCommand          [namespace code ip]         \
-            -outXMLCommand      [namespace code outXML]     \
-            -outTextCommand     [namespace code outText]    \
-            -openStreamCommand  [namespace code openStream] \
-            -closeStreamCommand [namespace code closeStream]
+            -opencommand        [namespace code open]       \
+            -abortcommand       [namespace code abort]      \
+            -closecommand       [namespace code close]      \
+            -resetcommand       [namespace code reset]      \
+            -flushcommand       [namespace code flush]      \
+            -ipcommand          [namespace code ip]         \
+            -outxmlcommand      [namespace code outXML]     \
+            -outtextcommand     [namespace code outText]    \
+            -openstreamcommand  [namespace code openStream] \
+            -closestreamcommand [namespace code closeStream]
 }
 
 # ::xmpp::transport::tcp::open --
@@ -47,13 +47,13 @@ namespace eval ::xmpp::transport::tcp {
 #                                   synchronous mode is set and function
 #                                   doesn't return until connect succeded or
 #                                   failed.
-#       -streamHeaderCommand  cmd1  Command to call when XMPP stream header
+#       -streamheadercommand  cmd1  Command to call when XMPP stream header
 #                                   (<stream:stream>) is received.
-#       -streamTrailerCommand cmd2  Command to call when XMPP stream trailer
+#       -streamtrailercommand cmd2  Command to call when XMPP stream trailer
 #                                   (</stream:stream>) is received.
-#       -stanzaCommand        cmd3  Command to call when XMPP stanza is
+#       -stanzacommand        cmd3  Command to call when XMPP stanza is
 #                                   received.
-#       -eofCommand           cmd4  End-of-file callback.
+#       -eofcommand           cmd4  End-of-file callback.
 #       (other arguments are passed to [::pconnect::socket])
 #       -domain string              "inet" (default) or "inet6"
 #       -proxy string               Proxy type "" (default), "socks4",
@@ -98,10 +98,10 @@ proc ::xmpp::transport::tcp::open {host port args} {
     foreach {key val} $args {
         switch -- $key {
             -command              {set cmd                     $val}
-            -streamHeaderCommand  {set state(streamHeaderCmd)  $val}
-            -streamTrailerCommand {set state(streamTrailerCmd) $val}
-            -stanzaCommand        {set state(stanzaCmd)        $val}
-            -eofCommand           {set state(eofCmd)           $val}
+            -streamheadercommand  {set state(streamHeaderCmd)  $val}
+            -streamtrailercommand {set state(streamTrailerCmd) $val}
+            -stanzacommand        {set state(stanzaCmd)        $val}
+            -eofcommand           {set state(eofCmd)           $val}
             default               {lappend newArgs $key $val}
         }
     }
