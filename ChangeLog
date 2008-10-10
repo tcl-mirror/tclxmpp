@@ -1,3 +1,50 @@
+2008-10-10  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/delay.tcl: Joined procedures which create delay element
+	  following different XEPs into a single procedure.
+
+	* xmpp/dns.tcl: Replaced own procedure which returns nameservers list
+	  by a procedure from the dns package. Added DNS lookup abort
+	  procedure and procedures to resolve HTTP-poll and BOSH URLs.
+
+	* examples/xsend.tcl, xmpp/https.tcl, xmpp/starttls.tcl, xmpp/xml.tcl,
+	  xmpp/xmpp.tcl: Fitted code into 80-character width strings.
+
+	* tclxml/*: Removed 8.1 suffix from file names because they will never
+	  be used with Tcl 8.0 or older.
+
+	* examples/xsend.tcl: Added note about the authors.
+
+	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed bugs in abort
+	  procedure where XML parser was destroyed unconditionally.
+
+	* xmpp/zlib.tcl: Added -level option which allows to specify
+	  compression level.
+
+	* xmpp/socks4.tcl, xmpp/socks5.tcl: Moved to ::pconnect namespace.
+
+	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/ntlm.tcl, xmpp/pconnect.tcl,
+	  xmpp/stanzaerror.tcl: Clarified descriptions.
+
+	* xmpp/compress.tcl, xmpp/sasl.tcl, xmpp/starttls.tcl: Moved removing
+	  stream features trace upper in abort procedures.
+
+	* xmpp/poll.tcl: Changed -proxyHost, -proxyPort, -proxyUsername,
+	  -proxyPassword and -proxyUseragent options to -host, -port,
+	  -username, -password and -useragent to make them consistent with
+	  ::pconnect::socket options.
+
+	* xmpp/jid.tcl: Fixed file name in description.
+
+	* xmpp/pkgIndex.tcl: Added xmpp::delay package.
+
+	* xmpp/starttls.tcl: Changed -cacertstore option to -castore to make
+	  it more similar to -cafile and -cadir.
+
+	* xmpp/compress.tcl, xmpp/dns.tcl, xmpp/iq.tcl, xmpp/poll.tcl,
+	  xmpp/starttls.tcl, xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/transport.tcl,
+	  xmpp/zlib.tcl: Added descriptions to all defined procedures.
+
 2008-10-09  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/auth.tcl: Added a few checks for existing authentication token

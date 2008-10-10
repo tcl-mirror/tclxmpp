@@ -1,7 +1,7 @@
 # compress.tcl --
 #
-#       This file is part of the XMPP library. It provides support for the
-#       compressed jabber stream.
+#       This file is part of the XMPP library. It provides support for
+#       Stream Compression (XEP-0138).
 #
 # Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
 #
@@ -28,7 +28,34 @@ namespace eval ::xmpp::compress {
     }
 }
 
-##########################################################################
+# ::xmpp::compress::compress --
+#
+#       Negotiate XMPP stream compression using method from XEP-0138 and switch
+#       to a compressed stream.
+#
+# Arguments:
+#       xlib                    XMPP token. It must be connected and XMPP
+#                               stream must be opened.
+#       -timeout    timeout     (optional, defaults to 0 which means infinity)
+#                               Timeout (in milliseconds) for compression
+#                               negotiation.
+#       -command    callback    (optional) If present, it turns on asynchronous
+#                               mode. After successful or failed authentication
+#                               "callback" is invoked with two appended
+#                               arguments: status ("ok", "error", "abort" or
+#                               "timeout") and either empty string if
+#                               status is "ok", or error stanza otherwise.
+#
+# Result:
+#       In asynchronous mode a control token is returned (it allows to abort
+#       compression process). In synchronous mode either empty string is
+#       returned (if compression succeded) or IQ error (with return code
+#       error in case of error, or break in case of abortion).
+#
+# Side effects:
+#       A variable in ::xmpp::compress namespace is created and compression
+#       state is stored in it in asynchronous mode. In synchronous mode the
+#       Tcl event loop is entered and processing until return.
 
 proc ::xmpp::compress::compress {xlib args} {
     variable id
@@ -84,8 +111,7 @@ proc ::xmpp::compress::compress {xlib args} {
         # Synchronous mode
         vwait $token\(status)
 
-        set status $state(status)
-        set msg $state(msg)
+        foreach {status msg} $state(status) break
         unset state
 
         if {[string equal $status ok]} {
@@ -146,18 +172,32 @@ proc ::xmpp::compress::AbortCompression {token status msg} {
 
     ::xmpp::Debug $xlib 2 "$token"
 
+    ::xmpp::RemoveTraceStreamFeatures $xlib \
+                                [namespace code [list Continue $token]]
+
     if {[info exists state(reopenStream)]} {
         ::xmpp::GotStream $xlib abort {}
         return
     }
 
-    ::xmpp::RemoveTraceStreamFeatures $xlib \
-                                [namespace code [list Continue $token]]
-
     Finish $token $status [::xmpp::xml::create error -cdata $msg]
 }
 
-##########################################################################
+# ::xmpp::compress::Parse --
+#
+#       Parse XML elemens in http://jabber.org/protocol/compress namespace.
+#       They indicate the result of negotiation procedure (success or failure).
+#
+# Arguments:
+#       token           Compression control token.
+#       xmlElement      Top-level XML stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A corresponding procedure is called in cases of successful or failed
+#       compression negotiation.
 
 proc ::xmpp::compress::Parse {token xmlElement} {
     variable $token
@@ -173,9 +213,25 @@ proc ::xmpp::compress::Parse {token xmlElement} {
             Failure $token $subels
         }
     }
+    return
 }
 
-##########################################################################
+# ::xmpp::compress::Continue --
+#
+#       A helper procedure which checks if there is a compression feature and
+#       a supported method in a features list provided by server and continues
+#       or finishes compression negotiation.
+#
+# Arguments:
+#       token           Compression control token.
+#       featuresList    XMPP features list from server.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Either a compression request is sent to server or negotiation is
+#       finished with error.
 
 proc ::xmpp::compress::Continue {token featuresList} {
     variable SupportedMethods
@@ -217,7 +273,23 @@ proc ::xmpp::compress::Continue {token featuresList} {
                   -subelement [::xmpp::xml::create method -cdata $method]]
 
     ::xmpp::outXML $xlib $data
+    return
 }
+
+# ::xmpp::compress::FindMethods --
+#
+#       A helper procedure which searches for compress feature and extracts
+#       compression methods supported by server in features list.
+#
+# Arguments:
+#       featuresList    List of XMPP stream features as provided by server.
+#
+# Result:
+#       List of supported compression methods if the featue is found, error
+#       otherwise.
+#
+# Side effects:
+#       None.
 
 proc ::xmpp::compress::FindMethods {featuresList} {
     set compressFeature 0
@@ -246,7 +318,20 @@ proc ::xmpp::compress::FindMethods {featuresList} {
     }
 }
 
-##########################################################################
+# ::xmpp::compress::Failure --
+#
+#       A helper procedure which is called if compression negotiations failed.
+#       It finishes compression procedure with error.
+#
+# Arguments:
+#       token           Compression control token.
+#       xmlElements     Subelements of <failure/> element which include error.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Compression negotiation is finished with error.
 
 proc ::xmpp::compress::Failure {token xmlElements} {
     variable $token
@@ -263,10 +348,23 @@ proc ::xmpp::compress::Failure {token xmlElements} {
         ::xmpp::xml::split $error tag xmlns attrs cdata subels
         set err [::xmpp::stanzaerror::error modify $tag]
     }
+
     Finish $token error $err
 }
 
-##########################################################################
+# ::xmpp::compress::Compressed --
+#
+#       A helper procedure which is called if compression negotiations
+#       succeeded. It switches transport to zlib and reopens XMPP stream.
+#
+# Arguments:
+#       token           Compression control token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       XMPP channel becomes compressed, XMPP stream is reopened.
 
 proc ::xmpp::compress::Compressed {token} {
     variable $token
@@ -282,6 +380,23 @@ proc ::xmpp::compress::Compressed {token} {
                               -command [namespace code [list Reopened $token]]]
     return
 }
+
+# ::xmpp::compress::Reopened --
+#
+#       A callback which is invoked when the XMPP server responds to stream
+#       reopening. It finishes compression procedure with error or success.
+#
+# Arguments:
+#       token           Compression control token.
+#       status          "ok", "error", "abort", or "timeout".
+#       sessionid       Stream session ID in case of success, or error message
+#                       otherwise.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Compression negotiation is finished.
 
 proc ::xmpp::compress::Reopened {token status sessionid} {
     variable $token
@@ -299,11 +414,28 @@ proc ::xmpp::compress::Reopened {token status sessionid} {
     }
 }
 
-##########################################################################
+# ::xmpp::compress::Finish --
+#
+#       A hepler procedure which finishes negotiation process and destroys
+#       compression control token (or returns to [compress]).
+#
+# Arguments:
+#       token           Compression control token.
+#       status          Status of the negotiations ("ok" means success).
+#       xmlData         Either a result (usually empty) if status is ok or
+#                       error stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       In asynchronous mode a control token is destroyed and a callback is
+#       called. In synchronous mode vwait in [compress] is triggered.
 
 proc ::xmpp::compress::Finish {token status xmlData} {
     variable $token
     upvar 0 $token state
+
     set xlib $state(xlib)
 
     if {[info exists state(afterid)]} {
@@ -337,9 +469,8 @@ proc ::xmpp::compress::Finish {token status xmlData} {
         uplevel #0 $cmd [list $status $msg]
     } else {
         # Synchronous mode
-        set state(msg) $msg
         # Trigger vwait in [compress]
-        set state(status) $status
+        set state(status) [list $status $msg]
     }
     return
 }

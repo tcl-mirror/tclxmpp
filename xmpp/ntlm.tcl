@@ -6,7 +6,8 @@
 #
 # Copyright (c) 2004-2008 Sergei Golovan <sgolovan@nes.ru>
 #
-# This file is distributed under BSD license.
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAMER OF ALL WARRANTIES.
 #
 # $Id$
 
@@ -67,9 +68,9 @@ namespace eval NTLM {
     # Markers and signatures.
     array set NTLM [list \
         SIGNATURE    [binary format a8 "NTLMSSP"] \
-        TYPE1_MARKER [binary format i  1]          \
-        TYPE2_MARKER [binary format i  2]          \
-        TYPE3_MARKER [binary format i  3]          \
+        TYPE1_MARKER [binary format i  1]         \
+        TYPE2_MARKER [binary format i  2]         \
+        TYPE3_MARKER [binary format i  3]         \
         LM_MAGIC     [binary format a* "KGS!@#$%"]]
 }
 

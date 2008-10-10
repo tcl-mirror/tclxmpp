@@ -183,7 +183,7 @@ proc ::xmpp::transport::open {transport args} {
 #       Use transport for transferring XMPP data (call a registered command).
 #
 # Arguments:
-#       token               XMPP transport name.
+#       token               XMPP transport token.
 #       command             One of open, abort, close, flush, outXML,
 #                           outText, openStream, closeStream (corresponding
 #                           to ::xmpp::transport::register options).
@@ -229,6 +229,22 @@ proc ::xmpp::transport::use {token command args} {
 
     return [uplevel #0 $attrs($key) $token $args]
 }
+
+# ::xmpp::transport::switch --
+#
+#       Switch XMPP transport.
+#
+# Arguments:
+#       token               XMPP transport token.
+#       transport           XMPP transport name to switch.
+#       args                Arguments for import procedure. See also
+#                           ::xmpp::tls::import and ::xmpp::zlib::import.
+#
+# Result:
+#       A new XMPP token to use.
+#
+# Side effects:
+#       Transport for XMPP connection is changed.
 
 proc ::xmpp::transport::switch {token transport args} {
     variable TransportsList

@@ -1,5 +1,18 @@
 #!/usr/bin/env tclsh
 
+# xsend.tcl --
+#
+#       This file is an example provided with the XMPP library. It allows to
+#       send messages via XMPP non-interactively. It was initially developed
+#       by Marshall T. Rose and adapted to the XMPP library by Sergei Golovan.
+#
+# Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAMER OF ALL WARRANTIES.
+#
+# $Id$
+
 package require mime
 package require sha1
 package require tls
@@ -112,7 +125,8 @@ proc xsend::sendit {stayP to args} {
                        -xmlns http://jabber.org/protocol/xhtml-im \
                        -subelement [::xmpp::xml::create body \
                                         -xmlns http://www.w3.org/1999/xhtml \
-                                        -subelements [xsend::parse_xhtml $options(-xhtml)]]]
+                                        -subelements [xsend::parse_xhtml \
+                                                            $options(-xhtml)]]]
     }
     if {[string equal $options(-type) announce]} {
         set options(-type) normal

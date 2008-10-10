@@ -15,7 +15,7 @@ package require pconnect
 
 package provide pconnect::socks4 1.0
 
-namespace eval socks4 {
+namespace eval ::pconnect::socks4 {
     namespace export connect
 
     variable const
@@ -43,20 +43,20 @@ namespace eval socks4 {
 
     variable debug 0
 
-    pconnect::register socks4 \
-            [namespace current]::connect \
-            [namespace current]::abort
+    ::pconnect::register socks4 \
+                         [namespace current]::connect \
+                         [namespace current]::abort
 }
 
-# socks4::connect --
+# ::pconnect::socks4::connect --
 #
 #       Negotiates with a SOCKS server.
 #
 # Arguments:
-#       sock:       an open socket token to the SOCKS server
-#       addr:       the peer address, not SOCKS server
-#       port:       the peer's port number
-#       args:
+#       sock        an open socket token to the SOCKS server
+#       addr        the peer address, not SOCKS server
+#       port        the peer's port number
+#       args
 #               -command    tclProc {token status}
 #               -username   userid
 #               -timeout    millisecs (default 60000)
@@ -69,7 +69,7 @@ namespace eval socks4 {
 #       If -command specified, the callback tclProc is called with
 #       status OK and socket or ERROR and error message.
 
-proc socks4::connect {sock addr port args} {
+proc ::pconnect::socks4::connect {sock addr port args} {
     variable const
 
     set token [namespace current]::$sock
@@ -149,7 +149,7 @@ proc socks4::connect {sock addr port args} {
     }
 }
 
-# socks4::Response --
+# ::pconnect::socks4::Response --
 #
 #       Receive the reply from a proxy and finish the negotiations.
 #
@@ -162,7 +162,7 @@ proc socks4::connect {sock addr port args} {
 # Side effects:
 #       The negotiation is finished with either success or error.
 
-proc socks4::Response {token} {
+proc ::pconnect::socks4::Response {token} {
     variable $token
     upvar 0 $token state
     variable const
@@ -214,7 +214,7 @@ proc socks4::Response {token} {
     return
 }
 
-# socks4::Timeout --
+# ::pconnect::socks4::Timeout --
 #
 #       This proc is called in case of timeout.
 #
@@ -227,12 +227,12 @@ proc socks4::Response {token} {
 # Side effects:
 #       A proxy negotiation is finished with error.
 
-proc socks4::Timeout {token} {
+proc ::pconnect::socks4::Timeout {token} {
     Finish $token timeout
     return
 }
 
-# socks4::Free --
+# ::pconnect::socks4::Free --
 #
 #       Frees a connection token.
 #
@@ -245,7 +245,7 @@ proc socks4::Timeout {token} {
 # Side effects:
 #       A connection token and its state informationa are destroyed.
 
-proc socks4::Free {token} {
+proc ::pconnect::socks4::Free {token} {
     variable $token
     upvar 0 $token state
 
@@ -254,7 +254,7 @@ proc socks4::Free {token} {
     return
 }
 
-# socks4::Finish --
+# ::pconnect::socks4::Finish --
 #
 #       Finishes a negotiation process.
 #
@@ -270,7 +270,7 @@ proc socks4::Free {token} {
 #       Otherwise state(status) is set to allow https::connect to return
 #       with either success or error.
 
-proc socks4::Finish {token {errormsg ""}} {
+proc ::pconnect::socks4::Finish {token {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
@@ -316,7 +316,7 @@ proc socks4::Finish {token {errormsg ""}} {
 #       A debug message is printed to the console if the value of
 #       https::debug variable is not less than num.
 
-proc socks4::Debug {token level str} {
+proc ::pconnect::socks4::Debug {token level str} {
     variable debug
 
     if {$debug >= $level} {
@@ -329,7 +329,7 @@ proc socks4::Debug {token level str} {
 # Test
 if {0} {
     set s [socket 192.168.0.1 1080]
-    set t [socks4::connect $s jabber.ru 5222 -username sergei]
+    set t [::pconnect::socks4::connect $s jabber.ru 5222 -username sergei]
 }
 
 # vim:ts=8:sw=4:sts=4:et

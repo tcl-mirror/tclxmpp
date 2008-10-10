@@ -63,11 +63,13 @@ proc ::xmpp::delay::parse {xmlElements} {
 
 # ::xmpp::delay::create --
 #
-#       Create delay element using XEP-0203 rules.
+#       Create delay element using XEP-0203 or XEP-0091 (now deprecated) rules.
 #
 # Arguments:
 #       seconds         (optional, defaults to the current time) Seconds since
 #                       epoch to store in XML element.
+#       -old bool       (optional, defaults to false) If true then XEP-0091 is
+#                       used. If false then XEP-0203 is used.
 #
 # Results:
 #       An XML element from XEP-0203 is created (without from attribute and
@@ -76,45 +78,63 @@ proc ::xmpp::delay::parse {xmlElements} {
 # Side effects:
 #       None.
 
-proc ::xmpp::delay::create {{seconds ""}} {
-    if {[string equal $seconds ""]} {
-        set seconds [clock seconds]
+proc ::xmpp::delay::create {args} {
+    switch -- [llength $args] {
+        0 {
+            set seconds [clock seconds]
+            set old false
+        }
+        1 {
+            set seconds [lindex $args 0]
+            set old false
+        }
+        2 {
+            switch -- [lindex $args 0] {
+                -old {
+                    set seconds [clock seconds]
+                    set old [lindex $args 1]
+                }
+                default {
+                    return -code error \
+                           "Usage: ::xmpp::delay::create\
+                            ?seconds? ?-old boolean?"
+                }
+            }
+        }
+        3 {
+            set seconds [lindex $args 0]
+            switch -- [lindex $args 1] {
+                -old {
+                    set old [lindex $args 2]
+                }
+                default {
+                    return -code error \
+                           "Usage: ::xmpp::delay::create\
+                            ?seconds? ?-old boolean?"
+                }
+            }
+        }
+        default {
+            return -code error "Usage: ::xmpp::delay::create\
+                                ?seconds? ?-old boolean?"
+        }
     }
 
-    return [::xmpp::xml::create delay \
-                -xmlns urn:xmpp:delay \
-                -attrs [list stamp \
-                             [clock format $seconds \
-                                    -format %Y-%m-%dT%H:%M:%SZ \
-                                    -gmt 1]]]
-}
-
-# ::xmpp::delay::createOld --
-#
-#       Create delay element using XEP-0091 (now deprecated) rules.
-#
-# Arguments:
-#       seconds         (optional, defaults to the current time) Seconds since
-#                       epoch to store in XML element.
-#
-# Results:
-#       An XML element from XEP-0091 is created (without from attribute and
-#       text cdata).
-#
-# Side effects:
-#       None.
-
-proc ::xmpp::delay::createOld {{seconds ""}} {
-    if {[string equal $seconds ""]} {
-        set seconds [clock seconds]
+    if {$old} {
+        return [::xmpp::xml::create x \
+                    -xmlns jabber:x:delay \
+                    -attrs [list stamp \
+                                 [clock format $seconds \
+                                        -format %Y%m%dT%H:%M:%S \
+                                        -gmt 1]]]
+    } else {
+        return [::xmpp::xml::create delay \
+                    -xmlns urn:xmpp:delay \
+                    -attrs [list stamp \
+                                 [clock format $seconds \
+                                        -format %Y-%m-%dT%H:%M:%SZ \
+                                        -gmt 1]]]
     }
-
-    return [::xmpp::xml::create x \
-                -xmlns jabber:x:delay \
-                -attrs [list stamp \
-                             [clock format $seconds \
-                                    -format %Y%m%dT%H:%M:%S \
-                                    -gmt 1]]]
 }
 
 # vim:ts=8:sw=4:sts=4:et

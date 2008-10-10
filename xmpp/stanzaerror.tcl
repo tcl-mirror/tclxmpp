@@ -78,7 +78,7 @@ namespace eval ::xmpp::stanzaerror {
         set LegacyCodes($cond) $lcode
     }
 
-    # Error messages from jabberd 1.4
+    # Error messages from jabberd14
     # [::msgcat::mc "Access Error"]
     # [::msgcat::mc "Address Error"]
     # [::msgcat::mc "Application Error"]

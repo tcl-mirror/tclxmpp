@@ -1,4 +1,4 @@
-# xmpp_jid.tcl --
+# jid.tcl --
 #
 #       This file is part of the XMPP library. It implements the routines to
 #       work with JIDs

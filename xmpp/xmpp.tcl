@@ -192,10 +192,10 @@ proc ::xmpp::free {xlib} {
 #                               "poll".
 #       -port port              (optional, defaults to 5222) Port to connect.
 #                               It isn't used for "poll" transport.
-#       -command cmd            (optional) If present then the connection becomes
-#                               asynchronous and the command is called upon
-#                               connection success or failure. Otherwise the
-#                               connection is in synchronous mode.
+#       -command cmd            (optional) If present then the connection
+#                               becomes asynchronous and the command is called
+#                               upon connection success or failure. Otherwise
+#                               the connection is in synchronous mode.
 #       Other arguments are passed unchanged to corresponding transport open
 #       routine.
 #
@@ -994,7 +994,7 @@ proc ::xmpp::disconnect {xlib} {
     }
 }
 
-#  ::xmpp::ClearState --
+# ::xmpp::ClearState --
 #
 #       Clean XMPP token state.
 #
@@ -1272,8 +1272,8 @@ proc ::xmpp::ParseMessage {xlib xmlElement} {
 #           -to to              To JID (usually own JID).
 #           -id id              Stanza ID (string).
 #           -priority priority  Presence priority (number).
-#           -show show          Presence status (missing, "away", "chat", "dnd",
-#                               "xa").
+#           -show show          Presence status (missing, "away", "chat",
+#                               "dnd", "xa").
 #           -status status      Presence extended status (string).
 #           -error error        Error stanza (XML element).
 #
@@ -1508,8 +1508,9 @@ proc ::xmpp::sendMessage {xlib to args} {
 #       xlib            XMPP token.
 #       -from from      From attribute (it's usually overwritten by server)
 #       -to to          JID to send message to.
-#       -type type      Presence type (missing, "unavailable", "probe", "subscribe",
-#                       "subscribed", "unsubscribe", "unsubscribed", "error").
+#       -type type      Presence type (missing, "unavailable", "probe",
+#                       "subscribe", "subscribed", "unsubscribe",
+#                       "unsubscribed", "error").
 #       -id id          Stanza ID.
 #       -show show      Presence status (missing, "chat", "away", "xa", "dnd").
 #       -status status  Presence extended status.

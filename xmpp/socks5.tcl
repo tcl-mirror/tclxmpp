@@ -1,8 +1,8 @@
-#  socks5.tcl ---
+# socks5.tcl ---
 #
-#      Package for using the SOCKS5 method for connecting TCP sockets.
-#      Some code plus idee from Kerem 'Waster_' Hadimli.
-#      Made from RFC 1928.
+#       Package for using the SOCKS5 method for connecting TCP sockets.
+#       Some code plus idee from Kerem 'Waster_' Hadimli.
+#       Made from RFC 1928.
 #
 # Copyright (c) 2000 Kerem Hadimli
 # Copyright (c) 2003-2007 Mats Bengtsson
@@ -18,7 +18,7 @@ package require ip
 
 package provide pconnect::socks5 0.1
 
-namespace eval socks5 {
+namespace eval ::pconnect::socks5 {
     namespace export connect
 
     # Constants:
@@ -80,20 +80,20 @@ namespace eval socks5 {
 
     variable debug 0
 
-    pconnect::register socks5 \
-            [namespace current]::connect \
-            [namespace current]::abort
+    ::pconnect::register socks5 \
+                         [namespace current]::connect \
+                         [namespace current]::abort
 }
 
-# socks5::connect --
+# ::pconnect::socks5::connect --
 #
 #       Negotiates with a SOCKS server.
 #
 # Arguments:
-#       sock:       an open socket token to the SOCKS server
-#       addr:       the peer address, not SOCKS server
-#       port:       the peer's port number
-#       args:
+#       sock        an open socket token to the SOCKS server
+#       addr        the peer address, not SOCKS server
+#       port        the peer's port number
+#       args
 #               -command    tclProc {status socket}
 #               -username   username
 #               -password   password
@@ -107,7 +107,7 @@ namespace eval socks5 {
 #       If -command specified, the callback tclProc is called with
 #       status ok and socket or error and error message.
 
-proc socks5::connect {sock addr port args} {
+proc ::pconnect::socks5::connect {sock addr port args} {
     variable msg
     variable const
 
@@ -199,7 +199,7 @@ proc socks5::connect {sock addr port args} {
     }
 }
 
-# socks5::ResponseMethod --
+# ::pconnect::socks5::ResponseMethod --
 #
 #       Receive the reply from a proxy and choose authorization method.
 #
@@ -213,7 +213,7 @@ proc socks5::connect {sock addr port args} {
 #       The negotiation is finished with error or continues with chosen
 #       method.
 
-proc socks5::ResponseMethod {token} {
+proc ::pconnect::socks5::ResponseMethod {token} {
     variable $token
     variable const
     upvar 0 $token state
@@ -268,7 +268,7 @@ proc socks5::ResponseMethod {token} {
     return
 }
 
-# socks5::ResponseAuth --
+# ::pconnect::socks5::ResponseAuth --
 #
 #       Receive the authorization reply from a proxy.
 #
@@ -282,7 +282,7 @@ proc socks5::ResponseMethod {token} {
 #       The negotiation is finished with error or continues with address and
 #       port request.
 
-proc socks5::ResponseAuth {token} {
+proc ::pconnect::socks5::ResponseAuth {token} {
     variable $token
     upvar 0 $token state
 
@@ -314,7 +314,7 @@ proc socks5::ResponseAuth {token} {
     return
 }
 
-# socks5::Request --
+# ::pconnect::socks5::Request --
 #
 #       Request connect to specified address and port.
 #
@@ -328,7 +328,7 @@ proc socks5::ResponseAuth {token} {
 #       The negotiation is finished with error or continues with address and
 #       port request.
 
-proc socks5::Request {token} {
+proc ::pconnect::socks5::Request {token} {
     variable $token
     variable const
     upvar 0 $token state
@@ -384,7 +384,7 @@ proc socks5::Request {token} {
     return
 }
 
-# socks5::Response --
+# ::pconnect::socks5::Response --
 #
 #       Receive the final reply from a proxy and finish the negotiations.
 #
@@ -397,7 +397,7 @@ proc socks5::Request {token} {
 # Side effects:
 #       The negotiation is finished with either success or error.
 
-proc socks5::Response {token} {
+proc ::pconnect::socks5::Response {token} {
     variable $token
     upvar 0 $token state
     variable iconst
@@ -445,7 +445,7 @@ proc socks5::Response {token} {
     return
 }
 
-# socks5::ParseAtypAddr --
+# ::pconnect::socks5::ParseAtypAddr --
 #
 #       Receive and parse destination address type and IP or name.
 #
@@ -460,7 +460,7 @@ proc socks5::Response {token} {
 # Side effects:
 #       The address type and IP or name is read from the socket.
 
-proc socks5::ParseAtypAddr {token addrVar portVar} {
+proc ::pconnect::socks5::ParseAtypAddr {token addrVar portVar} {
     variable $token
     variable const
     upvar 0 $token state
@@ -526,13 +526,13 @@ proc socks5::ParseAtypAddr {token addrVar portVar} {
     }
 }
 
-proc socks5::GetIpAndPort {token} {
+proc ::pconnect::socks5::GetIpAndPort {token} {
     variable $token
     upvar 0 $token state
     return [list $state(bnd_addr) $state(bnd_port)]
 }
 
-# socks5::Timeout --
+# ::pconnect::socks5::Timeout --
 #
 #       This proc is called in case of timeout.
 #
@@ -545,12 +545,12 @@ proc socks5::GetIpAndPort {token} {
 # Side effects:
 #       A proxy negotiation is finished with error.
 
-proc socks5::Timeout {token} {
+proc ::pconnect::socks5::Timeout {token} {
     Finish $token timeout
     return
 }
 
-# socks5::Free --
+# ::pconnect::socks5::Free --
 #
 #       Frees a connection token.
 #
@@ -563,7 +563,7 @@ proc socks5::Timeout {token} {
 # Side effects:
 #       A connection token and its state informationa are destroyed.
 
-proc socks5::Free {token} {
+proc ::pconnect::socks5::Free {token} {
     variable $token
     upvar 0 $token state
 
@@ -571,7 +571,7 @@ proc socks5::Free {token} {
     catch {unset state}
 }
 
-# socks5::Finish --
+# ::pconnect::socks5::Finish --
 #
 #       Finishes a negotiation process.
 #
@@ -587,7 +587,7 @@ proc socks5::Free {token} {
 #       Otherwise state(status) is set to allow https::connect to return
 #       with either success or error.
 
-proc socks5::Finish {token {errormsg ""}} {
+proc ::pconnect::socks5::Finish {token {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
@@ -633,7 +633,7 @@ proc socks5::Finish {token {errormsg ""}} {
 #       A debug message is printed to the console if the value of
 #       https::debug variable is not less than num.
 
-proc socks5::Debug {token level str} {
+proc ::pconnect::socks5::Debug {token level str} {
     variable debug
 
     if {$debug >= $level} {
@@ -658,8 +658,8 @@ if {0} {
         puts "dump:"
     }
     set s [socket 192.168.0.1 1080]
-    #socks5::connect $s jabber.ru 5222 -command cb
-    socks5::connect $s jabber.ru 5222 -command cb -username xxx -password xxx
+    #::pconnect::socks5::connect $s jabber.ru 5222 -command cb
+    ::pconnect::socks5::connect $s jabber.ru 5222 -command cb -username xxx -password xxx
 }
 
 # vim:ts=8:sw=4:sts=4:et

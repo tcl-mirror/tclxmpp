@@ -13,7 +13,9 @@
 
 package provide xmpp::iq 0.1
 
-namespace eval xmpp::iq {}
+namespace eval ::xmpp::iq {
+    namespace export registered register unregister process
+}
 
 # ::xmpp::iq::registered --
 #
@@ -63,6 +65,23 @@ proc ::xmpp::iq::registered {xlib} {
 proc ::xmpp::iq::register {type tag xmlns cmd} {
     RegisterIQ * $type $tag $xmlns $cmd
 }
+
+# ::xmpp::iq::unregister --
+#
+#       Unregister IQ.
+#
+# Arguments:
+#       type            IQ type to register. Must be either get or set. Types
+#                       error and result cannot be registered.
+#       tag             IQ XML tag pattern to register.
+#       xmlns           XMLNS pattern to register.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       An IQ is unregistered, and its XMLNS is removed from a list of
+#       supported namespaces.
 
 proc ::xmpp::iq::unregister {type tag xmlns} {
     UnregisterIQ * $type $tag $xmlns
@@ -114,6 +133,24 @@ proc ::xmpp::iq::RegisterIQ {xlib type tag xmlns cmd} {
         [lsort -unique [linsert $SupportedNS($xlib) 0 $xmlns]]
     return
 }
+
+# ::xmpp::iq::UnregisterIQ --
+#
+#       Unregister IQ.
+#
+# Arguments:
+#       xlib            XMPP token.
+#       type            IQ type to register. Must be either get or set. Types
+#                       error and result cannot be registered.
+#       tag             IQ XML tag pattern to register.
+#       xmlns           XMLNS pattern to register.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       An IQ is unregistered, and its XMLNS is removed from a list of
+#       supported namespaces.
 
 proc ::xmpp::iq::UnregisterIQ {xlib type tag xmlns} {
     variable IqCmd

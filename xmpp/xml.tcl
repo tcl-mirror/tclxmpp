@@ -703,7 +703,8 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
             if {[string equal $axmlns $xmlns]} {
                 set attr [lindex $l end]
             } else {
-                if {[string equal $axmlns http://www.w3.org/XML/1998/namespace]} {
+                if {[string equal $axmlns \
+                                  http://www.w3.org/XML/1998/namespace]} {
                     set axmlns xml
                 }
                 set attr $axmlns:[lindex $l end]
@@ -712,7 +713,8 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
         lappend newattrs $attr $val
     }
 
-    set state(stack) [linsert $state(stack) 0 [list $tag $xmlns $newattrs {} "" ""]]
+    set state(stack) \
+        [linsert $state(stack) 0 [list $tag $xmlns $newattrs {} "" ""]]
     if {[llength $state(stack)] == 1} {
         uplevel #0 $state(streamHeaderCmd) [list $newattrs]
     }

@@ -54,12 +54,22 @@ namespace eval ::xmpp::transport::tcp {
 #       -stanzaCommand        cmd3  Command to call when XMPP stanza is
 #                                   received.
 #       -eofCommand           cmd4  End-of-file callback.
+#       (other arguments are passed to [::pconnect::socket])
+#       -domain string              "inet" (default) or "inet6"
+#       -proxy string               Proxy type "" (default), "socks4",
+#                                   "socks5", or "https"
+#       -host string                Proxy hostname (required if -proxy
+#                                   isn't empty)
+#       -port integer               Proxy port number (required if -proxy
+#                                   isn't empty)
+#       -username string            Proxy user ID
+#       -password string            Proxy password
+#       -useragent string           Proxy user agent (for HTTP proxies)
 #
 # Result:
-#       In asynchronous mode pconnect token is returned to allow to abort
-#       connection process. In synchronous mode pair {socket parser} is
-#       returned in case of success or error is raised if the connection is
-#       failed.
+#       Transport token is returned to allow to abort connection process in
+#       asynchronous mode. In synchronous mode token is returned in case of
+#       success or error is raised if the connection is failed.
 #
 # Side effects:
 #       In synchronous mode in case of success a new TCP socket and XML parser
@@ -179,22 +189,48 @@ proc ::xmpp::transport::tcp::Configure {token} {
     return
 }
 
+# ::xmpp::transport::tcp::abort --
+#
+#       Abort connection which isn't fully opened yet.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Connection token is destroyed and the connection is aborted.
+
 proc ::xmpp::transport::tcp::abort {token} {
     variable $token
     upvar 0 $token state
+
+    # If ::pconnect::abort returns error then propagate it to the caller
+    ::pconnect::abort $state(pconnect)
 
     if {[info exists state(parser)]} {
         ::xmpp::xml::free $state(parser)
     }
 
-    set pconnect $state(pconnect)
     unset state
-
-    # If ::pconnect::abort returns error then propagate it to the caller
-    ::pconnect::abort $pconnect
 
     return
 }
+
+# ::xmpp::transport::tcp::outText --
+#
+#       Send text to XMPP server.
+#
+# Arguments:
+#       token           Transport token.
+#       text            Text to send.
+#
+# Result:
+#       Bytelength of a sent text.
+#
+# Side effects:
+#       Text is sent to the server.
 
 proc ::xmpp::transport::tcp::outText {token text} {
     variable $token
@@ -210,16 +246,59 @@ proc ::xmpp::transport::tcp::outText {token text} {
     }
 }
 
+# ::xmpp::transport::tcp::outXML --
+#
+#       Send XML element to XMPP server.
+#
+# Arguments:
+#       token           Transport token.
+#       xml             XML to send.
+#
+# Result:
+#       Bytelength of a textual representation of a sent XML.
+#
+# Side effects:
+#       Text is sent to the server.
+
 proc ::xmpp::transport::tcp::outXML {token xml} {
     return [outText $token [::xmpp::xml::toText $xml]]
 }
+
+# ::xmpp::transport::tcp::openStream --
+#
+#       Send XMPP stream header to XMPP server.
+#
+# Arguments:
+#       token           Transport token.
+#       server          XMPP server.
+#       args            Arguments for [::xmpp::xml::streamHeader].
+#
+# Result:
+#       Bytelength of a textual representation of a sent header.
+#
+# Side effects:
+#       Text is sent to the server.
 
 proc ::xmpp::transport::tcp::openStream {token server args} {
     return [outText $token \
                     [eval [list ::xmpp::xml::streamHeader $server] $args]]
 }
 
-proc ::xmpp::transport::tcp::closeStream {token args} {
+# ::xmpp::transport::tcp::closeStream --
+#
+#       Send XMPP stream trailer to XMPP server and start disconnecting
+#       procedure.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Bytelength of a textual representation of a sent header.
+#
+# Side effects:
+#       Text is sent to the server.
+
+proc ::xmpp::transport::tcp::closeStream {token} {
     variable $token
     upvar 0 $token state
 
@@ -237,12 +316,39 @@ proc ::xmpp::transport::tcp::closeStream {token args} {
     return $len
 }
 
+# ::xmpp::transport::tcp::flush --
+#
+#       Flush XMPP channel.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Pending data is sent to the server.
+
 proc ::xmpp::transport::tcp::flush {token} {
     variable $token
     upvar 0 $token state
 
     ::flush $state(sock)
+    return
 }
+
+# ::xmpp::transport::tcp::ip --
+#
+#       Return IP of an outgoing socket.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       IP address.
+#
+# Side effects:
+#       None.
 
 proc ::xmpp::transport::tcp::ip {token} {
     variable $token
@@ -250,6 +356,19 @@ proc ::xmpp::transport::tcp::ip {token} {
 
     return [lindex [fconfigure $state(sock)) -sockname] 0]
 }
+
+# ::xmpp::transport::tcp::close --
+#
+#       Close XMPP channel.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Transport token and XML parser are destroyed.
 
 proc ::xmpp::transport::tcp::close {token} {
     variable $token
@@ -268,12 +387,42 @@ proc ::xmpp::transport::tcp::close {token} {
     return
 }
 
+# ::xmpp::transport::tcp::reset --
+#
+#       Reset XMPP stream.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       XML parser is reset.
+
 proc ::xmpp::transport::tcp::reset {token} {
     variable $token
     upvar 0 $token state
 
     ::xmpp::xml::reset $state(parser)
+    return
 }
+
+# ::xmpp::transport::tcp::InText --
+#
+#       A helper procedure which is called when a new portion of data is
+#       received from XMPP server. It receives the data from a socket and
+#       feeds XML parser with them.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       The text is parsed and if it completes top-level stanza then an
+#       appropriate callback is invoked.
 
 proc ::xmpp::transport::tcp::InText {token} {
     variable $token
@@ -289,9 +438,38 @@ proc ::xmpp::transport::tcp::InText {token} {
     }
 }
 
+# ::xmpp::transport::tcp::InXML --
+#
+#       A helper procedure which is called when a new XML stanza is parsed.
+#       It then calls a specified command as an idle callback.
+#
+# Arguments:
+#       cmd             Command to call.
+#       xml             Stanza to pass to the command.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       After entering event loop the spaecified command is called.
+
 proc ::xmpp::transport::tcp::InXML {cmd xml} {
     after idle $cmd [list $xml]
 }
+
+# ::xmpp::transport::tcp::InEmpty --
+#
+#       A helper procedure which is called when XMPP stream is finished.
+#       It then calls a specified command as an idle callback.
+#
+# Arguments:
+#       cmd             Command to call.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       After entering event loop the spaecified command is called.
 
 proc ::xmpp::transport::tcp::InEmpty {cmd} {
     after idle $cmd

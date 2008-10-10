@@ -57,22 +57,37 @@ namespace eval ::xmpp::transport::tls {
 #       -stanzaCommand        cmd3  Command to call when XMPP stanza is
 #                                   received.
 #       -eofCommand           cmd4  End-of-file callback.
-#       -cacertstore
-#       -cadir
-#       -cafile
+#       -callback               TLS callback (it turns into -command option
+#                               for ::tls::import).
+#       -castore                If this option points to a file then it's
+#                               equivalent to -cafile, if it points to a
+#                               directory then it's equivalent to -cadir.
+#       -cadir                  Options for ::tls::import procedure (see
+#       -cafile                 tls package manual for details).
 #       -certfile
 #       -keyfile
+#       -password
+#       (other arguments are passed to [::pconnect::socket])
+#       -domain string              "inet" (default) or "inet6"
+#       -proxy string               Proxy type "" (default), "socks4",
+#                                   "socks5", or "https"
+#       -host string                Proxy hostname (required if -proxy
+#                                   isn't empty)
+#       -port integer               Proxy port number (required if -proxy
+#                                   isn't empty)
+#       -username string            Proxy user ID
+#       -password string            Proxy password
+#       -useragent string           Proxy user agent (for HTTP proxies)
 #
 # Result:
-#       In asynchronous mode pconnect token is returned to allow to abort
-#       connection process. In synchronous mode pair {socket parser} is
-#       returned in case of success or error is raised if the connection is
-#       failed.
+#       Transport token is returned to allow to abort connection process in
+#       asynchronous mode. In synchronous mode token is returned in case of
+#       success or error is raised if the connection is failed.
 #
 # Side effects:
-#       In synchronous mode in case of success a new TCP socket and XML parser
-#       are created, in case of failure none. In asynchronous mode a call to
-#       ::pconnect::socket is executed.
+#       In synchronous mode in case of success a new encrypted TCP socket and
+#       XML parser are created, in case of failure none. In asynchronous mode
+#       a call to ::pconnect::socket is executed.
 
 proc ::xmpp::transport::tls::open {host port args} {
     variable id
@@ -100,7 +115,7 @@ proc ::xmpp::transport::tls::open {host port args} {
             -streamTrailerCommand {set state(streamTrailerCmd) $val}
             -stanzaCommand        {set state(stanzaCmd)        $val}
             -eofCommand           {set state(eofCmd)           $val}
-            -cacertstore          -
+            -castore              -
             -cadir                -
             -cafile               -
             -certfile             -
@@ -171,7 +186,7 @@ proc ::xmpp::transport::tls::OpenAux {token cmd status sock} {
 #       tlsArgs             TLS-specific options.
 #
 # Result:
-#       An XML parser identifier.
+#       Empty string.
 #
 # Side effects:
 #       Socket is put in non-buffering nonblocking mode with encoding UTF-8.
@@ -193,12 +208,25 @@ proc ::xmpp::transport::tls::Configure {token tlsArgs} {
 
 # ::xmpp::transport::tls::import --
 #
-#       -cacertstore
-#       -cadir
-#       -cafile
+#       Turn TCP socket into a TLS socket.
+#
+# Arguments:
+#       token                   Transport control token.
+#       -castore                If this option points to a file then it's
+#                               equivalent to -cafile, if it points to a
+#                               directory then it's equivalent to -cadir.
+#       -cadir                  Options for ::tls::import procedure (see
+#       -cafile                 tls package manual for details).
 #       -certfile
 #       -keyfile
+#       -password
 #       -command
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       TCP socket which corresponds to the given token becomes TLS-encrypted.
 
 proc ::xmpp::transport::tls::import {token args} {
     variable $token
@@ -207,7 +235,7 @@ proc ::xmpp::transport::tls::import {token args} {
     set newArgs {}
     foreach {key val} $args {
         switch -- $key {
-            -cacertstore {
+            -castore {
                 if {[file isdirectory $val]} {
                     lappend newArgs -cadir $val
                 } else {
@@ -250,22 +278,47 @@ proc ::xmpp::transport::tls::import {token args} {
     return $token
 }
 
+# ::xmpp::transport::tls::abort --
+#
+#       Abort connection which isn't fully opened yet.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Connection token is destroyed and the connection is aborted.
+
 proc ::xmpp::transport::tls::abort {token} {
     variable $token
     upvar 0 $token state
+
+    # If ::pconnect::abort returns error then propagate it to the caller
+    ::pconnect::abort $state(pconnect)
 
     if {[info exists state(parser)]} {
         ::xmpp::xml::free $state(parser)
     }
 
-    set pconnect $state(pconnect)
     unset state
-
-    # If ::pconnect::abort returns error then propagate it to the caller
-    ::pconnect::abort $pconnect
-
     return
 }
+
+# ::xmpp::transport::tls::outText --
+#
+#       Send text to XMPP server.
+#
+# Arguments:
+#       token           Transport token.
+#       text            Text to send.
+#
+# Result:
+#       Bytelength of a sent text.
+#
+# Side effects:
+#       Text is sent to the server.
 
 proc ::xmpp::transport::tls::outText {token text} {
     variable $token
@@ -283,16 +336,59 @@ proc ::xmpp::transport::tls::outText {token text} {
     }
 }
 
+# ::xmpp::transport::tls::outXML --
+#
+#       Send XML element to XMPP server.
+#
+# Arguments:
+#       token           Transport token.
+#       xml             XML to send.
+#
+# Result:
+#       Bytelength of a textual representation of a sent XML.
+#
+# Side effects:
+#       Text is sent to the server.
+
 proc ::xmpp::transport::tls::outXML {token xml} {
     return [outText $token [::xmpp::xml::toText $xml]]
 }
+
+# ::xmpp::transport::tls::openStream --
+#
+#       Send XMPP stream header to XMPP server.
+#
+# Arguments:
+#       token           Transport token.
+#       server          XMPP server.
+#       args            Arguments for [::xmpp::xml::streamHeader].
+#
+# Result:
+#       Bytelength of a textual representation of a sent header.
+#
+# Side effects:
+#       Text is sent to the server.
 
 proc ::xmpp::transport::tls::openStream {token server args} {
     return [outText $token \
                     [eval [list ::xmpp::xml::streamHeader $server] $args]]
 }
 
-proc ::xmpp::transport::tls::closeStream {token args} {
+# ::xmpp::transport::tls::closeStream --
+#
+#       Send XMPP stream trailer to XMPP server and start disconnecting
+#       procedure.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Bytelength of a textual representation of a sent header.
+#
+# Side effects:
+#       Text is sent to the server.
+
+proc ::xmpp::transport::tls::closeStream {token} {
     variable $token
     upvar 0 $token state
 
@@ -310,6 +406,19 @@ proc ::xmpp::transport::tls::closeStream {token args} {
     return $len
 }
 
+# ::xmpp::transport::tls::flush --
+#
+#       Flush XMPP channel.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Pending data is sent to the server.
+
 proc ::xmpp::transport::tls::flush {token} {
     variable $token
     upvar 0 $token state
@@ -317,12 +426,38 @@ proc ::xmpp::transport::tls::flush {token} {
     ::flush $state(sock)
 }
 
+# ::xmpp::transport::tls::ip --
+#
+#       Return IP of an outgoing socket.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       IP address.
+#
+# Side effects:
+#       None.
+
 proc ::xmpp::transport::tls::ip {token} {
     variable $token
     upvar 0 $token state
 
     return [lindex [fconfigure $state(sock) -sockname] 0]
 }
+
+# ::xmpp::transport::tls::close --
+#
+#       Close XMPP channel.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Transport token and XML parser are destroyed.
 
 proc ::xmpp::transport::tls::close {token} {
     variable $token
@@ -341,12 +476,41 @@ proc ::xmpp::transport::tls::close {token} {
     return
 }
 
+# ::xmpp::transport::tls::reset --
+#
+#       Reset XMPP stream.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       XML parser is reset.
+
 proc ::xmpp::transport::tls::reset {token} {
     variable $token
     upvar 0 $token state
 
     ::xmpp::xml::reset $state(parser)
 }
+
+# ::xmpp::transport::tls::InText --
+#
+#       A helper procedure which is called when a new portion of data is
+#       received from XMPP server. It receives the data from a socket and
+#       feeds XML parser with them.
+#
+# Arguments:
+#       token           Transport token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       The text is parsed and if it completes top-level stanza then an
+#       appropriate callback is invoked.
 
 proc ::xmpp::transport::tls::InText {token} {
     variable $token
@@ -362,9 +526,38 @@ proc ::xmpp::transport::tls::InText {token} {
     }
 }
 
+# ::xmpp::transport::tls::InXML --
+#
+#       A helper procedure which is called when a new XML stanza is parsed.
+#       It then calls a specified command as an idle callback.
+#
+# Arguments:
+#       cmd             Command to call.
+#       xml             Stanza to pass to the command.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       After entering event loop the spaecified command is called.
+
 proc ::xmpp::transport::tls::InXML {cmd xml} {
     after idle $cmd [list $xml]
 }
+
+# ::xmpp::transport::tls::InEmpty --
+#
+#       A helper procedure which is called when XMPP stream is finished.
+#       It then calls a specified command as an idle callback.
+#
+# Arguments:
+#       cmd             Command to call.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       After entering event loop the spaecified command is called.
 
 proc ::xmpp::transport::tls::InEmpty {cmd} {
     after idle $cmd

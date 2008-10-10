@@ -1,4 +1,4 @@
-# xmpp_auth.tcl --
+# auth.tcl --
 #
 #       This file is part of the XMPP library. It provides support for the
 #       non-SASL authentication layer (XEP-0078).
@@ -51,8 +51,8 @@ namespace eval ::xmpp::auth {
 #
 # Result:
 #       In asynchronous mode a control token is returned (it allows to abort
-#       authentication process). In synchronous mode either IQ result is
-#       returned (if authentication succeded) or IQ error (with return code
+#       authentication process). In synchronous mode either authenticated JID
+#       is returned (if authentication succeded) or IQ error (with return code
 #       error in case of error, or break in case of abortion).
 #
 # Side effects:

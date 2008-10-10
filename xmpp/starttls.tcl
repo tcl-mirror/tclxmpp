@@ -1,9 +1,12 @@
-#  starttls.tcl --
+# starttls.tcl --
 #
 #       This file is part of the XMPP library. It provides support for the
 #       tls network socket security layer.
 #
 # Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAMER OF ALL WARRANTIES.
 #
 # $Id$
 
@@ -14,7 +17,43 @@ package provide xmpp::starttls 0.1
 
 namespace eval ::xmpp::starttls {}
 
-##########################################################################
+# ::xmpp::starttls::starttls --
+#
+#       Negotiate STARTTLS procedure and switch to an encrypted stream.
+#
+# Arguments:
+#       xlib                    XMPP token. It must be connected and XMPP
+#                               stream must be opened.
+#       -timeout    timeout     (optional, defaults to 0 which means infinity)
+#                               Timeout (in milliseconds) for STARTTLS
+#                               negotiation.
+#       -command    callback    (optional) If present, it turns on asynchronous
+#                               mode. After successful or failed authentication
+#                               "callback" is invoked with two appended
+#                               arguments: status ("ok", "error", "abort" or
+#                               "timeout") and either empty string if
+#                               status is "ok", or error stanza otherwise.
+#       -callback               TLS callback (it turns into -command option
+#                               for ::tls::import).
+#       -castore                If this option points to a file then it's
+#                               equivalent to -cafile, if it points to a
+#                               directory then it's equivalent to -cadir.
+#       -cadir                  Options for ::tls::import procedure (see
+#       -cafile                 tls package manual for details).
+#       -certfile
+#       -keyfile
+#       -password
+#
+# Result:
+#       In asynchronous mode a control token is returned (it allows to abort
+#       STARTTLS process). In synchronous mode either empty string is
+#       returned (if STARTTLS succeded) or IQ error (with return code
+#       error in case of error, or break in case of abortion).
+#
+# Side effects:
+#       A variable in ::xmpp::starttls namespace is created and STARTTLS state
+#       is stored in it in asynchronous mode. In synchronous mode the Tcl event
+#       loop is entered and processing until return.
 
 proc ::xmpp::starttls::starttls {xlib args} {
     variable id
@@ -37,15 +76,15 @@ proc ::xmpp::starttls::starttls {xlib args} {
 
     foreach {key val} $args {
         switch -- $key {
-            -cacertstore -
-            -cadir       -
-            -cafile      -
-            -certfile    -
-            -keyfile     -
-            -password    {
+            -castore  -
+            -cadir    -
+            -cafile   -
+            -certfile -
+            -keyfile  -
+            -password {
                 lappend state(tlsArgs) $key $val
             }
-            -callback    {
+            -callback {
                 lappend state(tlsArgs) -command $val
             }
             -command {
@@ -145,18 +184,33 @@ proc ::xmpp::starttls::AbortStarttls {token status msg} {
 
     ::xmpp::Debug $xlib 2 "$token"
 
+    ::xmpp::RemoveTraceStreamFeatures $xlib \
+                                [namespace code [list Continue $token]]
+
     if {[info exists state(reopenStream)]} {
         ::xmpp::GotStream $xlib abort {}
         return
     }
 
-    ::xmpp::RemoveTraceStreamFeatures $xlib \
-                                [namespace code [list Continue $token]]
-
     Finish $token $status [::xmpp::xml::create error -cdata $msg]
 }
 
-##########################################################################
+# ::xmpp::starttls::Continue --
+#
+#       A helper procedure which checks if there is a STARTTLS feature in a
+#       features list provided by server and continues or finishes STARTTLS
+#       negotiation.
+#
+# Arguments:
+#       token           STARTTLS control token.
+#       featuresList    XMPP features list from server.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       Either a STARTTLS request is sent to server or negotiation is
+#       finished with error.
 
 proc ::xmpp::starttls::Continue {token featuresList} {
     variable $token
@@ -188,7 +242,21 @@ proc ::xmpp::starttls::Continue {token featuresList} {
                                     -xmlns urn:ietf:params:xml:ns:xmpp-tls]
 }
 
-##########################################################################
+# ::xmpp::starttls::Parse --
+#
+#       Parse XML elemens in urn:ietf:params:xml:ns:xmpp-tls namespace. They
+#       indicate the result of negotiation procedure (success or failure).
+#
+# Arguments:
+#       token           STARTTLS control token.
+#       xmlElement      Top-level XML stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A corresponding procedure is called in cases of successful or failed
+#       STARTTLS negotiation.
 
 proc ::xmpp::starttls::Parse {token xmlElement} {
     variable $token
@@ -209,7 +277,19 @@ proc ::xmpp::starttls::Parse {token xmlElement} {
     }
 }
 
-##########################################################################
+# ::xmpp::starttls::Proceed --
+#
+#       A helper procedure which is called if STARTTLS negotiations succeeded.
+#       It switches transport to tls and reopens XMPP stream.
+#
+# Arguments:
+#       token           STARTTLS control token.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       XMPP channel becomes encrypted, XMPP stream is reopened.
 
 proc ::xmpp::starttls::Proceed {token} {
     variable $token
@@ -223,7 +303,8 @@ proc ::xmpp::starttls::Proceed {token} {
     # TODO
     #if {[catch {eval [list ::xmpp::transport::tcp::toTLS $state(xlib)] \
     #                 $args} msg]} {
-    #    set err [::xmpp::stanzaerror::error modify undefined-condition -text $msg]
+    #    set err [::xmpp::stanzaerror::error modify undefined-condition \
+    #                                        -text $msg]
     #    Finish $token error $err
     #    return
     #}
@@ -233,6 +314,23 @@ proc ::xmpp::starttls::Proceed {token} {
                               -command [namespace code [list Reopened $token]]]
     return
 }
+
+# ::xmpp::starttls::Reopened --
+#
+#       A callback which is invoked when the XMPP server responds to stream
+#       reopening. It finishes STARTTLS procedure with error or success.
+#
+# Arguments:
+#       token           STARTTLS control token.
+#       status          "ok", "error", "abort", or "timeout".
+#       sessionid       Stream session ID in case of success, or error message
+#                       otherwise.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       STARTTLS negotiation is finished.
 
 proc ::xmpp::starttls::Reopened {token status sessionid} {
     variable $token
@@ -250,7 +348,20 @@ proc ::xmpp::starttls::Reopened {token status sessionid} {
     }
 }
 
-##########################################################################
+# ::xmpp::starttls::Failure --
+#
+#       A helper procedure which is called if STARTTLS negotiations failed. It
+#       finishes STARTTLS procedure with error.
+#
+# Arguments:
+#       token           STARTTLS control token.
+#       xmlElements     Subelements of <failure/> element which include error.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       STARTTLS negotiation is finished with error.
 
 proc ::xmpp::starttls::Failure {token xmlElements} {
     variable $token
@@ -270,7 +381,23 @@ proc ::xmpp::starttls::Failure {token xmlElements} {
     Finish $token error $err
 }
 
-##########################################################################
+# ::xmpp::starttls::Finish --
+#
+#       A hepler procedure which finishes negotiation process and destroys
+#       STARTTLS control token (or returns to [starttls]).
+#
+# Arguments:
+#       token           STARTTLS control token.
+#       status          Status of the negotiations ("ok" means success).
+#       xmlData         Either a result (usually empty) if status is ok or
+#                       error stanza.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       In asynchronous mode a control token is destroyed and a callback is
+#       called. In synchronous mode vwait in [starttls] is triggered.
 
 proc ::xmpp::starttls::Finish {token status xmlData} {
     variable $token

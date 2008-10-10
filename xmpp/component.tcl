@@ -21,7 +21,7 @@ namespace eval ::xmpp::component {
 
 # ::xmpp::component::auth --
 #
-#       Authenticate an existing XMPP stream using jabber component protocol
+#       Authenticate an existing XMPP stream using Jabber Component Protocol
 #       described in XEP-0114.
 #
 # Arguments:
@@ -37,8 +37,8 @@ namespace eval ::xmpp::component {
 #       -command    callback    (optional) If present, it turns on asynchronous
 #                               mode. After successful or failed authentication
 #                               "callback" is invoked with two appended
-#                               arguments: status (ok, error, abort or timeout)
-#                               and either IQ result or error.
+#                               arguments: status ("ok", "error", "abort" or
+#                               "timeout") and either IQ result or error.
 #
 # Result:
 #       In asynchronous mode a control token is returned (it allows to abort
@@ -48,8 +48,8 @@ namespace eval ::xmpp::component {
 #
 # Side effects:
 #       A variable in ::xmpp::component namespace is created and auth state is
-#       stored in it in asunchronous mode. In synchronous mode there are no
-#       side effects.
+#       stored in it in asunchronous mode. In synchronous mode the Tcl event
+#       loop is entered and processing until return.
 
 proc ::xmpp::component::auth {xlib args} {
     variable id
@@ -130,8 +130,7 @@ proc ::xmpp::component::auth {xlib args} {
         # Synchronous mode
         vwait $token\(status)
 
-        set status $state(status)
-        set msg $state(msg)
+        foreach {status msg} $state(status) break
         unset state
 
         if {[string equal $status ok]} {
@@ -289,9 +288,8 @@ proc ::xmpp::component::Finish {token status msg} {
         uplevel #0 $cmd [list $status $msg]
     } else {
         # Synchronous mode
-        set state(msg) $msg
         # Trigger vwait in [auth]
-        set state(status) $status
+        set state(status) [list $status $msg]
     }
 }
 

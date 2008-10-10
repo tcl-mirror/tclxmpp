@@ -6,7 +6,8 @@
 #
 # Copyright (c) 2007-2008 Sergei Golovan <sgolovan@nes.ru>
 #
-#  This source file is distributed under the BSD license.
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAMER OF ALL WARRANTIES.
 #
 # $Id$
 
@@ -30,10 +31,10 @@ namespace eval ::pconnect::https {
 #       Negotiates with a HTTPS proxy server.
 #
 # Arguments:
-#       sock:       an open socket token to the proxy server
-#       addr:       the peer address, not the proxy server
-#       port:       the peer port number
-#       args:
+#       sock        an open socket token to the proxy server
+#       addr        the peer address, not the proxy server
+#       port        the peer port number
+#       args 
 #               -command    tclProc {status socket}
 #               -username   userid
 #               -password   password
@@ -177,7 +178,8 @@ proc ::pconnect::https::Readable {token} {
         while {[string length [set header [gets $state(sock)]]]} {
             switch -- [HttpHeaderName $header] {
                 proxy-authenticate {
-                    if {[string equal -length 4 [HttpHeaderBody $header] "NTLM"]} {
+                    if {[string equal -length 4 [HttpHeaderBody $header] \
+                                                "NTLM"]} {
                         set method ntlm
                     }
                 }

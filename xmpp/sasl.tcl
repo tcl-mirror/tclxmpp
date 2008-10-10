@@ -1,10 +1,13 @@
-#  sasl.tcl --
+# sasl.tcl --
 #
 #       This file is part of the XMPP library. It provides support for the
 #       SASL authentication layer via the tclsasl or tcllib SASL package.
 #       Also, it binds resource and opens XMPP session.
 #
-#  Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAMER OF ALL WARRANTIES.
 #
 # $Id$
 
@@ -282,13 +285,13 @@ proc ::xmpp::sasl::AbortAuth {token status msg} {
 
     ::xmpp::Debug $xlib 2 "$token"
 
+    ::xmpp::RemoveTraceStreamFeatures $xlib \
+                                [namespace code [list AuthContinue $token]]
+
     if {[info exists state(reopenStream)]} {
         ::xmpp::GotStream $xlib abort {}
         return
     }
-
-    ::xmpp::RemoveTraceStreamFeatures $xlib \
-                                [namespace code [list AuthContinue $token]]
 
     set error [::xmpp::xml::create error -cdata $msg]
 

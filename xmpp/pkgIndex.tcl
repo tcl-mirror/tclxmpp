@@ -19,6 +19,7 @@ package ifneeded xmpp 0.1                  [list source [file join $dir xmpp.tcl
 package ifneeded xmpp::auth 0.1            [list source [file join $dir auth.tcl]]
 package ifneeded xmpp::component 0.1       [list source [file join $dir component.tcl]]
 package ifneeded xmpp::compress 0.1        [list source [file join $dir compress.tcl]]
+package ifneeded xmpp::delay 0.1           [list source [file join $dir delay.tcl]]
 package ifneeded xmpp::dns 0.1             [list source [file join $dir dns.tcl]]
 package ifneeded xmpp::iq 0.1              [list source [file join $dir iq.tcl]]
 package ifneeded xmpp::jid 0.1             [list source [file join $dir jid.tcl]]
@@ -42,6 +43,7 @@ package ifneeded xmpp::full 0.1 {
     package require xmpp::auth 0.1
     package require xmpp::component 0.1
     package require xmpp::compress 0.1
+    package require xmpp::delay 0.1
     package require xmpp::dns 0.1
     package require xmpp::roster 0.1
     package require xmpp::starttls 0.1

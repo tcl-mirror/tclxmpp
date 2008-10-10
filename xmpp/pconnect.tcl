@@ -1,12 +1,13 @@
-#  pconnect.tcl ---
+# pconnect.tcl ---
 #
 #       Interface to socks4/5 or https to make usage of 'socket' transparent.
 #       Can also be used as a wrapper for the 'socket' command without any
 #       proxy configured.
 #
-#  Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
 #
-#  This source file is distributed under the BSD license.
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAMER OF ALL WARRANTIES.
 #
 # $Id$
 
@@ -27,10 +28,10 @@ namespace eval ::pconnect {
 #       Register proxy for connecting using pconnect::socket.
 #
 # Arguments:
-#       proxy:          the proxy identificator (socks4, socks5, https,
+#       proxy           the proxy identificator (socks4, socks5, https,
 #                       whatever)
-#       connectCmd:     the command to call when connecting through proxy
-#       abortCmd:       the command to call when aborting connection (before
+#       connectCmd      the command to call when connecting through proxy
+#       abortCmd        the command to call when aborting connection (before
 #                       connection succeded)
 #
 # Result:
@@ -71,9 +72,9 @@ proc ::pconnect::proxies {} {
 #       Client side socket through a proxy.
 #
 # Arguments:
-#       host:            the peer address, not SOCKS server
-#       port:            the peer's port number
-#       args:
+#       host             the peer address, not SOCKS server
+#       port             the peer's port number
+#       args 
 #           -domain      inet (default) | inet6
 #           -proxy       "" (default) | socks4 | socks5 | https
 #           -host        proxy hostname (required if -proxy isn't "")
@@ -174,7 +175,7 @@ proc ::pconnect::socket {host port args} {
 #       established or failed then return error.
 #
 # Arguments:
-#       token:      A control token which is returned by pconnect::socket
+#       token       A control token which is returned by pconnect::socket
 #
 # Result:
 #       An empty string or error.
@@ -215,7 +216,7 @@ proc ::pconnect::abort {token} {
 #       writable.
 #
 # Arguments:
-#       token:      A control token which is returned by pconnect::socket
+#       token       A control token which is returned by pconnect::socket
 #
 # Result:
 #       An empty string.
@@ -261,7 +262,7 @@ proc ::pconnect::Writable {token ahost aport} {
 #       proxy connect command.
 #
 # Arguments:
-#       token:      A control token which is returned by pconnect::socket
+#       token       A control token which is returned by pconnect::socket
 #
 # Result:
 #       A list of options -username, -password, -useragent which were supplied
@@ -293,9 +294,9 @@ proc ::pconnect::GetOpts {token} {
 #       procedure.
 #
 # Arguments:
-#       token:      A control token which is returned by pconnect::socket
-#       status:     Proxy connect status (ok or error)
-#       sock:       A new TCP socket if $status equals ok or an error message
+#       token       A control token which is returned by pconnect::socket
+#       status      Proxy connect status (ok or error)
+#       sock        A new TCP socket if $status equals ok or an error message
 #                   if $status equals error
 #
 # Result:
@@ -325,9 +326,9 @@ proc ::pconnect::ProxyCallback {token status sock} {
 #       (or sets traced status variable to return back to pconnect::socket).
 #
 # Arguments:
-#       token:      A control token which is returned by pconnect::socket
-#       status:     A connection status (ok, error, or abort).
-#       errormsg:   An error message (is used if status is not ok).
+#       token       A control token which is returned by pconnect::socket
+#       status      A connection status (ok, error, or abort).
+#       errormsg    An error message (is used if status is not ok).
 #
 # Result:
 #       An empty string.
