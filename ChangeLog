@@ -50,8 +50,11 @@
 
 	* examples/chessbot.tcl, examples/echo.tcl, examples/xsend.tcl,
 	  xmpp/auth.tcl, xmpp/component.tcl, xmpp/poll.tcl, xmpp/roster.tcl,
-	  xmpp/stanzaerror.tcl, xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/transport.tcl,
-	  xmpp/xmpp.tcl, xmpp/zlib.tcl: Removed camel case from dash-options.
+	  xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/transport.tcl, xmpp/xmpp.tcl,
+	  xmpp/zlib.tcl: Removed camel case from dash-options.
+
+	* xmpp/stanzaerror.tcl: Added creating legacy error to error
+	  procedure (with -old option).
 
 2008-10-09  Sergei Golovan  <sgolovan@nes.ru>
 
