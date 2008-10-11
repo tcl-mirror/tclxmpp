@@ -171,10 +171,7 @@ proc xsend::sendit {stayP to args} {
         }
 
         # Connect to a server
-        ::xmpp::connect $xlib -transport $transport \
-                              -host $aprops(domain) \
-                              -port $port
-
+        ::xmpp::connect $xlib $aprops(domain) $port -transport $transport
 
         if {!$options(-tls) && $options(-starttls)} {
             # Open XMPP stream

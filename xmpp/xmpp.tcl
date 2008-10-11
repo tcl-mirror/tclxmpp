@@ -182,16 +182,16 @@ proc ::xmpp::free {xlib} {
 #
 # Arguments:
 #       xlib                    XMPP token.
+#       host                    (optional, defaults to "localhost") Server name
+#                               to connect. It isn't used when transport is
+#                               "poll".
+#       port                    (optional, defaults to 5222) Port to connect.
+#                               It isn't used for "poll" transport.
 #       -transport transport    (optional, defaults to "tcp") Transport to use
 #                               when connecting to an XMPP server. May be one
 #                               of "tcp", "tls", "poll", "zlib" (though none of
 #                               the servers support zlib compressed sockets
 #                               without prior negotiating).
-#       -host hostname          (optional, defaults to "localhost") Server name
-#                               to connect. It isn't used when transport is
-#                               "poll".
-#       -port port              (optional, defaults to 5222) Port to connect.
-#                               It isn't used for "poll" transport.
 #       -command cmd            (optional) If present then the connection
 #                               becomes asynchronous and the command is called
 #                               upon connection success or failure. Otherwise
@@ -219,11 +219,19 @@ proc ::xmpp::connect {xlib args} {
     set port      5222
     set argList   {}
 
+    if {![string match -* [lindex $args 0]]} {
+        set host [lindex $args 0]
+        set args [lrange $args 1 end]
+    }
+
+    if {![string match -* [lindex $args 0]]} {
+        set port [lindex $args 0]
+        set args [lrange $args 1 end]
+    }
+
     foreach {key val} $args {
         switch -- $key {
             -transport {set transport $val}
-            -host      {set host      $val}
-            -port      {set port      $val}
             -command   {set cmd       $val}
             default    {lappend argList $key $val}
         }

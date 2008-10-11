@@ -96,7 +96,7 @@ if {[string equal $options(-host) ""]} {
 set xlib [::xmpp::new -packetcommand ProcessPacket]
 
 # Connect to an XMPP server.
-::xmpp::connect $xlib -host $options(-host) -port $options(-port)
+::xmpp::connect $xlib $options(-host) $options(-port)
 
 if {!$options(-jcp)} {
     # XEP-0225

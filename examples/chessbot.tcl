@@ -469,14 +469,11 @@ if {$options(-poll)} {
 } elseif {$options(-tls)} {
     # Legacy SSL
 
-    ::xmpp::connect $xlib -transport tls \
-                          -host $options(-host) \
-                          -port $options(-port)
+    ::xmpp::connect $xlib $options(-host) $options(-port) -transport tls
 } else {
     # TCP channel (with possible upgrade)
 
-    ::xmpp::connect $xlib -host $options(-host) \
-                          -port $options(-port)
+    ::xmpp::connect $xlib $options(-host) $options(-port)
 }
 
 if {$options(-sasl) || \

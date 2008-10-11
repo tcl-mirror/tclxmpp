@@ -1,3 +1,10 @@
+2008-10-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xmpp.tcl, examples/chessbot.tcl, examples/echo.tcl,
+	  examples/xsend.tcl: Changed syntax of host and port arguments in
+	  ::xmpp::connect because they clashed with proxy host and port
+	  options.
+
 2008-10-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/delay.tcl: Joined procedures which create delay element
