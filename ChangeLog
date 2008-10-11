@@ -5,6 +5,11 @@
 	  ::xmpp::connect because they clashed with proxy host and port
 	  options.
 
+	* xmpp/compress.tcl, xmpp/starttls.tcl: Made the compress and starttls
+	  procedures return new stream session ID in case of success. This
+	  allows to perform non-SASL authentication over compressed or
+	  encrypted streams if a server offers it.
+
 2008-10-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/delay.tcl: Joined procedures which create delay element

@@ -31,7 +31,7 @@ namespace eval ::xmpp::starttls {}
 #                               mode. After successful or failed authentication
 #                               "callback" is invoked with two appended
 #                               arguments: status ("ok", "error", "abort" or
-#                               "timeout") and either empty string if
+#                               "timeout") and either new stream session ID if
 #                               status is "ok", or error stanza otherwise.
 #       -callback               TLS callback (it turns into -command option
 #                               for ::tls::import).
@@ -46,7 +46,7 @@ namespace eval ::xmpp::starttls {}
 #
 # Result:
 #       In asynchronous mode a control token is returned (it allows to abort
-#       STARTTLS process). In synchronous mode either empty string is
+#       STARTTLS process). In synchronous mode either new stream session ID is
 #       returned (if STARTTLS succeded) or IQ error (with return code
 #       error in case of error, or break in case of abortion).
 #
@@ -342,7 +342,7 @@ proc ::xmpp::starttls::Reopened {token status sessionid} {
     ::xmpp::Debug $xlib 2 "$token $status $sessionid"
 
     if {[string equal $status $ok]} {
-        Finish $token ok {}
+        Finish $token ok $sessionid
     } else {
         Finish $token $status [::xmpp::xml::create error -cdata $sessionid]
     }
@@ -389,7 +389,7 @@ proc ::xmpp::starttls::Failure {token xmlElements} {
 # Arguments:
 #       token           STARTTLS control token.
 #       status          Status of the negotiations ("ok" means success).
-#       xmlData         Either a result (usually empty) if status is ok or
+#       xmlData         Either a new stream session ID if status is ok or
 #                       error stanza.
 #
 # Result:
@@ -421,7 +421,7 @@ proc ::xmpp::starttls::Finish {token status xmlData} {
     }
 
     if {[string equal $status ok]} {
-        set msg ""
+        set msg $xmlData
         ::xmpp::CallBack $xlib status [::msgcat::mc "STARTTLS successful"]
     } else {
         set msg [::xmpp::stanzaerror::message $xmlData]

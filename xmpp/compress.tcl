@@ -43,14 +43,14 @@ namespace eval ::xmpp::compress {
 #                               mode. After successful or failed authentication
 #                               "callback" is invoked with two appended
 #                               arguments: status ("ok", "error", "abort" or
-#                               "timeout") and either empty string if
+#                               "timeout") and either new stream session ID if
 #                               status is "ok", or error stanza otherwise.
 #       -level level            Compression level.
 #
 # Result:
 #       In asynchronous mode a control token is returned (it allows to abort
-#       compression process). In synchronous mode either empty string is
-#       returned (if compression succeded) or IQ error (with return code
+#       compression process). In synchronous mode either new stream session ID
+#       is returned (if compression succeded) or IQ error (with return code
 #       error in case of error, or break in case of abortion).
 #
 # Side effects:
@@ -413,7 +413,7 @@ proc ::xmpp::compress::Reopened {token status sessionid} {
     ::xmpp::Debug $xlib 2 "$token $status $sessionid"
 
     if {[string equal $status $ok]} {
-        Finish $token ok {}
+        Finish $token ok $sessionid
     } else {
         Finish $token $status [::xmpp::xml::create error -cdata $sessionid]
     }
@@ -460,7 +460,7 @@ proc ::xmpp::compress::Finish {token status xmlData} {
     ::xmpp::Debug $xlib 2 "$token $status"
 
     if {[string equal $status ok]} {
-        set msg ""
+        set msg $xmlData
         ::xmpp::CallBack $xlib status \
                          [::msgcat::mc "Compression negotiation successful"]
     } else {
