@@ -10,6 +10,8 @@
 	  allows to perform non-SASL authentication over compressed or
 	  encrypted streams if a server offers it.
 
+	* xmpp/sasl.tcl: Fixed typo.
+
 2008-10-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/delay.tcl: Joined procedures which create delay element

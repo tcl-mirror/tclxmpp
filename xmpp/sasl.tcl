@@ -433,7 +433,7 @@ proc ::xmpp::sasl::ChooseMech {token mechanisms} {
     variable $token
     upvar 0 $token state
 
-    set forbiddenMechs $state(-disabled)
+    set forbiddenMechs $state(-disable)
 
     if {$state(-digest) = 1} {
         lappend forbiddenMechs PLAIN LOGIN
