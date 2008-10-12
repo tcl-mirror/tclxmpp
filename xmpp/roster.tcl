@@ -354,7 +354,7 @@ proc ::xmpp::roster::ParseItems {token xmlElement} {
         }
 
         if {[info exists state(-itemcommand)]} {
-            uplevel #0 $state(-itemcommand) [list $token        $njid \
+            uplevel #0 $state(-itemcommand) [list $njid \
                                                   -jid          $jid \
                                                   -name         $name \
                                                   -subscription $subsc \

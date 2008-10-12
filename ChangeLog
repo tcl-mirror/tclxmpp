@@ -1,3 +1,8 @@
+2008-10-12  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/roster.tcl: Removed unnecessary argument from roster item
+	  command call.
+
 2008-10-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl, examples/chessbot.tcl, examples/echo.tcl,
