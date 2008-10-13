@@ -38,10 +38,16 @@ namespace eval ::xmpp::starttls {}
 #       -castore                If this option points to a file then it's
 #                               equivalent to -cafile, if it points to a
 #                               directory then it's equivalent to -cadir.
+#
 #       -cadir                  Options for ::tls::import procedure (see
 #       -cafile                 tls package manual for details).
 #       -certfile
 #       -keyfile
+#       -ssl2
+#       -ssl3
+#       -tls1
+#       -request
+#       -require
 #       -password
 #
 # Result:
@@ -81,6 +87,11 @@ proc ::xmpp::starttls::starttls {xlib args} {
             -cafile   -
             -certfile -
             -keyfile  -
+            -ssl2     -
+            -ssl3     -
+            -tls1     -
+            -request  -
+            -require  -
             -password {
                 lappend state(tlsArgs) $key $val
             }

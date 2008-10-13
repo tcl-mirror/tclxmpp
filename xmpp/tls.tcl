@@ -62,10 +62,16 @@ namespace eval ::xmpp::transport::tls {
 #       -castore                If this option points to a file then it's
 #                               equivalent to -cafile, if it points to a
 #                               directory then it's equivalent to -cadir.
+#
 #       -cadir                  Options for ::tls::import procedure (see
 #       -cafile                 tls package manual for details).
 #       -certfile
 #       -keyfile
+#       -ssl2
+#       -ssl3
+#       -tls1
+#       -request
+#       -require
 #       -password
 #       (other arguments are passed to [::pconnect::socket])
 #       -domain string              "inet" (default) or "inet6"
@@ -120,6 +126,11 @@ proc ::xmpp::transport::tls::open {host port args} {
             -cafile               -
             -certfile             -
             -keyfile              -
+            -ssl2                 -
+            -ssl3                 -
+            -tls1                 -
+            -request              -
+            -require              -
             -password             {lappend tlsArgs $key $val}
             -callback             {lappend tlsArgs -command $val}
             default               {lappend newArgs $key $val}
@@ -215,10 +226,16 @@ proc ::xmpp::transport::tls::Configure {token tlsArgs} {
 #       -castore                If this option points to a file then it's
 #                               equivalent to -cafile, if it points to a
 #                               directory then it's equivalent to -cadir.
+#
 #       -cadir                  Options for ::tls::import procedure (see
 #       -cafile                 tls package manual for details).
 #       -certfile
 #       -keyfile
+#       -ssl2
+#       -ssl3
+#       -tls1
+#       -request
+#       -require
 #       -password
 #       -command
 #
@@ -251,13 +268,7 @@ proc ::xmpp::transport::tls::import {token args} {
 
     fconfigure $state(sock) -blocking true
 
-    eval [list ::tls::import $state(sock)   \
-                             -ssl2    false \
-                             -ssl3    true  \
-                             -tls1    true  \
-                             -request true  \
-                             -require false \
-                             -server  false] $newArgs
+    eval [list ::tls::import $state(sock)] $newArgs
 
     if {[catch {::tls::handshake $state(sock)} result]} {
         catch {::close $state(sock)}

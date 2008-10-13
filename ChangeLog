@@ -1,3 +1,10 @@
+2008-10-13  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/starttls.tcl, xmpp/tls.tcl: Made TLS import routine use its
+	  default options if they weren't specified during STARTTLS or
+	  opening TLS socket. Added options to choose protocol version to
+	  XMPP TLS interface.
+
 2008-10-12  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/roster.tcl: Removed unnecessary argument from roster item
