@@ -89,6 +89,7 @@ proc ::xmpp::new {args} {
             -packetcommand -
             -messagecommand -
             -presencecommand -
+            -iqcommand -
             -disconnectcommand -
             -statuscommand -
             -errorcommand {
@@ -120,7 +121,8 @@ proc ::xmpp::new {args} {
         RegisterElement $xlib presence * \
                         [namespace code [list ParsePresence $xlib]]
     }
-    if {![info exists state(-packetcommand)]} {
+    if {![info exists state(-packetcommand)] || \
+                                    [info exists state(-iqcommand)]} {
         RegisterElement $xlib iq * \
                         [namespace code [list ParseIQ $xlib]]
     }
@@ -1399,6 +1401,11 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
     switch -- $type {
         get -
         set {
+            # TODO: process return values.
+            # Any IQ.
+            eval [list CallBack $xlib iq $from $type $subels -x $xparam] $params
+
+            # Registered IQ.
             eval [list iq::process $xlib $from $type \
                                    [lindex $subels 0]] $params
             return

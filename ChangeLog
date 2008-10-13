@@ -5,6 +5,8 @@
 	  opening TLS socket. Added options to choose protocol version to
 	  XMPP TLS interface.
 
+	* xmpp/xmpp.tcl: Added general IQ command (unfinished yet).
+
 2008-10-12  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/roster.tcl: Removed unnecessary argument from roster item
