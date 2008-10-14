@@ -67,7 +67,7 @@ namespace eval ::pconnect::socks4 {
 # Side effects:
 #       Socket is prepared for data transfer.
 #       If -command specified, the callback tclProc is called with
-#       status OK and socket or ERROR and error message.
+#       status ok and socket or error and error message.
 
 proc ::pconnect::socks4::connect {sock addr port args} {
     variable const
@@ -113,7 +113,7 @@ proc ::pconnect::socks4::connect {sock addr port args} {
     } err]} {
         catch {close $sock}
         if {$state(async)} {
-            after idle [list $state(-command) ERROR network-failure]
+            after idle [list $state(-command) error network-failure]
             Free $token
             return
         } else {
@@ -140,7 +140,7 @@ proc ::pconnect::socks4::connect {sock addr port args} {
 
         Free $token
 
-        if {[string equal $status OK]} {
+        if {[string equal $status ok]} {
             return $sock
         } else {
             catch {close $sock}
@@ -282,9 +282,9 @@ proc ::pconnect::socks4::Finish {token {errormsg ""}} {
         # In case of asynchronous connection we do the cleanup.
         if {[string length $errormsg]} {
             catch {close $state(sock)}
-            uplevel #0 $state(-command) [list ERROR $errormsg]
+            uplevel #0 $state(-command) [list error $errormsg]
         } else {
-            uplevel #0 $state(-command) [list OK $state(sock)]
+            uplevel #0 $state(-command) [list ok $state(sock)]
         }
         Free $token
     } else {
@@ -292,9 +292,9 @@ proc ::pconnect::socks4::Finish {token {errormsg ""}} {
         if {[string length $errormsg]} {
             catch {close $state(sock)}
             set state(sock) $errormsg
-            set state(status) ERROR
+            set state(status) error
         } else {
-            set state(status) OK
+            set state(status) ok
         }
     }
     return

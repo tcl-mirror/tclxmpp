@@ -7,6 +7,8 @@
 
 	* xmpp/iq.tcl: Fixed typo.
 
+	* xmpp/socks4.tcl: Changed case of ok and error status.
+
 2008-10-13  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/starttls.tcl, xmpp/tls.tcl: Made TLS import routine use its
