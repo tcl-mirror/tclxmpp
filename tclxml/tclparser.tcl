@@ -79,6 +79,7 @@ proc xml::tclparser::create name {
     array set parser [list \
 	-name $name							 \
 	-final 1							 \
+	-namespace 1							 \
 	-validate 0							 \
 	-statevariable [namespace current]::$name			 \
 	-baseurl {}							 \
@@ -156,7 +157,7 @@ proc xml::tclparser::configure {name args} {
 	-paramentityparsing -defaultexpandinternalentities \
 	-startdoctypedeclcommand -enddoctypedeclcommand \
 	-entityreferencecommand -warningcommand \
-	-errorcommand -final \
+	-errorcommand -final -namespace \
 	-validate -baseurl \
 	-name -emptyelement \
 	-parseattributelistcommand -parseentitydeclcommand \
@@ -221,6 +222,7 @@ proc xml::tclparser::parse {name xml args} {
 	    [array get parser -name] \
 	    [array get parser -baseurl] \
 	    [array get parser -validate] \
+	    [array get parser -namespace] \
 	    [array get parser -final] \
 	    [array get parser -defaultexpandinternalentities] \
 	    [array get parser entities] \

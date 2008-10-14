@@ -1,3 +1,12 @@
+2008-10-14  Sergei Golovan  <sgolovan@nes.ru>
+
+	* tclxml/sgmlparser.tcl, tclxml/tclparser.tcl, tclxml/xmltcl.tcl,
+	  xmpp/xml.tcl: Use non-XMLNS aware parser and process XMLNS prefixes
+	  manually. This helps to ignore unbound prefixes when tDOM expat
+	  parser is used.
+
+	* xmpp/iq.tcl: Fixed typo.
+
 2008-10-13  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/starttls.tcl, xmpp/tls.tcl: Made TLS import routine use its

@@ -195,10 +195,12 @@ proc ::xmpp::iq::UnregisterIQ {xlib type tag xmlns} {
 proc ::xmpp::iq::process {xlib from type xmlElement args} {
     variable IqCmd
 
+    ::xmpp::Debug $xlib 2 "$from $type $xmlElement $args"
+
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
-    if {[info exists IqCmd(*,$type,$tag,$xmlns])]} {
-        set cmd $IqCmd(*,$type,$tag,$xmlns])
+    if {[info exists IqCmd(*,$type,$tag,$xmlns)]} {
+        set cmd $IqCmd(*,$type,$tag,$xmlns)
     } else {
         foreach idx [lsort [array names IqCmd \\*,$type,*]] {
             set fields [split $idx ,]

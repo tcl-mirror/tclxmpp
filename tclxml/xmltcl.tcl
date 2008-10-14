@@ -159,7 +159,9 @@ proc xml::parser {args} {
 
 	# consume first -namespace if any
 	if {[string equal [lindex $args 0] "-namespace"]} {
-	    set args [lrange $args 1 end]
+	    set args [linsert $args 1 1]
+	} else {
+	    set args [linsert $args 0 -namespace 0]
 	}
     }
 

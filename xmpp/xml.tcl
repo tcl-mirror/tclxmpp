@@ -13,7 +13,7 @@
 
 package require msgcat
 
-if {[catch {package present tdom}]} {
+if {[catch {package require tdom 0.8}]} {
     package require -exact xml 2.0
 }
 
@@ -61,7 +61,6 @@ proc ::xmpp::xml::new {streamHeaderCmd streamTrailerCmd stanzaCmd} {
 
     set state(parser) \
         [::xml::parser parser#$id \
-             -namespace \
              -final 0 \
              -elementstartcommand  [namespace code [list ElementStart $token]] \
              -elementendcommand    [namespace code [list ElementEnd   $token]] \
@@ -72,6 +71,7 @@ proc ::xmpp::xml::new {streamHeaderCmd streamTrailerCmd stanzaCmd} {
     }
 
     set state(stack) {}
+    set state(namespace) {{xml xml}}
 
     return $token
 }
@@ -154,6 +154,7 @@ proc ::xmpp::xml::reset {token} {
     }
 
     $state(parser) reset
+    catch {$state(parser) configure -namespace 0}
     $state(parser) configure \
         -final 0 \
         -elementstartcommand  [namespace code [list ElementStart $token]] \
@@ -681,42 +682,64 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
                -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
 
-    set xmlns ""
-
-    set l [::split $tag :]
-    if {[llength $l] > 1} {
-        set xmlns [join [lrange $l 0 end-1] :]
-        set tag [lindex $l end]
-    }
-
-    foreach {key val} $args {
-        switch -- $key {
-            -namespace {set xmlns $val}
-        }
-    }
+    array set namespace [lindex $state(namespace) end]
 
     set newattrs {}
     foreach {attr val} $attrs {
         set l [::split $attr :]
-        if {[llength $l] > 1} {
-            set axmlns [join [lrange $l 0 end-1] :]
-            if {[string equal $axmlns $xmlns]} {
-                set attr [lindex $l end]
-            } else {
-                if {[string equal $axmlns \
-                                  http://www.w3.org/XML/1998/namespace]} {
-                    set axmlns xml
-                }
-                set attr $axmlns:[lindex $l end]
-            }
+        set prefix [lindex $l 0]
+        set local [lindex $l 1]
+        if {[string equal $prefix xmlns]} {
+            set namespace($local) $val
+        } else {
+            lappend newattrs $attr $val
         }
-        lappend newattrs $attr $val
     }
 
+    set l [::split $tag :]
+    if {[llength $l] > 1} {
+        set prefix [lindex $l 0]
+        set local [lindex $l 1]
+
+        if {![info exists namespace($prefix)]} {
+            set tag $local
+            set xmlns undefined
+        } else {
+            set tag $local
+            set xmlns $namespace($prefix)
+        } 
+    } else {
+        set xmlns $namespace()
+    }
+
+    set attrs {}
+    foreach {attr val} $newattrs {
+        set l [::split $attr :]
+        if {[llength $l] > 1} {
+            set prefix [lindex $l 0]
+            set local [lindex $l 1]
+
+            if {![info exists namespace($prefix)]} {
+                if {[string equal $xmlns undefined]} {
+                    set attr $local
+                } else {
+                    set attr undefined:$local
+                }
+            } elseif {[string equal $namespace($prefix) $xmlns]} {
+                set attr $local
+            } else {
+                set attr $namespace($prefix):$local
+            }
+        }
+        lappend attrs $attr $val
+    }
+
+    lappend state(namespace) [array get namespace]
+
     set state(stack) \
-        [linsert $state(stack) 0 [list $tag $xmlns $newattrs {} "" ""]]
+        [linsert $state(stack) 0 [list $tag $xmlns $attrs {} "" ""]]
     if {[llength $state(stack)] == 1} {
-        uplevel #0 $state(streamHeaderCmd) [list $newattrs]
+        uplevel #0 $state(streamHeaderCmd) [list $attrs]
     }
     return
 }
@@ -747,6 +770,8 @@ proc ::xmpp::xml::ElementEnd {token tag args} {
         return -code error \
                -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
+
+    set state(namespace) [lreplace $state(namespace) end end]
 
     set newEl [lindex $state(stack) 0]
     set tail [lrange $state(stack) 1 end]

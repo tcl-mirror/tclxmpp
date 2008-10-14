@@ -949,89 +949,95 @@ proc sgml::ParseEvent:ElementOpen {tag attr opts args} {
 	set empty {-empty 1}
     }
 
-    # Check for namespace declarations
-    upvar #0 $options(namespaces) namespaces
-    set nsdecls {}
-    if {[llength $attr]} {
-	array set attrlist $attr
-	foreach {attrName attrValue} [array get attrlist xmlns*] {
-	    unset attrlist($attrName)
-	    set colon [set prefix {}]
-	    if {[regexp {^xmlns(:(.+))?$} $attrName discard colon prefix]} {
-		switch -glob -- [string length $colon],[string length $prefix] {
-		    *,0 -
-		    0,0 {
-			# *,0 is a HACK: Ignore empty namespace prefix
-			# TODO: investigate it
-			# default NS declaration
-			lappend state(defaultNSURI) $attrValue
-			lappend state(defaultNS) [llength $state(stack)]
-			lappend nsdecls $attrValue {}
-		    }
-		    0,* {
-			# Huh?
-		    }
-		    *,0 {
-			# Error
-			uplevel #0 $state(-warningcommand) \
-			    "no prefix specified for namespace URI \"$attrValue\" in element \"$tag\""
-		    }
-		    default {
-			set namespaces($prefix,[llength $state(stack)]) $attrValue
-			lappend nsdecls $attrValue $prefix
+    if {$options(-namespace)} {
+	# Check for namespace declarations
+	upvar #0 $options(namespaces) namespaces
+	set nsdecls {}
+	if {[llength $attr]} {
+	    array set attrlist $attr
+	    foreach {attrName attrValue} [array get attrlist xmlns*] {
+		unset attrlist($attrName)
+		set colon [set prefix {}]
+		if {[regexp {^xmlns(:(.+))?$} $attrName discard colon prefix]} {
+		    switch -glob -- [string length $colon],[string length $prefix] {
+			*,0 -
+			0,0 {
+			    # *,0 is a HACK: Ignore empty namespace prefix
+			    # TODO: investigate it
+			    # default NS declaration
+			    lappend state(defaultNSURI) $attrValue
+			    lappend state(defaultNS) [llength $state(stack)]
+			    lappend nsdecls $attrValue {}
+			}
+			0,* {
+			    # Huh?
+			}
+			*,0 {
+			    # Error
+			    uplevel #0 $state(-warningcommand) \
+			        "no prefix specified for namespace URI \"$attrValue\" in element \"$tag\""
+			}
+			default {
+			    set namespaces($prefix,[llength $state(stack)]) $attrValue
+			    lappend nsdecls $attrValue $prefix
+			}
 		    }
 		}
 	    }
-	}
-	if {[llength $nsdecls]} {
-	    set nsdecls [list -namespacedecls $nsdecls]
-	}
-	set attr [array get attrlist]
-    }
-
-    # Check whether this element has an expanded name
-    set ns {}
-    if {[regexp {([^:]+):(.*)$} $tag discard prefix tag1]} {
-	set nsspec [lsort -dictionary -decreasing [array names namespaces $prefix,*]]
-	if {[llength $nsspec]} {
-	    set tag $tag1
-	    set nsuri $namespaces([lindex $nsspec 0])
-	    set ns [list -namespace $nsuri]
-	} else {
-	    # HACK: ignore undeclared namespace (and replace it by default one)
-	    # TODO: investigate it
-	    #uplevel #0 $options(-errorcommand) \
-	    #	[list namespaceundeclared "no namespace declared for prefix \"$prefix\" in element $tag"]
-	    if {[llength $state(defaultNSURI)]} {
-		set ns [list -namespace [lindex $state(defaultNSURI) end]]
+	    if {[llength $nsdecls]} {
+		set nsdecls [list -namespacedecls $nsdecls]
 	    }
+	    set attr [array get attrlist]
 	}
-    } elseif {[llength $state(defaultNSURI)]} {
-	set ns [list -namespace [lindex $state(defaultNSURI) end]]
-    }
 
-    # Prepend attributes with XMLNS URI
-    set attr1 {}
-    foreach {key val} $attr {
-	if {[regexp {([^:]+):(.*)$} $key discard prefix key1]} {
+	# Check whether this element has an expanded name
+	set ns {}
+	if {[regexp {([^:]+):(.*)$} $tag discard prefix tag1]} {
 	    set nsspec [lsort -dictionary -decreasing [array names namespaces $prefix,*]]
 	    if {[llength $nsspec]} {
+		set tag $tag1
 		set nsuri $namespaces([lindex $nsspec 0])
-		lappend attr1 $nsuri:$key1 $val
+		set ns [list -namespace $nsuri]
 	    } else {
-		# HACK: ignore undeclared namespace
+		# HACK: ignore undeclared namespace (and replace it by default one)
 		# TODO: investigate it
 		#uplevel #0 $options(-errorcommand) \
-		#	[list namespaceundeclared "no namespace declared for prefix \"$prefix\" in attribute $key"]
+		#	[list namespaceundeclared "no namespace declared for prefix \"$prefix\" in element $tag"]
+		if {[llength $state(defaultNSURI)]} {
+		    set ns [list -namespace [lindex $state(defaultNSURI) end]]
+		}
+	    }
+	} elseif {[llength $state(defaultNSURI)]} {
+	    set ns [list -namespace [lindex $state(defaultNSURI) end]]
+	}
+
+	# Prepend attributes with XMLNS URI
+	set attr1 {}
+	foreach {key val} $attr {
+	    if {[regexp {([^:]+):(.*)$} $key discard prefix key1]} {
+		set nsspec [lsort -dictionary -decreasing [array names namespaces $prefix,*]]
+		if {[llength $nsspec]} {
+		    set nsuri $namespaces([lindex $nsspec 0])
+		    lappend attr1 $nsuri:$key1 $val
+		} else {
+		    # HACK: ignore undeclared namespace
+		    # TODO: investigate it
+		    #uplevel #0 $options(-errorcommand) \
+		    #	[list namespaceundeclared "no namespace declared for prefix \"$prefix\" in attribute $key"]
+		    lappend attr1 $key $val
+		}
+	    } else {
 		lappend attr1 $key $val
 	    }
-	} else {
-	    lappend attr1 $key $val
 	}
+
+	# Invoke callback
+	set code [catch {uplevel #0 $options(-elementstartcommand) [list $tag $attr1] $empty $ns $nsdecls} msg]
+    } else {
+	# Invoke callback
+	set code [catch {uplevel #0 $options(-elementstartcommand) [list $tag $attr] $empty} msg]
     }
 
-    # Invoke callback
-    set code [catch {uplevel #0 $options(-elementstartcommand) [list $tag $attr1] $empty $ns $nsdecls} msg]
     return -code $code -errorinfo $::errorInfo $msg
 }
 
