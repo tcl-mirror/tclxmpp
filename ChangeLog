@@ -9,6 +9,9 @@
 
 	* xmpp/socks4.tcl: Changed case of ok and error status.
 
+	* xmpp/xml.tcl: Fixed bug with forgotten namespaces stack while
+	  resetting XML parser. Also, simplified prefixes processing.
+
 2008-10-13  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/starttls.tcl, xmpp/tls.tcl: Made TLS import routine use its

@@ -162,6 +162,7 @@ proc ::xmpp::xml::reset {token} {
         -characterdatacommand [namespace code [list ElementCdata $token]]
 
     set state(stack) {}
+    set state(namespace) {{xml xml}}
     return
 }
 
@@ -699,13 +700,11 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
     set l [::split $tag :]
     if {[llength $l] > 1} {
         set prefix [lindex $l 0]
-        set local [lindex $l 1]
+        set tag [lindex $l 1]
 
         if {![info exists namespace($prefix)]} {
-            set tag $local
             set xmlns undefined
         } else {
-            set tag $local
             set xmlns $namespace($prefix)
         } 
     } else {
@@ -717,17 +716,13 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
         set l [::split $attr :]
         if {[llength $l] > 1} {
             set prefix [lindex $l 0]
-            set local [lindex $l 1]
+            set attr [lindex $l 1]
 
             if {![info exists namespace($prefix)]} {
-                if {[string equal $xmlns undefined]} {
-                    set attr $local
-                } else {
-                    set attr undefined:$local
+                if {![string equal $xmlns undefined]} {
+                    set attr undefined:$attr
                 }
-            } elseif {[string equal $namespace($prefix) $xmlns]} {
-                set attr $local
-            } else {
+            } elseif {![string equal $xmlns $namespace($prefix)]} {
                 set attr $namespace($prefix):$local
             }
         }
