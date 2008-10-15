@@ -67,7 +67,7 @@ proc ::xmpp::xml::new {streamHeaderCmd streamTrailerCmd stanzaCmd} {
              -characterdatacommand [namespace code [list ElementCdata $token]]]
 
     if {[llength [info commands ::$state(parser)]] == 0} {
-        set state(parser) [namespace code $state(parser)]
+        set state(parser) [namespace current]::$state(parser)
     }
 
     set state(stack) {}
