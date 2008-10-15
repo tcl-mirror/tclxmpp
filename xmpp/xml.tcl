@@ -71,7 +71,7 @@ proc ::xmpp::xml::new {streamHeaderCmd streamTrailerCmd stanzaCmd} {
     }
 
     set state(stack) {}
-    set state(namespace) {{xml xml}}
+    set state(namespace) {{{} {} xml xml}}
 
     return $token
 }
@@ -162,7 +162,7 @@ proc ::xmpp::xml::reset {token} {
         -characterdatacommand [namespace code [list ElementCdata $token]]
 
     set state(stack) {}
-    set state(namespace) {{xml xml}}
+    set state(namespace) {{{} {} xml xml}}
     return
 }
 
@@ -574,8 +574,7 @@ proc ::xmpp::xml::parseData {data {stanzaCmd ""}} {
         set state(stanzaCmd) [namespace code [list ParseDataAux $token]]
     }
     set state(XML) {}
-    parser $token parse <stream>
-    parser $token parse $data
+    parser $token parse <stream>$data</stream>
     set xml $state(XML)
     free $token
     return $xml

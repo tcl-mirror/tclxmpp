@@ -1,3 +1,8 @@
+2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,
+	  closed the outmost XML element in data parsing routine.
+
 2008-10-14  Sergei Golovan  <sgolovan@nes.ru>
 
 	* tclxml/sgmlparser.tcl, tclxml/tclparser.tcl, tclxml/xmltcl.tcl,
