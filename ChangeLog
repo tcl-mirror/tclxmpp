@@ -27,6 +27,8 @@
 
 	* xmpp/xmpp.tcl: Fixed sending text.
 
+	* xmpp/xml.tcl: Fixed creating XML element if it has empty subelements.
+
 2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,

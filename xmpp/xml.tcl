@@ -278,18 +278,22 @@ proc ::xmpp::xml::create {tag args} {
                 }
             }
             -subelement  {
-                if {[string equal [lindex $val 1] ""]} {
-                    lappend subels [lreplace $val 1 1 $xmlns]
-                } else {
-                    lappend subels $val
+                if {[llength $val] > 0} {
+                    if {[string equal [lindex $val 1] ""]} {
+                        lappend subels [lreplace $val 1 1 $xmlns]
+                    } else {
+                        lappend subels $val
+                    }
                 }
             }
             -subelements {
                 foreach subel $val {
-                    if {[string equal [lindex $subel 1] ""]} {
-                        lappend subels [lreplace $subel 1 1 $xmlns]
-                    } else {
-                        lappend subels $subel
+                    if {[llength $subel] > 0} {
+                        if {[string equal [lindex $subel 1] ""]} {
+                            lappend subels [lreplace $subel 1 1 $xmlns]
+                        } else {
+                            lappend subels $subel
+                        }
                     }
                 }
             }
