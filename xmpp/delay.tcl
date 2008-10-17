@@ -28,7 +28,7 @@ namespace eval ::xmpp::delay {}
 # Side effects:
 #       None.
 
-proc ::xmpp::delay::parse {xmlElements} {
+proc ::xmpp::delay::exists {xmlElements} {
     foreach element $xmlElements {
         ::xmpp::xml::split $element tag xmlns attrs cdata subels
 
