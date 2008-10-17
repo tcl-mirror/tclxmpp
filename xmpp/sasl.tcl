@@ -434,7 +434,7 @@ proc ::xmpp::sasl::ChooseMech {token mechanisms} {
 
     set forbiddenMechs $state(-disable)
 
-    if {$state(-digest) = 1} {
+    if {$state(-digest) == 1} {
         lappend forbiddenMechs PLAIN LOGIN
     } elseif {$state(-digest) == 0} {
         foreach m [SASL::mechanisms] {

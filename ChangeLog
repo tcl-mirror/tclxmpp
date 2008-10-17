@@ -23,6 +23,8 @@
 
 	* xmpp/xmpp.tcl: Fixed transport switching.
 
+	* xmpp/sasl.tcl: Fixed typo.
+
 2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,
