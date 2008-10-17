@@ -29,6 +29,9 @@
 
 	* xmpp/xml.tcl: Fixed creating XML element if it has empty subelements.
 
+	* xmpp/streamerror.tcl: Removed extra closing parenthesis from error
+	  message.
+
 2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,

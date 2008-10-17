@@ -126,7 +126,7 @@ proc ::xmpp::streamerror::ToList {xmlElement} {
                 default {
                     if {[info exists StreamerrorDesc($stag)]} {
                         set condition $stag
-                        set desc $StreamerrorDesc($stag))
+                        set desc $StreamerrorDesc($stag)
                     }
                 }
             }
