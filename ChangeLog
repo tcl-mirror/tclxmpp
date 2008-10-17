@@ -18,6 +18,11 @@
 
 	* xmpp/sasl.tcl: Renamed local variable which clashed with global one.
 
+	* xmpp/auth.tcl, xmpp/compress.tcl, xmpp/sasl.tcl, xmpp/starttls.tcl:
+	  Return full error stanza instead of error message.
+
+	* xmpp/xmpp.tcl: Fixed transport switching.
+
 2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,

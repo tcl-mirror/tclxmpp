@@ -468,7 +468,7 @@ proc ::xmpp::auth::Finish {token status xmlData} {
         ::xmpp::CallBack $xlib status \
                          [::msgcat::mc "Non-SASL authentication succeeded"]
     } else {
-        set msg [::xmpp::stanzaerror::message $xmlData]
+        set msg $xmlData
         ::xmpp::CallBack $xlib status \
                          [::msgcat::mc "Non-SASL authentication failed"]
     }

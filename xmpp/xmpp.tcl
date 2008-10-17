@@ -767,14 +767,14 @@ proc ::xmpp::ParseStreamError {xlib xmlElement} {
 # Side effects:
 #       Transport is changed if it's possible.
 
-proc ::xmpp::SwitchTransport {xlib transport} {
+proc ::xmpp::SwitchTransport {xlib transport args} {
     variable $xlib
     upvar 0 $xlib state
 
     Debug $xlib 2 "$transport"
 
     set state(transport) \
-        [transport::switch $state(transport) $transport]
+        [eval [list transport::switch $state(transport) $transport] $args]
     return
 }
 

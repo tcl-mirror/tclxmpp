@@ -412,7 +412,7 @@ proc ::xmpp::compress::Reopened {token status sessionid} {
 
     ::xmpp::Debug $xlib 2 "$token $status $sessionid"
 
-    if {[string equal $status $ok]} {
+    if {[string equal $status ok]} {
         Finish $token ok $sessionid
     } else {
         Finish $token $status [::xmpp::xml::create error -cdata $sessionid]
@@ -460,22 +460,20 @@ proc ::xmpp::compress::Finish {token status xmlData} {
     ::xmpp::Debug $xlib 2 "$token $status"
 
     if {[string equal $status ok]} {
-        set msg $xmlData
         ::xmpp::CallBack $xlib status \
                          [::msgcat::mc "Compression negotiation successful"]
     } else {
-        set msg [::xmpp::stanzaerror::message $xmlData]
         ::xmpp::CallBack $xlib status \
                          [::msgcat::mc "Compression negotiation failed"]
     }
 
     if {[info exists cmd]} {
         # Asynchronous mode
-        uplevel #0 $cmd [list $status $msg]
+        uplevel #0 $cmd [list $status $xmlData]
     } else {
         # Synchronous mode
         # Trigger vwait in [compress]
-        set state(status) [list $status $msg]
+        set state(status) [list $status $xmlData]
     }
     return
 }

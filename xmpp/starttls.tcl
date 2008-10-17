@@ -133,8 +133,7 @@ proc ::xmpp::starttls::starttls {xlib args} {
         # Synchronous mode
         vwait $token\(status)
 
-        set status $state(status)
-        set msg $state(msg)
+        foreach {status msg} $state(status) break
         unset state
 
         if {[string equal $status ok]} {
@@ -352,7 +351,7 @@ proc ::xmpp::starttls::Reopened {token status sessionid} {
 
     ::xmpp::Debug $xlib 2 "$token $status $sessionid"
 
-    if {[string equal $status $ok]} {
+    if {[string equal $status ok]} {
         Finish $token ok $sessionid
     } else {
         Finish $token $status [::xmpp::xml::create error -cdata $sessionid]
@@ -432,21 +431,18 @@ proc ::xmpp::starttls::Finish {token status xmlData} {
     }
 
     if {[string equal $status ok]} {
-        set msg $xmlData
         ::xmpp::CallBack $xlib status [::msgcat::mc "STARTTLS successful"]
     } else {
-        set msg [::xmpp::stanzaerror::message $xmlData]
         ::xmpp::CallBack $xlib status [::msgcat::mc "STARTTLS failed"]
     }
 
     if {[info exists cmd]} {
         # Asynchronous mode
-        uplevel #0 $cmd [list $status $msg]
+        uplevel #0 $cmd [list $status $xmlData]
     } else {
         # Synchronous mode
-        set state(msg) $msg
         # Trigger vwait in [starttls]
-        set state(status) $status
+        set state(status) [list $status $xmlData]
     }
     return
 }

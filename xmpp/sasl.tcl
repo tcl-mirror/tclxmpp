@@ -223,8 +223,7 @@ proc ::xmpp::sasl::auth {xlib args} {
         # Synchronous mode
         vwait $token\(status)
 
-        set status $state(status)
-        set msg $state(msg)
+        foreach {status msg} $state(status) break
         unset state
 
         if {[string equal $status ok]} {
@@ -827,7 +826,7 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
         set msg $jid
         ::xmpp::CallBack $xlib status [::msgcat::mc "Authentication succeeded"]
     } else {
-        set msg [::xmpp::stanzaerror::message $xmlData]
+        set msg $xmlData
         ::xmpp::CallBack $xlib status [::msgcat::mc "Authentication failed"]
     }
 
@@ -836,9 +835,8 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
         uplevel #0 $cmd [list $status $msg]
     } else {
         # Synchronous mode
-        set state(msg) $msg
         # Trigger vwait in [auth]
-        set state(status) $status
+        set state(status) [list $status $msg]
     }
     return
 }
