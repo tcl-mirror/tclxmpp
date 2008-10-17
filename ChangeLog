@@ -1,3 +1,14 @@
+2008-10-17  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/streamerror.tcl: Added error condition to the call of error
+	  client callback in additin to a readable message.
+
+	* xmpp/xmpp.tcl: Return client callback code and error info to a
+	  caller. It is useful for IQ callback where return code "return"
+	  prevents processing the packet by internam IQ engine. Also, move
+	  general IQ callback upper to make it executed not only for types
+	  "get" and "set" but also for all other types.
+
 2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,

@@ -747,7 +747,8 @@ proc ::xmpp::ParseStreamError {xlib xmlElement} {
 
     Debug $xlib 2 "$xmlElement"
 
-    CallBack $xlib error [streamerror::message $xmlElement]
+    CallBack $xlib error [streamerror::condition $xmlElement] \
+                         [streamerror::message $xmlElement]
     return
 }
 
@@ -1398,13 +1399,12 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
         set pfrom [list $from]
     }
 
+    # Any IQ.
+    eval [list CallBack $xlib iq $from $type $subels -x $xparam] $params
+
     switch -- $type {
         get -
         set {
-            # TODO: process return values.
-            # Any IQ.
-            eval [list CallBack $xlib iq $from $type $subels -x $xparam] $params
-
             # Registered IQ.
             eval [list iq::process $xlib $from $type \
                                    [lindex $subels 0]] $params
@@ -1749,7 +1749,7 @@ proc ::xmpp::abortIQ {xlib id status error} {
 #       args            Arguments for callback.
 #
 # Result:
-#       Empty string:
+#       Callback return code and value:
 #
 # Side effects:
 #       Side effects from the callback.
@@ -1763,9 +1763,11 @@ proc ::xmpp::CallBack {xlib command args} {
     set cmd -${command}command
 
     if {[info exists state($cmd)]} {
-        uplevel #0 $state($cmd) [list $xlib] $args
+        set code [catch {uplevel #0 $state($cmd) [list $xlib] $args} msg]
+        return -code $code -errorinfo $::errorInfo $msg
+    } else {
+        return
     }
-    return
 }
 
 # ::xmpp::Set --
