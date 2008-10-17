@@ -824,7 +824,7 @@ proc ::xmpp::outText {xlib text} {
     Debug $xlib 2 "$text"
     ::LOG_OUTPUT $xlib $text
 
-    transport::use $state(transport) outText $xmlElement
+    transport::use $state(transport) outText $text
 }
 
 # ::xmpp::closeStream --
