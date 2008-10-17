@@ -9,6 +9,13 @@
 	  general IQ callback upper to make it executed not only for types
 	  "get" and "set" but also for all other types.
 
+	* xmpp/xml.tcl: Added a hack which helps to parse XML file with a
+	  declararion at the beginning if tDOM parser is used. Also, fixed a
+	  typo in create XML procedure.
+
+	* xmpp/delay.tcl: Added a new procedure which checks if the message
+	  is delayed.
+
 2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,

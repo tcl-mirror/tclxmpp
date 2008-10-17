@@ -14,6 +14,34 @@ package provide xmpp::delay 0.1
 
 namespace eval ::xmpp::delay {}
 
+# ::xmpp::delay::exists --
+#
+#       Find delay element in a list and return true if it's found.
+#
+# Arguments:
+#       xmlElements         XML elements list.
+#
+# Result:
+#       If there's a delay elements in the given list then the result is true
+#       otherwise it's false.
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::delay::parse {xmlElements} {
+    foreach element $xmlElements {
+        ::xmpp::xml::split $element tag xmlns attrs cdata subels
+
+        switch -- $xmlns {
+            urn:xmpp:delay -
+            jabber:x:delay {
+                return true
+            }
+        }
+    }
+    return false
+}
+
 # ::xmpp::delay::parse --
 #
 #       Find delay element in a list and parse it.

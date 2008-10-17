@@ -295,7 +295,7 @@ proc ::xmpp::xml::create {tag args} {
             }
             default {
                 return -code error \
-                       -errorinfo [::msgcat::mc "Invalid option \"%s\"" $attr]
+                       -errorinfo [::msgcat::mc "Invalid option \"%s\"" $key]
             }
         }
     }
@@ -574,7 +574,9 @@ proc ::xmpp::xml::parseData {data {stanzaCmd ""}} {
         set state(stanzaCmd) [namespace code [list ParseDataAux $token]]
     }
     set state(XML) {}
-    parser $token parse <stream>$data</stream>
+    # HACK to move declaration out from file tag
+    regexp {(^\s*<\?([^?]|\?[^>])*\?>)?(.*)$} $data -> header _ data
+    parser $token parse "$header\n<tag>$data</tag>"
     set xml $state(XML)
     free $token
     return $xml
