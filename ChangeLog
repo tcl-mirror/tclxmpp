@@ -16,6 +16,8 @@
 	* xmpp/delay.tcl: Added a new procedure which checks if the message
 	  is delayed.
 
+	* xmpp/sasl.tcl: Renamed local variable which clashed with global one.
+
 2008-10-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Added default (empty) XMLNS for empty prefix. Also,

@@ -164,9 +164,9 @@ proc ::xmpp::sasl::auth {xlib args} {
 
     switch -- $saslpack {
         tclsasl {
-            foreach id {authname pass getrealm cnonce} {
+            foreach key {authname pass getrealm cnonce} {
                 lappend callbacks \
-                    [list $id [namespace code [list TclsaslCallback $token]]]
+                    [list $key [namespace code [list TclsaslCallback $token]]]
             }
 
             set state(token) \
