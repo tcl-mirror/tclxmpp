@@ -448,7 +448,7 @@ proc ::xmpp::sasl::ChooseMech {token mechanisms} {
 
     foreach m [SASL::mechanisms] {
         if {[lsearch -exact $mechanisms $m] >= 0 && \
-                [lsearch -exact $forbidden_mechs $m] < 0} {
+                [lsearch -exact $forbiddenMechs $m] < 0} {
             return $m
         }
     }
