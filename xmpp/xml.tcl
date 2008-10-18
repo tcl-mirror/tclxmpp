@@ -262,16 +262,21 @@ proc ::xmpp::xml::ReplaceCdata {xmldata level} {
     set cdata1 [lindex $xmldata 4]
     set cdata2 [lindex $xmldata 5]
 
+    set s1 \n[string repeat \t $level]
+    incr level
+    set s2 \n[string repeat \t $level]
+
     if {[llength $subels] == 0} {
-        return [lreplace $xmldata 5 5 \n[string repeat \t $level]]
+        return [lreplace $xmldata 5 5 $s1]
     } else {
-        set cdata1 \n[string repeat \t [expr {$level+1}]]
-        set cdata2 \n[string repeat \t $level]
+        set cdata1 $s2
+        set cdata2 $s1
         set newsubels {}
         foreach subel [lrange $subels 0 end-1] {
-            lappend newsubels [ReplaceCdata $subel [expr {$level+1}]]
+            lappend newsubels [ReplaceCdata $subel $level]
         }
-        lappend newsubels [ReplaceCdata [lindex $subels end] $level]
+        set newsubel [ReplaceCdata [lindex $subels end] $level]
+        lappend newsubels [lreplace $newsubel 5 5 $s1]
 
         return [list $tag $xmlns $attrs $newsubels $cdata1 $cdata2]
     }
