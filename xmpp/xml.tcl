@@ -215,6 +215,68 @@ proc ::xmpp::xml::toText {xmldata {pxmlns ""}} {
     return $retext
 }
 
+# ::xmpp::xml::toTabbedText --
+#
+#       Creates pretty-printed textual representation from XML data. The XML
+#       must satisfy the following condition: it must contain either a single
+#       CDATA element or a list of subelements. Mixing CDATA and subelements
+#       is not allowed. This procedure may be useful for saving XML into
+#       files.
+#
+# Arguments:
+#       xmldata         A parsed (or created by create) XML element.
+#       pxmlns          Optional. XMLNS of a parent XML element.
+#
+# Results:
+#       A converted raw XML data.
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::xml::toTabbedText {xmldata {pxmlns ""}} {
+    return [toText [ReplaceCdata $xmldata 0] $pxmlns]
+}
+
+# ::xmpp::xml::ReplaceCdata --
+#
+#       Replace character data in XML element to a mix of tabs and linefeeds
+#       to make its textual representation look pretty. This procedure distorts
+#       XML element if it has subelements and CDATA simultaneously.
+#
+# Arguments:
+#       xmldata     A parsed (or created by create) XML element.
+#       level       number of tabulation characters to add before the element.
+#
+# Result:
+#       XML element with CDATA sections replaced by tabs (except if CDATA is
+#       a unique subelement).
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::xml::ReplaceCdata {xmldata level} {
+    set tag    [lindex $xmldata 0]
+    set xmlns  [lindex $xmldata 1]
+    set attrs  [lindex $xmldata 2]
+    set subels [lindex $xmldata 3]
+    set cdata1 [lindex $xmldata 4]
+    set cdata2 [lindex $xmldata 5]
+
+    if {[llength $subels] == 0} {
+        return [lreplace $xmldata 5 5 \n[string repeat \t $level]]
+    } else {
+        set cdata1 \n[string repeat \t [expr {$level+1}]]
+        set cdata2 \n[string repeat \t $level]
+        set newsubels {}
+        foreach subel [lrange $subels 0 end-1] {
+            lappend newsubels [ReplaceCdata $subel [expr {$level+1}]]
+        }
+        lappend newsubels [ReplaceCdata [lindex $subels end] $level]
+
+        return [list $tag $xmlns $attrs $newsubels $cdata1 $cdata2]
+    }
+}
+
 # ::xmpp::xml::create --
 #
 #       Creates XML data for an element.

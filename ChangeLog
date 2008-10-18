@@ -8,6 +8,8 @@
 	* xmpp/xmpp.tcl: Added packetID command which returns the next free
 	  packet ID. Also, removed packet ID resetting on disconnect.
 
+	* xmpp/xml.tcl: Added toTabbedText procedure for XML pretty-printing.
+
 2008-10-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/streamerror.tcl: Added error condition to the call of error
