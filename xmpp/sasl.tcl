@@ -528,7 +528,8 @@ proc ::xmpp::sasl::TclsaslCallback {token data} {
             # authzid
             if {[info exists state(-username)]} {
                 return [encoding convertto utf-8 \
-                                 $state(-username)@$state(-server)]
+                                 [::xmpp::jid::jid $state(-username) \
+                                                   $state(-server)]]
             } else {
                 return [encoding convertto utf-8 $state(-domain)]
             }
@@ -573,7 +574,8 @@ proc ::xmpp::sasl::TcllibCallback {token stoken command args} {
             # authzid
             if {[info exists state(-username)]} {
                 return [encoding convertto utf-8 \
-                                 $state(-username)@$state(-server)]
+                                 [::xmpp::jid::jid $state(-username) \
+                                                   $state(-server)]]
             } else {
                 return [encoding convertto utf-8 $state(-domain)]
             }

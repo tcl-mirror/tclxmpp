@@ -2,6 +2,12 @@
 
 	* xmpp/jid.tcl: Added default resource value (empty string).
 
+	* xmpp/sasl.tcl: Use jid procedure instead of directly concatenating
+	  user and server names.
+
+	* xmpp/xmpp.tcl: Added packetID command which returns the next free
+	  packet ID. Also, removed packet ID resetting on disconnect.
+
 2008-10-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/streamerror.tcl: Added error condition to the call of error

@@ -1033,7 +1033,9 @@ proc ::xmpp::ClearState {xlib} {
                                    -cdata [::msgcat::mc "Disconnected"]]]
     }
 
-    set state(id) 0
+    # Don't reset ID counter because the higher level application may
+    # still use the old values.
+    #set state(id) 0
     set state(status) disconnected
 
     # connect
@@ -1653,7 +1655,7 @@ proc ::xmpp::sendIQ {xlib type args} {
 
                 # Only the last -command takes effect
                 if {![info exists attrs(id)] || ![info exists cmd]} {
-                    set attrs(id) [incr state(id)]
+                    set attrs(id) [packetID $xlib]
                 }
                 set cmd $val
             }
@@ -1737,6 +1739,26 @@ proc ::xmpp::abortIQ {xlib id status error} {
         uplevel #0 $cmd [list $status $error]
     }
     return
+}
+
+# ::xmpp::packetID --
+#
+#       Return the next free packet ID.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Packet ID.
+#
+# Side effects:
+#       The next ID value is increased by one.
+
+proc ::xmpp::packetID {xlib} {
+    variable $xlib
+    upvar 0 $xlib state
+
+    return [incr state(id)]
 }
 
 # ::xmpp::CallBack --
