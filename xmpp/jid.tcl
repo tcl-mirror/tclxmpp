@@ -29,7 +29,7 @@ namespace eval ::xmpp::jid {
 # Arguments:
 #       node        JID node.
 #       server      JID server.
-#       resource    JID resource.
+#       resource    (optional, defaults to "") JID resource.
 #
 # Result:
 #       A constructed JID (arguments joined by @ and /).
@@ -37,7 +37,7 @@ namespace eval ::xmpp::jid {
 # Side effects:
 #       None.
 
-proc ::xmpp::jid::jid {node server resource} {
+proc ::xmpp::jid::jid {node server {resource ""}} {
     set jid $server
     if {![string equal $node ""]} {
         set jid $node@$jid

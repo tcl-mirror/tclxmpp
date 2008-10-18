@@ -1,3 +1,7 @@
+2008-10-18  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/jid.tcl: Added default resource value (empty string).
+
 2008-10-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/streamerror.tcl: Added error condition to the call of error
