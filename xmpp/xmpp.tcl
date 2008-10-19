@@ -877,7 +877,7 @@ proc ::xmpp::EndOfParse {xlib} {
         disconnecting -
         disconnected {}
         default {
-            after idle [namespace code [list ForcedDisconnect $xlib]]
+            ForcedDisconnect $xlib
         }
     }
 
@@ -910,7 +910,7 @@ proc ::xmpp::EndOfFile {xlib} {
         disconnecting -
         disconnected {}
         default {
-            after idle [namespace code [list ForcedDisconnect $xlib]]
+            ForcedDisconnect $xlib
         }
     }
 
@@ -964,7 +964,7 @@ proc ::xmpp::ForcedDisconnect {xlib} {
     return
 }
 
-# ::xmpp::ForcedDisconnect --
+# ::xmpp::disconnect --
 #
 #       Disconnect from an XMPP server.
 #

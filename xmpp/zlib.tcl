@@ -478,6 +478,7 @@ proc ::xmpp::transport::zlib::InText {token} {
     ::xmpp::xml::parser $state(parser) parse $msg
 
     if {[eof $state(sock)]} {
+        fileevent $state(sock) readable {}
         InEmpty $state(eofCmd)
     }
 }

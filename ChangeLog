@@ -3,6 +3,14 @@
 	* xmpp/xmpp.tcl: Fixed race condition where transport was already
 	  closed, but was tried to send packets.
 
+	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Clear readable fileevent
+	  script when the socket is closed by the other side. Otherwise it can
+	  be triggered continuously.
+
+	* xmpp/xmpp.tcl: Removed unnecessary rescheduling of ForcedDisconnect
+	  call which now can't be executed twice (one time on the end of
+	  strteam, and another time on the closure of the socket).
+
 2008-10-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/jid.tcl: Added default resource value (empty string).
