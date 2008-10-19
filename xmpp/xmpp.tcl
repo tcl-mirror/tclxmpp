@@ -952,6 +952,7 @@ proc ::xmpp::ForcedDisconnect {xlib} {
 
             catch {
                 transport::use $state(transport) close
+                unset state(transport)
             }
 
             CallBack $xlib disconnect
@@ -998,6 +999,7 @@ proc ::xmpp::disconnect {xlib} {
             catch {
                 closeStream $xlib
                 transport::use $state(transport) close
+                unset state(transport)
             }
 
             ClearState $xlib
@@ -1039,7 +1041,8 @@ proc ::xmpp::ClearState {xlib} {
     set state(status) disconnected
 
     # connect
-    array unset state transport
+    # This variable is unset in [disconnect] or [ForcedDisconnect]
+    #array unset state transport
 
     # openStream
     array unset state server

@@ -1,3 +1,8 @@
+2008-10-19  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xmpp.tcl: Fixed race condition where transport was already
+	  closed, but was tried to send packets.
+
 2008-10-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/jid.tcl: Added default resource value (empty string).
