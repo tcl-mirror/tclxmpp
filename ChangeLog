@@ -14,6 +14,12 @@
 	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Removed unnecessary error
 	  hidings by catch.
 
+	* doc/xmpp::jid.man, doc/xmpp::xml.man: Added preliminary manual pages
+	  for xmpp::jid and xmpp::xml packages. Currently they contain only
+	  lists of commands.
+
+	* xmpp/jid.tcl: Code cleanup.
+
 2008-10-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/jid.tcl: Added default resource value (empty string).

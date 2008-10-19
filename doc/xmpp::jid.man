@@ -1,0 +1,66 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id$}]
+[manpage_begin xmpp::jid 3 0.1]
+[copyright {2008 Sergei Golovan <sgolovan@nes.ru>}]
+[moddesc {Tcl XMPP library}]
+[titledesc {Operations with JIDs}]
+[require Tcl 8.3]
+[require xmpp::jid [opt 0.1]]
+[description]
+[para]
+
+This module is part of the XMPP library. It implements basic operations
+with JIDs (Jabber IDs).
+
+[section "COMMANDS"]
+
+[list_begin definitions]
+[call [cmd "::xmpp::jid::jid"] \
+	[arg "node"] \
+	[arg "server"] \
+	[opt [arg "resource"]]]
+
+Create JID from node, server and resource parts. If missing, resource is
+empty.
+
+[call [cmd "::xmpp::jid::split"] \
+	[arg "jid"] \
+        [arg "nodeVar"] \
+        [arg "serverVar"] \
+	[arg "resourceVar"]]
+
+Split JID into three parts and assign the specified variables.
+
+[call [cmd "::xmpp::jid::node"] [arg "jid"]]
+
+Return the node part of a specified JID.
+
+[call [cmd "::xmpp::jid::server"] [arg "jid"]]
+
+Return the server part of a specified JID.
+
+[call [cmd "::xmpp::jid::resource"] [arg "jid"]]
+
+Return the resource part of a specified JID.
+
+[call [cmd "::xmpp::jid::stripResource"] [arg "jid"]]
+
+Return the bare JID (a JID without resource part) corresponding
+to a specified JID.
+
+[call [cmd "::xmpp::jid::normalize"] [arg "jid"]]
+
+Return the normalized JID corresponding to a specified JID.
+
+[call [cmd "::xmpp::jid::equal"] [arg "jid1"] [arg "jid2"]]
+
+Compare two given JIDs (in normalized form) and return true if
+they are equivalent or false otherwise.
+
+[list_end]
+
+[section "AUTHORS"]
+Sergei Golovan
+
+[keywords Tcl XMPP JID]
+[manpage_end]

@@ -13,7 +13,8 @@
 package provide xmpp::jid 0.1
 
 namespace eval ::xmpp::jid {
-    namespace export jid node server resource stripResource normalize equal
+    namespace export jid split node server resource stripResource \
+                     normalize equal
 
     if {[catch {package require stringprep}]} {
         variable Stringprep 0
@@ -173,7 +174,7 @@ proc ::xmpp::jid::resource {jid} {
 #       None.
 
 proc ::xmpp::jid::stripResource {jid} {
-    jid [node $jid] [server $jid] ""
+    jid [node $jid] [server $jid]
 }
 
 # ::xmpp::jid::normalize --
