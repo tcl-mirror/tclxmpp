@@ -428,8 +428,7 @@ proc ::xmpp::transport::tcp::InText {token} {
     variable $token
     upvar 0 $token state
 
-    set msg ""
-    catch {set msg [read $state(sock)]}
+    set msg [read $state(sock)]
 
     ::xmpp::xml::parser $state(parser) parse $msg
 

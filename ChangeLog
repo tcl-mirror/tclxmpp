@@ -11,6 +11,9 @@
 	  call which now can't be executed twice (one time on the end of
 	  strteam, and another time on the closure of the socket).
 
+	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Removed unnecessary error
+	  hidings by catch.
+
 2008-10-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/jid.tcl: Added default resource value (empty string).
