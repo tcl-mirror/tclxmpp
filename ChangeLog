@@ -5,7 +5,7 @@
 
 	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Clear readable fileevent
 	  script when the socket is closed by the other side. Otherwise it can
-	  be triggered continuously.
+	  be triggered continuously. Also, close socket.
 
 	* xmpp/xmpp.tcl: Removed unnecessary rescheduling of ForcedDisconnect
 	  call which now can't be executed twice (one time on the end of

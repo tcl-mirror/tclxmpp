@@ -434,6 +434,7 @@ proc ::xmpp::transport::tcp::InText {token} {
 
     if {[eof $state(sock)]} {
         fileevent $state(sock) readable {}
+        ::close $state(sock)
         InEmpty $state(eofCmd)
     }
 }
