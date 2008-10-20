@@ -33,8 +33,11 @@ namespace eval ::xmpp::starttls {}
 #                               arguments: status ("ok", "error", "abort" or
 #                               "timeout") and either new stream session ID if
 #                               status is "ok", or error stanza otherwise.
-#       -callback               TLS callback (it turns into -command option
+#       -verifycommand          TLS callback (it turns into -command option
 #                               for ::tls::import).
+#       -infocommand            Callback to get status of an established
+#                               TLS connection. It is calles wit a list of
+#                               key-value pairs returned from tls::status.
 #       -castore                If this option points to a file then it's
 #                               equivalent to -cafile, if it points to a
 #                               directory then it's equivalent to -cadir.
@@ -82,21 +85,20 @@ proc ::xmpp::starttls::starttls {xlib args} {
 
     foreach {key val} $args {
         switch -- $key {
-            -castore  -
-            -cadir    -
-            -cafile   -
-            -certfile -
-            -keyfile  -
-            -ssl2     -
-            -ssl3     -
-            -tls1     -
-            -request  -
-            -require  -
-            -password {
+            -castore       -
+            -cadir         -
+            -cafile        -
+            -certfile      -
+            -keyfile       -
+            -ssl2          -
+            -ssl3          -
+            -tls1          -
+            -request       -
+            -require       -
+            -password      -
+            -verifycommand -
+            -infocommand   {
                 lappend state(tlsArgs) $key $val
-            }
-            -callback {
-                lappend state(tlsArgs) -command $val
             }
             -command {
                 set state($key) $val

@@ -57,14 +57,17 @@ namespace eval ::xmpp::transport::tls {
 #       -stanzacommand        cmd3  Command to call when XMPP stanza is
 #                                   received.
 #       -eofcommand           cmd4  End-of-file callback.
-#       -callback               TLS callback (it turns into -command option
-#                               for ::tls::import).
-#       -castore                If this option points to a file then it's
-#                               equivalent to -cafile, if it points to a
-#                               directory then it's equivalent to -cadir.
+#       -verifycommand              TLS callback (it turns into -command option
+#                                   for ::tls::import).
+#       -infocommand                Callback to get status of an established
+#                                   TLS connection. It is calles wit a list of
+#                                   key-value pairs returned from tls::status.
+#       -castore                    If this option points to a file then it's
+#                                   equivalent to -cafile, if it points to a
+#                                   directory then it's equivalent to -cadir.
 #
-#       -cadir                  Options for ::tls::import procedure (see
-#       -cafile                 tls package manual for details).
+#       -cadir                      Options for ::tls::import procedure (see
+#       -cafile                     tls package manual for details).
 #       -certfile
 #       -keyfile
 #       -ssl2
@@ -131,8 +134,9 @@ proc ::xmpp::transport::tls::open {host port args} {
             -tls1                 -
             -request              -
             -require              -
-            -password             {lappend tlsArgs $key $val}
-            -callback             {lappend tlsArgs -command $val}
+            -password             -
+            -verifycommand        -
+            -infocommand          {lappend tlsArgs $key $val}
             default               {lappend newArgs $key $val}
         }
     }
@@ -223,6 +227,11 @@ proc ::xmpp::transport::tls::Configure {token tlsArgs} {
 #
 # Arguments:
 #       token                   Transport control token.
+#       -verifycommand          TLS callback (it turns into -command option
+#                               for ::tls::import).
+#       -infocommand            Callback to get status of an established
+#                               TLS connection. It is calles wit a list of
+#                               key-value pairs returned from tls::status.
 #       -castore                If this option points to a file then it's
 #                               equivalent to -cafile, if it points to a
 #                               directory then it's equivalent to -cadir.
@@ -237,7 +246,6 @@ proc ::xmpp::transport::tls::Configure {token tlsArgs} {
 #       -request
 #       -require
 #       -password
-#       -command
 #
 # Result:
 #       Empty string.
@@ -258,6 +266,12 @@ proc ::xmpp::transport::tls::import {token args} {
                 } else {
                     lappend newArgs -cafile $val
                 }
+            }
+            -verifycommand {
+                lappend newArgs -command $val
+            }
+            -infocommand {
+                set infoCmd $val
             }
             default {lappend newArgs $key $val}
         }
@@ -285,6 +299,10 @@ proc ::xmpp::transport::tls::import {token args} {
     fileevent $state(sock) readable [namespace code [list InText $token]]
 
     set state(transport) tls
+
+    if {[info exists infoCmd]} {
+        eval $infoCmd [::tls::status $state(sock)]
+    }
 
     return $token
 }

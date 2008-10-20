@@ -7,6 +7,11 @@
 
 	* doc/xmpp.man: Added preliminary manual page for xmpp package.
 
+	* xmpp/starttls.tcl, xmpp/tls.tcl: Changed -callback option to
+	  -verifycommand and added -infocommand option which specifies
+	  command to call upon successfully established TLS connection with
+	  socket TLS status.
+
 2008-10-19  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Fixed race condition where transport was already
