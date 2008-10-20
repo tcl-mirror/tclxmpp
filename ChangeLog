@@ -5,6 +5,8 @@
 
 	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed variable name.
 
+	* doc/xmpp.man: Added preliminary manual page for xmpp package.
+
 2008-10-19  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Fixed race condition where transport was already

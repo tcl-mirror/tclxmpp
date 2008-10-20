@@ -1,0 +1,141 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id$}]
+[manpage_begin xmpp 3 0.1]
+[copyright {2008 Sergei Golovan <sgolovan@nes.ru>}]
+[moddesc {Tcl XMPP library}]
+[titledesc {The main XMPP library}]
+[require Tcl 8.3]
+[require xmpp [opt 0.1]]
+[description]
+[para]
+
+This module is part of the XMPP library. It implements main XMPP routines.
+
+[section "COMMANDS"]
+
+[list_begin definitions]
+[call [cmd "::xmpp::new"] \
+	[opt [arg "xlib"]] \
+	[opt [arg "-packetcommand cmd"]] \
+	[opt [arg "-messagecommand cmd"]] \
+	[opt [arg "-presencecommand cmd"]] \
+	[opt [arg "-iqcommand cmd"]] \
+	[opt [arg "-statuscommand cmd"]] \
+	[opt [arg "-errorcommand cmd"]] \
+	[opt [arg "-disconnectcommand cmd"]]]
+
+Create new XMPP token.
+
+[call [cmd "::xmpp::free"] [arg "xlib"]]
+
+Frees XMPP token resources.
+
+[call [cmd "::xmpp::connect"] \
+	[arg "xlib"] \
+	[opt [arg "host"] [opt [arg "port"]]] \
+	[opt [arg "-transport transport"]] \
+	[opt [arg "-command cmd"]] \
+	[opt [arg "args"]]]
+
+Connect to a given host.
+
+[call [cmd "::xmpp::openStream"] \
+	[arg "xlib"] \
+	[arg "server"] \
+	[opt [arg "-xmlns:stream uri"]] \
+	[opt [arg "-xmlns uri"]] \
+	[opt [arg "-xml:lang lang"]] \
+	[opt [arg "-version ver"]] \
+	[opt [arg "-timeout timeout"]] \
+	[opt [arg "-command cmd"]]]
+
+Open XMPP stream.
+
+[call [cmd "::xmpp::closeStream"] \
+	[arg "xlib"]]
+
+Close XMPP stream.
+
+[call [cmd "::xmpp::disconnect"] \
+	[arg "xlib"]]
+
+Close XMPP stream and disconnect.
+
+[call [cmd "::xmpp::sendMessage"] \
+	[arg "xlib"] \
+	[arg "to"] \
+	[opt [arg "-from from"]] \
+	[opt [arg "-type type"]] \
+	[opt [arg "-id id"]] \
+	[opt [arg "-subject subject"]] \
+	[opt [arg "-thread thread"]] \
+	[opt [arg "-body body"]] \
+	[opt [arg "-error error"]] \
+	[opt [arg "-xlist elements"]]]
+
+Send XMPP message stanza.
+
+[call [cmd "::xmpp::sendPresence"] \
+	[arg "xlib"] \
+	[opt [arg "-from from"]] \
+	[opt [arg "-to to"]] \
+	[opt [arg "-type type"]] \
+	[opt [arg "-id id"]] \
+	[opt [arg "-show show"]] \
+	[opt [arg "-status status"]] \
+	[opt [arg "-priority priority"]] \
+	[opt [arg "-error error"]] \
+	[opt [arg "-xlist elements"]]]
+
+Send XMPP presence stanza.
+
+[call [cmd "::xmpp::sendIQ"] \
+	[arg "xlib"] \
+	[arg "type"] \
+	[opt [arg "-from from"]] \
+	[opt [arg "-to to"]] \
+	[opt [arg "-id id"]] \
+	[opt [arg "-query query"]] \
+	[opt [arg "-error error"]] \
+	[opt [arg "-timeout timeout"]] \
+	[opt [arg "-command cmd"]]]
+
+Send XMPP info/query stanza.
+
+[call [cmd "::xmpp::abortIQ"] \
+	[arg "xlib"] \
+	[arg "id"] \
+	[arg "status"] \
+	[arg "error"]]
+
+Abort waiting for IQ reply.
+
+[call [cmd "::xmpp::outXML"] \
+	[arg "token"] \
+	[arg "xmlElement"]]
+
+Send XML element over the XMPP stream.
+
+[call [cmd "::xmpp::outText"] \
+	[arg "token"] \
+	[arg "text"]]
+
+Send Text over the XMPP stream.
+
+[call [cmd "::xmpp::ip"] \
+	[arg "xlib"]]
+
+Return an IP address of an opened socket.
+
+[call [cmd "::xmpp::packetID"] \
+	[arg "xlib"]]
+
+Return the next unused ID for XMPP packet.
+
+[list_end]
+
+[section "AUTHORS"]
+Sergei Golovan
+
+[keywords Tcl XMPP]
+[manpage_end]
