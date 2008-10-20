@@ -275,7 +275,7 @@ proc ::xmpp::transport::zlib::outText {token text} {
 
     if {[catch {puts -nonewline $state(sock) $text} err]} {
         ::xmpp::log "error (outText) Cannot write to\
-                     socket $sock: $err"
+                     socket $state(sock): $err"
         return -1
     } else {
         ::flush $state(sock)

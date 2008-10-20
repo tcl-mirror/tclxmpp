@@ -3,6 +3,8 @@
 	* doc/xmpp_jid.man, doc/xmpp_xml.man: Removed colons from filenames
 	  as they cause problems on non-Unix systems.
 
+	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed variable name.
+
 2008-10-19  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Fixed race condition where transport was already
