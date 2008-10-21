@@ -97,7 +97,7 @@ proc ::pconnect::https::connect {sock addr port args} {
 
     # Setup timeout timer.
     set state(timeoutid) \
-        [after $state(-timeout) [namespace code [list Timeout $token]]
+        [after $state(-timeout) [namespace code [list Timeout $token]]]
 
     if {$state(async)} {
         return $token
