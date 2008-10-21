@@ -795,7 +795,7 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
                     set attr undefined:$attr
                 }
             } elseif {![string equal $xmlns $namespace($prefix)]} {
-                set attr $namespace($prefix):$local
+                set attr $namespace($prefix):$attr
             }
         }
         lappend attrs $attr $val

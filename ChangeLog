@@ -1,3 +1,7 @@
+2008-10-21  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xml.tcl: Fixed typo.
+
 2008-10-20  Sergei Golovan  <sgolovan@nes.ru>
 
 	* doc/xmpp_jid.man, doc/xmpp_xml.man: Removed colons from filenames
