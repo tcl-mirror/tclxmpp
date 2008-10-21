@@ -4,6 +4,8 @@
 
 	* xmpp/https.tcl: Added missing close bracket.
 
+	* xmpp/socks4.tcl: Fixed version number.
+
 2008-10-20  Sergei Golovan  <sgolovan@nes.ru>
 
 	* doc/xmpp_jid.man, doc/xmpp_xml.man: Removed colons from filenames

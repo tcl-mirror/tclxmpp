@@ -13,7 +13,7 @@
 
 package require pconnect
 
-package provide pconnect::socks4 1.0
+package provide pconnect::socks4 0.1
 
 namespace eval ::pconnect::socks4 {
     namespace export connect
