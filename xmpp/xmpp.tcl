@@ -1394,14 +1394,15 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
 
     # A 'from' JID in result or error IQ may differ from 'to' JID in
     # corresponding request if the reques was sent without 'to' attribute.
-    if {[::xmpp::jid::equal $from $to]} {
-        set pfrom [list $from ""]
-    } elseif {[::xmpp::jid::equal $from [::xmpp::jid::stripResource $to]]} {
-        set pfrom [list $from ""]
-    } elseif {[::xmpp::jid::equal $from [::xmpp::jid::server $to]]} {
-        set pfrom [list $from ""]
+    set nfrom [jid::normalize $from]
+    if {[jid::equal $from $to]} {
+        set pfrom [list $nfrom ""]
+    } elseif {[jid::equal $from [jid::stripResource $to]]} {
+        set pfrom [list $nfrom ""]
+    } elseif {[jid::equal $from [jid::server $to]]} {
+        set pfrom [list $nfrom ""]
     } else {
-        set pfrom [list $from]
+        set pfrom [list $nfrom]
     }
 
     # Any IQ.
@@ -1683,11 +1684,13 @@ proc ::xmpp::sendIQ {xlib type args} {
     }
 
     if {[info exists cmd]} {
-        set state([list iq $attrs(id) $to]) $cmd
+        set state([list iq $attrs(id) [jid::normalize $to]]) $cmd
         if {$timeout > 0} {
             after $timeout \
                   [namespace code [list abortIQ $xlib $attrs(id) timeout \
-                                [::msgcat::mc "IQ %s timed out" $attrs(id)]]]
+                                [xml::create error \
+                                    -cdata [::msgcat::mc "IQ %s timed out" \
+                                                         $attrs(id)]]]]
         }
     }
 
@@ -1697,11 +1700,11 @@ proc ::xmpp::sendIQ {xlib type args} {
     set res [outXML $xlib $data]
 
     if {[info exists cmd] && $res < 0} {
-        unset state([list iq $attrs(id) $to])
-        uplevel #0 $cmd [list abort \
-                              [xml::create error \
-                                    -cdata [::msgcat::mc "Disconnected"]]]
-        
+        after idle \
+              [namespace code [list abortIQ $xlib $attrs(id) abort \
+                                            [xml::create error \
+                                                -cdata [::msgcat::mc \
+                                                            "Disconnected"]]]]
     }
 
     if {$getset && [info exists attrs(id)]} {

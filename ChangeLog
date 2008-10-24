@@ -1,3 +1,9 @@
+2008-10-24  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xmpp.tcl: Fixed error stanza when aborting IQ on timeout, made
+	  calling back when sending IQ failed to after idle, fixed IQ
+	  callbacks to compare normalized JIDs when searching for reply.
+
 2008-10-21  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Fixed typo.
