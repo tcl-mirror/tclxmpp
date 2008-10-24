@@ -1,3 +1,9 @@
+2008-10-25  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xmpp.tcl: Don't check the from address for IQ relies and errors
+	  because in order to be reliable it requires full JID normalization.
+	  Use random IQ IDs to prevent accidental or malicious ID clashing.
+
 2008-10-24  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Fixed error stanza when aborting IQ on timeout, made

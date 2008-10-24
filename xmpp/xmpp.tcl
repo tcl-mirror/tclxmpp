@@ -1026,7 +1026,7 @@ proc ::xmpp::ClearState {xlib} {
 
     Debug $xlib 2 ""
 
-    foreach idx [array names state {iq *}] {
+    foreach idx [array names state iq,*] {
         set cmd $state($idx)
         unset state($idx)
 
@@ -1377,32 +1377,19 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
 
     foreach {key val} $attrs {
         switch -- $key {
-            from     {set from $val}
-            type     {set type $val}
+            from {set from $val}
+            type {set type $val}
             xml:lang {lappend params -lang $val}
-            to       {
+            to {
                 set to $val
                 lappend params -to $val
             }
-            id       {
+            id {
                 set id $val
                 lappend params -id $val
             }
-            default  {lappend xparam $key $val}
+            default {lappend xparam $key $val}
         }
-    }
-
-    # A 'from' JID in result or error IQ may differ from 'to' JID in
-    # corresponding request if the reques was sent without 'to' attribute.
-    set nfrom [jid::normalize $from]
-    if {[jid::equal $from $to]} {
-        set pfrom [list $nfrom ""]
-    } elseif {[jid::equal $from [jid::stripResource $to]]} {
-        set pfrom [list $nfrom ""]
-    } elseif {[jid::equal $from [jid::server $to]]} {
-        set pfrom [list $nfrom ""]
-    } else {
-        set pfrom [list $nfrom]
     }
 
     # Any IQ.
@@ -1417,40 +1404,34 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
             return
         }
         result {
-            foreach from $pfrom {
-                if {[info exists state([list iq $id $from])]} {
-                    set cmd $state([list iq $id $from])
-                    unset state([list iq $id $from])
+            if {[info exists state(iq,$id)]} {
+                set cmd $state(iq,$id)
+                unset state(iq,$id)
 
-                    uplevel #0 $cmd [list ok [lindex $subels 0]]
-                    return
-                }
+                uplevel #0 $cmd [list ok [lindex $subels 0]]
+            } else {
+                Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
             }
-
-            Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
             return
         }
         error {
-            foreach from $pfrom {
-                if {[info exists state([list iq $id $from])]} {
-                    set cmd $state([list iq $id $from])
-                    unset state([list iq $id $from])
+            if {[info exists state(iq,$id)]} {
+                set cmd $state(iq,$id)
+                unset state(iq,$id)
 
-                    set error {}
-                    foreach subel $subels {
-                        xml::split $subel stag sxmlns sattrs scdata ssubels
-                        if {[string equal $stag error]} {
-                            set error $subel
-                            break
-                        }
+                set error {}
+                foreach subel $subels {
+                    xml::split $subel stag sxmlns sattrs scdata ssubels
+                    if {[string equal $stag error]} {
+                        set error $subel
+                        break
                     }
-
-                    uplevel #0 $cmd [list error $error]
-                    return
                 }
-            }
 
-            Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
+                uplevel #0 $cmd [list error $error]
+            } else {
+                Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
+            }
             return
         }
         default {
@@ -1684,7 +1665,7 @@ proc ::xmpp::sendIQ {xlib type args} {
     }
 
     if {[info exists cmd]} {
-        set state([list iq $attrs(id) [jid::normalize $to]]) $cmd
+        set state(iq,$attrs(id)) $cmd
         if {$timeout > 0} {
             after $timeout \
                   [namespace code [list abortIQ $xlib $attrs(id) timeout \
@@ -1738,9 +1719,9 @@ proc ::xmpp::abortIQ {xlib id status error} {
 
     Debug $xlib 2 "$id"
 
-    foreach idx [array names state [list iq $id *]] {
-        set cmd $state($idx)
-        unset state($idx)
+    if {[info exists state(iq,$id)]} {
+        set cmd $state(iq,$id)
+        unset state(iq,$id)
 
         uplevel #0 $cmd [list $status $error]
     }
@@ -1764,7 +1745,7 @@ proc ::xmpp::packetID {xlib} {
     variable $xlib
     upvar 0 $xlib state
 
-    return [incr state(id)]
+    return [incr state(id)]:[expr {round(rand()*1000000)}]
 }
 
 # ::xmpp::CallBack --
