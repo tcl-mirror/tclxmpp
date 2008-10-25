@@ -259,8 +259,8 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
                                -to $from \
                                -id $id
             }
-            ignore {
-                ::xmpp::Debug $xlib 2 "ignore $from $id $xmlns"
+            "" {
+                ::xmpp::Debug $xlib 2 "do nothing $from $id $xmlns"
                 # Do nothing, the request is supposed to be replied separately
             }
         }

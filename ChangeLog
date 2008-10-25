@@ -4,6 +4,9 @@
 	  because in order to be reliable it requires full JID normalization.
 	  Use random IQ IDs to prevent accidental or malicious ID clashing.
 
+	* xmpp/iq.tcl: Use empty string instead of "ignore" to signal that the
+	  IQ answer will be later.
+
 2008-10-24  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Fixed error stanza when aborting IQ on timeout, made
