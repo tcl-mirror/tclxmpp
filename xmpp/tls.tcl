@@ -354,8 +354,6 @@ proc ::xmpp::transport::tls::outText {token text} {
     upvar 0 $token state
 
     if {[catch {puts -nonewline $state(sock) $text} err]} {
-        ::xmpp::log "error (outText) Cannot write to\
-                     socket $state(sock): $err"
         return -1
     } else {
         ::flush $state(sock)
