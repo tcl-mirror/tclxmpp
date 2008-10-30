@@ -543,7 +543,12 @@ proc ::xmpp::transport::tls::InText {token} {
     variable $token
     upvar 0 $token state
 
-    set msg [read $state(sock)]
+    if {[catch {read $state(sock)} msg]} {
+        fileevent $state(sock) readable {}
+        ::close $state(sock)
+        InEmpty $state(eofCmd)
+        return
+    }
 
     ::xmpp::xml::parser $state(parser) parse $msg
 

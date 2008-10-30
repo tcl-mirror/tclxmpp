@@ -468,7 +468,12 @@ proc ::xmpp::transport::zlib::InText {token} {
     upvar 0 $token state
 
     fconfigure $state(sock) -flush input
-    set msg [read $state(sock)]
+    if {[catch {read $state(sock)} msg]} {
+        fileevent $state(sock) readable {}
+        ::close $state(sock)
+        InEmpty $state(eofCmd)
+        return
+    }
 
     ::xmpp::xml::parser $state(parser) parse $msg
 

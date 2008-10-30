@@ -1,3 +1,8 @@
+2008-10-30  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Protected reading from
+	  the XMPP socket and disconnect it in case of read error.
+
 2008-10-27  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Removed calls to
