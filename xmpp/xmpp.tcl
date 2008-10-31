@@ -303,7 +303,7 @@ proc ::xmpp::ConnectAux {xlib cmd status msg} {
     variable $xlib
     upvar 0 $xlib state
 
-    unset state(abortCommand)
+    catch {unset state(abortCommand)}
 
     if {[string equal $status ok]} {
         set state(transport) $msg
@@ -530,7 +530,7 @@ proc ::xmpp::GotStream {xlib status attrs} {
 
     if {[string equal $state(abortCommand) \
                       [namespace code [list GotStream $xlib abort {}]]]} {
-        unset state(abortCommand)
+        catch {unset state(abortCommand)}
     }
 
     switch -- $status {
@@ -947,7 +947,7 @@ proc ::xmpp::ForcedDisconnect {xlib} {
 
             if {[info exists state(abortCommand)]} {
                 uplevel #0 $state(abortCommand)
-                unset state(abortCommand)
+                catch {unset state(abortCommand)}
             }
 
             catch {
@@ -993,7 +993,7 @@ proc ::xmpp::disconnect {xlib} {
 
             if {[info exists state(abortCommand)]} {
                 uplevel #0 $state(abortCommand)
-                unset state(abortCommand)
+                catch {unset state(abortCommand)}
             }
 
             catch {
