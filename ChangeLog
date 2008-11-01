@@ -3,6 +3,9 @@
 	* xmpp/xdata.tcl, xmpp/pkgIndex.tcl: Added a new package for working
 	  with data forms (XEP-0004).
 
+	* xmpp/data.tcl: Return form type when searching for a data form.
+	  Parse field elements in result forms.
+
 2008-10-31  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Protected unsetting of a variable which stores abort

@@ -22,10 +22,11 @@ proc ::xmpp::data::findForm {xmlElements} {
     foreach xmlElement $xmlElements {
         ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
         if {[string equal $xmlns jabber:x:data]} {
-            return $xmlElement
+            set type [::xmpp::xml::getAttr $attrs type]
+            return [list $type $xmlElement]
         }
     }
-    return {}
+    return {{} {}}
 }
 
 # ::xmpp::data::parseForm --
@@ -130,6 +131,21 @@ proc ::xmpp::data::parseResult {xmlElement} {
                     }
                 }
                 lappend res item [list $var $values]
+            }
+            field {
+                set type  [::xmpp::xml::getAttr $sattrs type]
+                set var   [::xmpp::xml::getAttr $sattrs var]
+                set label [::xmpp::xml::getAttr $sattrs label]
+                set values {}
+                foreach ssubel $ssubels {
+                    ::xmpp::xml::split $ssubel \
+                                       sstag ssxmlns ssattrs sscdata sssubels
+
+                    if {[string equal $sstag value]} {
+                        lappend values $sscdata
+                    }
+                }
+                lappend res field [list $var $type $label $values]
             }
         }
     }
