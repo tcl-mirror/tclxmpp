@@ -113,6 +113,7 @@ proc ::xmpp::data::parseResult {xmlElement} {
                 lappend res reported $reported
             }
             item {
+                set fields {}
                 foreach field $ssubels {
                     ::xmpp::xml::split $field \
                                        sstag ssxmlns ssattrs sscdata sssubels
@@ -129,8 +130,9 @@ proc ::xmpp::data::parseResult {xmlElement} {
                             lappend values $s3cdata
                         }
                     }
+                    lappend fields $var $values
                 }
-                lappend res item [list $var $values]
+                lappend res item $fields
             }
             field {
                 set type  [::xmpp::xml::getAttr $sattrs type]
