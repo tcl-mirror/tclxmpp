@@ -1,4 +1,6 @@
-# Tcl package index file - handcrafted
+# plkIndex.tcl --
+#
+#       Tcl package index file for TclXML
 #
 # $Id$
 
@@ -16,3 +18,4 @@ package ifneeded sgml 1.8           [list source [file join $dir sgml.tcl]]
 package ifneeded xmldefs 2.0        [list source [file join $dir xml.tcl]]
 package ifneeded xml::tclparser 2.0 [list source [file join $dir tclparser.tcl]]
 
+# vim:ft=tcl:ts=8:sw=4:sts=4:et

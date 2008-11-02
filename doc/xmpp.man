@@ -15,14 +15,14 @@ This module is part of the XMPP library. It implements main XMPP routines.
 
 [list_begin definitions]
 [call [cmd "::xmpp::new"] \
-	[opt [arg "xlib"]] \
-	[opt [arg "-packetcommand cmd"]] \
-	[opt [arg "-messagecommand cmd"]] \
-	[opt [arg "-presencecommand cmd"]] \
-	[opt [arg "-iqcommand cmd"]] \
-	[opt [arg "-statuscommand cmd"]] \
-	[opt [arg "-errorcommand cmd"]] \
-	[opt [arg "-disconnectcommand cmd"]]]
+        [opt [arg "xlib"]] \
+        [opt [arg "-packetcommand cmd"]] \
+        [opt [arg "-messagecommand cmd"]] \
+        [opt [arg "-presencecommand cmd"]] \
+        [opt [arg "-iqcommand cmd"]] \
+        [opt [arg "-statuscommand cmd"]] \
+        [opt [arg "-errorcommand cmd"]] \
+        [opt [arg "-disconnectcommand cmd"]]]
 
 Create new XMPP token.
 
@@ -31,104 +31,104 @@ Create new XMPP token.
 Frees XMPP token resources.
 
 [call [cmd "::xmpp::connect"] \
-	[arg "xlib"] \
-	[opt [arg "host"] [opt [arg "port"]]] \
-	[opt [arg "-transport transport"]] \
-	[opt [arg "-command cmd"]] \
-	[opt [arg "args"]]]
+        [arg "xlib"] \
+        [opt "[arg "host"] [opt [arg "port"]]"] \
+        [opt [arg "-transport transport"]] \
+        [opt [arg "-command cmd"]] \
+        [opt [arg "args"]]]
 
 Connect to a given host.
 
 [call [cmd "::xmpp::openStream"] \
-	[arg "xlib"] \
-	[arg "server"] \
-	[opt [arg "-xmlns:stream uri"]] \
-	[opt [arg "-xmlns uri"]] \
-	[opt [arg "-xml:lang lang"]] \
-	[opt [arg "-version ver"]] \
-	[opt [arg "-timeout timeout"]] \
-	[opt [arg "-command cmd"]]]
+        [arg "xlib"] \
+        [arg "server"] \
+        [opt [arg "-xmlns:stream uri"]] \
+        [opt [arg "-xmlns uri"]] \
+        [opt [arg "-xml:lang lang"]] \
+        [opt [arg "-version ver"]] \
+        [opt [arg "-timeout timeout"]] \
+        [opt [arg "-command cmd"]]]
 
 Open XMPP stream.
 
 [call [cmd "::xmpp::closeStream"] \
-	[arg "xlib"]]
+        [arg "xlib"]]
 
 Close XMPP stream.
 
 [call [cmd "::xmpp::disconnect"] \
-	[arg "xlib"]]
+        [arg "xlib"]]
 
 Close XMPP stream and disconnect.
 
 [call [cmd "::xmpp::sendMessage"] \
-	[arg "xlib"] \
-	[arg "to"] \
-	[opt [arg "-from from"]] \
-	[opt [arg "-type type"]] \
-	[opt [arg "-id id"]] \
-	[opt [arg "-subject subject"]] \
-	[opt [arg "-thread thread"]] \
-	[opt [arg "-body body"]] \
-	[opt [arg "-error error"]] \
-	[opt [arg "-xlist elements"]]]
+        [arg "xlib"] \
+        [arg "to"] \
+        [opt [arg "-from from"]] \
+        [opt [arg "-type type"]] \
+        [opt [arg "-id id"]] \
+        [opt [arg "-subject subject"]] \
+        [opt [arg "-thread thread"]] \
+        [opt [arg "-body body"]] \
+        [opt [arg "-error error"]] \
+        [opt [arg "-xlist elements"]]]
 
 Send XMPP message stanza.
 
 [call [cmd "::xmpp::sendPresence"] \
-	[arg "xlib"] \
-	[opt [arg "-from from"]] \
-	[opt [arg "-to to"]] \
-	[opt [arg "-type type"]] \
-	[opt [arg "-id id"]] \
-	[opt [arg "-show show"]] \
-	[opt [arg "-status status"]] \
-	[opt [arg "-priority priority"]] \
-	[opt [arg "-error error"]] \
-	[opt [arg "-xlist elements"]]]
+        [arg "xlib"] \
+        [opt [arg "-from from"]] \
+        [opt [arg "-to to"]] \
+        [opt [arg "-type type"]] \
+        [opt [arg "-id id"]] \
+        [opt [arg "-show show"]] \
+        [opt [arg "-status status"]] \
+        [opt [arg "-priority priority"]] \
+        [opt [arg "-error error"]] \
+        [opt [arg "-xlist elements"]]]
 
 Send XMPP presence stanza.
 
 [call [cmd "::xmpp::sendIQ"] \
-	[arg "xlib"] \
-	[arg "type"] \
-	[opt [arg "-from from"]] \
-	[opt [arg "-to to"]] \
-	[opt [arg "-id id"]] \
-	[opt [arg "-query query"]] \
-	[opt [arg "-error error"]] \
-	[opt [arg "-timeout timeout"]] \
-	[opt [arg "-command cmd"]]]
+        [arg "xlib"] \
+        [arg "type"] \
+        [opt [arg "-from from"]] \
+        [opt [arg "-to to"]] \
+        [opt [arg "-id id"]] \
+        [opt [arg "-query query"]] \
+        [opt [arg "-error error"]] \
+        [opt [arg "-timeout timeout"]] \
+        [opt [arg "-command cmd"]]]
 
 Send XMPP info/query stanza.
 
 [call [cmd "::xmpp::abortIQ"] \
-	[arg "xlib"] \
-	[arg "id"] \
-	[arg "status"] \
-	[arg "error"]]
+        [arg "xlib"] \
+        [arg "id"] \
+        [arg "status"] \
+        [arg "error"]]
 
 Abort waiting for IQ reply.
 
 [call [cmd "::xmpp::outXML"] \
-	[arg "token"] \
-	[arg "xmlElement"]]
+        [arg "token"] \
+        [arg "xmlElement"]]
 
 Send XML element over the XMPP stream.
 
 [call [cmd "::xmpp::outText"] \
-	[arg "token"] \
-	[arg "text"]]
+        [arg "token"] \
+        [arg "text"]]
 
 Send Text over the XMPP stream.
 
 [call [cmd "::xmpp::ip"] \
-	[arg "xlib"]]
+        [arg "xlib"]]
 
 Return an IP address of an opened socket.
 
 [call [cmd "::xmpp::packetID"] \
-	[arg "xlib"]]
+        [arg "xlib"]]
 
 Return the next unused ID for XMPP packet.
 
@@ -138,4 +138,6 @@ Return the next unused ID for XMPP packet.
 Sergei Golovan
 
 [keywords Tcl XMPP]
+[comment { vim:ft=tcl:ts=8:sw=4:sts=4:et
+}]
 [manpage_end]

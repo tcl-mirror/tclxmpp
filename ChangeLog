@@ -13,6 +13,15 @@
 	* xmpp/register.tcl, xmpp/pkgIndex.tcl: Added a new package which
 	  implements support for In-Band Registration (XEP-0077) queries.
 
+	* tclxml/*.tcl, doc/*.man, xmpp/register.tcl: Removed tabulation
+	  characters from the sources and added ViM modelines which expand
+	  them into spaces.
+
+	* xmpp/xmpp.tcl: Don't add empty "to" attribute to sent IQ stanzas.
+
+	* xmpp/register.tcl: Added support for data forms in error service
+	  responses and added support for changing password.
+
 2008-11-01  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl, xmpp/pkgIndex.tcl: Added a new package for working

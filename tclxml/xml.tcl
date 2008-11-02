@@ -1,9 +1,9 @@
 # xml.tcl --
 #
-#	This file provides generic XML services for all implementations.
-#	This file supports Tcl 8.1 regular expressions.
+#       This file provides generic XML services for all implementations.
+#       This file supports Tcl 8.1 regular expressions.
 #
-#	See tclparser.tcl for the Tcl implementation of a XML parser.
+#       See tclparser.tcl for the Tcl implementation of a XML parser.
 #
 # Copyright (c) 1998-2000 Zveno Pty Ltd
 # http://www.zveno.com/
@@ -43,7 +43,7 @@ namespace eval xml {
 
     # Convenience routine
     proc cl x {
-	return "\[$x\]"
+        return "\[$x\]"
     }
 
     # Define various regular expressions
@@ -69,13 +69,13 @@ namespace eval xml {
     # NCName ::= Name - ':'
     variable NCName $::sgml::Name
     regsub -all : $NCName {} NCName
-    variable QName (${NCName}:)?$NCName		;# (Prefix ':')? LocalPart
+    variable QName (${NCName}:)?$NCName ; # (Prefix ':')? LocalPart
 
     # table of predefined entities
 
     variable EntityPredef
     array set EntityPredef {
-	lt <   gt >   amp &   quot \"   apos '
+        lt <   gt >   amp &   quot \"   apos '
     }
 
     # Expressions for pulling things apart
@@ -88,21 +88,21 @@ namespace eval xml {
 }
 
 ###
-###	Exported procedures
+###     Exported procedures
 ###
 
 # xml::qnamesplit --
 #
-#	Split a QName into its constituent parts:
-#	the XML Namespace prefix and the Local-name
+#       Split a QName into its constituent parts:
+#       the XML Namespace prefix and the Local-name
 #
 # Arguments:
-#	qname	XML Qualified Name (see XML Namespaces [6])
+#       qname       XML Qualified Name (see XML Namespaces [6])
 #
 # Results:
-#	Returns prefix and local-name as a Tcl list.
-#	Error condition returned if the prefix or local-name
-#	are not valid NCNames (XML Name)
+#       Returns prefix and local-name as a Tcl list.
+#       Error condition returned if the prefix or local-name
+#       are not valid NCNames (XML Name)
 
 proc xml::qnamesplit qname {
     variable NCName
@@ -111,18 +111,18 @@ proc xml::qnamesplit qname {
     set prefix {}
     set localname $qname
     if {[regexp : $qname]} {
-	if {![regexp ^($NCName)?:($NCName)\$ $qname discard prefix localname]} {
-	    return -code error "name \"$qname\" is not a valid QName"
-	}
+        if {![regexp ^($NCName)?:($NCName)\$ $qname discard prefix localname]} {
+            return -code error "name \"$qname\" is not a valid QName"
+        }
     } elseif {![regexp ^$Name\$ $qname]} {
-	return -code error "name \"$qname\" is not a valid Name"
+        return -code error "name \"$qname\" is not a valid Name"
     }
 
     return [list $prefix $localname]
 }
 
 ###
-###	General utility procedures
+###     General utility procedures
 ###
 
 # xml::noop --
@@ -135,16 +135,17 @@ proc xml::noop args {}
 
 # xml::zapWhite --
 #
-#	Convert multiple white space into a single space.
+#       Convert multiple white space into a single space.
 #
 # Arguments:
-#	data	plain text
+#       data        plain text
 #
 # Results:
-#	As above
+#       As above
 
 proc xml::zapWhite data {
     regsub -all "\[ \t\r\n\]+" $data { } data
     return $data
 }
 
+# vim:ft=tcl:ts=8:sw=4:sts=4:et

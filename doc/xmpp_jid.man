@@ -16,18 +16,18 @@ with JIDs (Jabber IDs).
 
 [list_begin definitions]
 [call [cmd "::xmpp::jid::jid"] \
-	[arg "node"] \
-	[arg "server"] \
-	[opt [arg "resource"]]]
+        [arg "node"] \
+        [arg "server"] \
+        [opt [arg "resource"]]]
 
 Create JID from node, server and resource parts. If missing, resource is
 empty.
 
 [call [cmd "::xmpp::jid::split"] \
-	[arg "jid"] \
+        [arg "jid"] \
         [arg "nodeVar"] \
         [arg "serverVar"] \
-	[arg "resourceVar"]]
+        [arg "resourceVar"]]
 
 Split JID into three parts and assign the specified variables.
 
@@ -63,4 +63,6 @@ they are equivalent or false otherwise.
 Sergei Golovan
 
 [keywords Tcl XMPP JID]
+[comment { vim:ft=tcl:ts=8:sw=4:sts=4:et
+}]
 [manpage_end]

@@ -18,9 +18,9 @@ working with.
 
 [list_begin definitions]
 [call [cmd "::xmpp::xml::new"] \
-	[arg "streamHeaderCmd"] \
-	[arg "streamTrailerCmd"] \
-	[arg "stanzaCmd"]]
+        [arg "streamHeaderCmd"] \
+        [arg "streamTrailerCmd"] \
+        [arg "stanzaCmd"]]
 
 Create new XMPP stream parser.
 
@@ -29,9 +29,9 @@ Create new XMPP stream parser.
 Frees XMPP parser resources.
 
 [call [cmd "::xmpp::xml::parser"] \
-	[arg "token"] \
-	[arg "command"] \
-	[opt [arg "args"]]]
+        [arg "token"] \
+        [arg "command"] \
+        [opt [arg "args"]]]
 
 Execute a given command.
 
@@ -40,77 +40,77 @@ Execute a given command.
 Reset XMPP stream parser.
 
 [call [cmd "::xmpp::xml::parseData"] \
-	[arg "data"] \
-	[opt [arg "stanzaComd"]]]
+        [arg "data"] \
+        [opt [arg "stanzaComd"]]]
 
 Parse given data using a new XML parser and either return parsed XML
 or call the callback on every top level XML element.
 
 [call [cmd "::xmpp::xml::create"] \
-	[arg "tag"] \
-	[opt [arg "-xmlns xmlns"]] \
-	[opt [arg "-attrs attrs"]] \
-	[opt [arg "-cdata cdata"]] \
-	[opt [arg "-subelement subelement"]] \
-	[opt [arg "-subelements subelementsList"]]]
+        [arg "tag"] \
+        [opt [arg "-xmlns xmlns"]] \
+        [opt [arg "-attrs attrs"]] \
+        [opt [arg "-cdata cdata"]] \
+        [opt [arg "-subelement subelement"]] \
+        [opt [arg "-subelements subelementsList"]]]
 
 Create XML element.
 
 [call [cmd "::xmpp::xml::split"] \
-	[arg "xmlelement"] \
-	[arg "tagVar"] \
-	[arg "xmlnsVar"] \
-	[arg "attrsVar"] \
-	[arg "cdataVar"] \
-	[arg "subelsVar"] \
-	[opt [arg "nextCdataVar"]]]
+        [arg "xmlelement"] \
+        [arg "tagVar"] \
+        [arg "xmlnsVar"] \
+        [arg "attrsVar"] \
+        [arg "cdataVar"] \
+        [arg "subelsVar"] \
+        [opt [arg "nextCdataVar"]]]
 
 Split XML data into five or six variables.
 
 [call [cmd "::xmpp::xml::merge"] \
-	[arg "tag"] \
-	[arg "xmlns"] \
-	[arg "attrs"] \
-	[arg "cdata"] \
-	[arg "subels"] \
-	[opt [arg "nextCdata"]]]
+        [arg "tag"] \
+        [arg "xmlns"] \
+        [arg "attrs"] \
+        [arg "cdata"] \
+        [arg "subels"] \
+        [opt [arg "nextCdata"]]]
 
 Merge five or six variables into an XML element.
 
 [call [cmd "::xmpp::xml::isAttr"] \
-	[arg "attrList"] \
-	[arg "attrName"]]
+        [arg "attrList"] \
+        [arg "attrName"]]
 
 Check if a given attribute list contains a given attribute.
 
 [call [cmd "::xmpp::xml::getAttr"] \
-	[arg "attrList"] \
-	[arg "attrName"]]
+        [arg "attrList"] \
+        [arg "attrName"]]
 
 Return a given attribute value from an attribute list.
 
 [call [cmd "::xmpp::xml::getCdata"] \
-	[arg "xmlElement"]]
+        [arg "xmlElement"]]
 
 Return all character data from a given element.
 
 [call [cmd "::xmpp::xml::getFirstCdata"] \
-	[arg "xmlElement"]]
+        [arg "xmlElement"]]
 
 Return character data chunk which is located before the first XML subelement
 in a given element.
 
 [call [cmd "::xmpp::xml::getNextCdata"] \
-	[arg "xmlElement"]]
+        [arg "xmlElement"]]
 
 Return character data chunk which is located after the given XML element.
 
 [call [cmd "::xmpp::xml::streamHeader"] \
-	[arg "server"] \
-	[arg "-xmlns:stream uri"] \
-	[arg "-xmlns uri"] \
-	[opt [arg "-xml:lang lang"]] \
-	[opt [arg "-version ver"]]]
+        [arg "server"] \
+        [arg "-xmlns:stream uri"] \
+        [arg "-xmlns uri"] \
+        [opt [arg "-xml:lang lang"]] \
+        [opt [arg "-version ver"]]]
 
 Return XMPP stream header.
 
@@ -123,14 +123,14 @@ Return XMPP stream trailer.
 Return XML language string derived from msgcat preferences.
 
 [call [cmd "::xmpp::xml::toText"] \
-	[arg "xmlElement"] \
-	[opt [arg "parentNamespace"]]]
+        [arg "xmlElement"] \
+        [opt [arg "parentNamespace"]]]
 
 Serialize a given XML element.
 
 [call [cmd "::xmpp::xml::toTabbedText"] \
-	[arg "xmlElement"] \
-	[opt [arg "parentNamespace"]]]
+        [arg "xmlElement"] \
+        [opt [arg "parentNamespace"]]]
 
 Serialize a given XML element adding indentations.
 
@@ -140,4 +140,6 @@ Serialize a given XML element adding indentations.
 Sergei Golovan
 
 [keywords Tcl XMPP XML]
+[comment { vim:ft=tcl:ts=8:sw=4:sts=4:et
+}]
 [manpage_end]

@@ -1617,12 +1617,14 @@ proc ::xmpp::sendIQ {xlib type args} {
 
     set timeout 0
 
-    set to [xml::getAttr $args -to]
-
     foreach {key val} $args {
         switch -- $key {
             -from {set attrs(from) $val}
-            -to   {set attrs(to)   $val}
+            -to   {
+                if {![string equal $val ""]} {
+                    set attrs(to) $val
+                }
+            }
             -id {
                 # Option -command takes precedence over -id
                 if {![info exists attrs(id)] || ![info exists cmd]} {

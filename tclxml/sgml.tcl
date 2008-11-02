@@ -1,11 +1,11 @@
-# sgml-8.1.tcl --
+# sgml.tcl --
 #
-#	This file provides generic parsing services for SGML-based
-#	languages, namely HTML and XML.
-#	This file supports Tcl 8.1 characters and regular expressions.
+#       This file provides generic parsing services for SGML-based
+#       languages, namely HTML and XML.
+#       This file supports Tcl 8.1 characters and regular expressions.
 #
-#	NB.  It is a misnomer.  There is no support for parsing
-#	arbitrary SGML as such.
+#       NB.  It is a misnomer.  There is no support for parsing
+#       arbitrary SGML as such.
 #
 # Copyright (c) 1998-2001 Zveno Pty Ltd
 # http://www.zveno.com/
@@ -41,7 +41,7 @@ namespace eval sgml {
 
     # Convenience routine
     proc cl x {
-	return "\[$x\]"
+        return "\[$x\]"
     }
 
     # Define various regular expressions
@@ -70,7 +70,7 @@ namespace eval sgml {
 
     variable EntityPredef
     array set EntityPredef {
-	lt <   gt >   amp &   quot \"   apos '
+        lt <   gt >   amp &   quot \"   apos '
     }
 
 }
@@ -96,13 +96,13 @@ namespace eval sgml {
 
 # sgml::noop --
 #
-#	A do-nothing proc
+#       A do-nothing proc
 #
 # Arguments:
-#	args	arguments
+#       args        arguments
 #
 # Results:
-#	Nothing.
+#       Nothing.
 
 proc sgml::noop args {
     return 0
@@ -110,13 +110,13 @@ proc sgml::noop args {
 
 # sgml::identity --
 #
-#	Identity function.
+#       Identity function.
 #
 # Arguments:
-#	a	arbitrary argument
+#       a           arbitrary argument
 #
 # Results:
-#	$a
+#       $a
 
 proc sgml::identity a {
     return $a
@@ -124,13 +124,13 @@ proc sgml::identity a {
 
 # sgml::Error --
 #
-#	Throw an error
+#       Throw an error
 #
 # Arguments:
-#	args	arguments
+#       args        arguments
 #
 # Results:
-#	Error return condition.
+#       Error return condition.
 
 proc sgml::Error args {
     uplevel return -code error [list $args]
@@ -140,13 +140,13 @@ proc sgml::Error args {
 
 # sgml::zapWhite --
 #
-#	Convert multiple white space into a single space.
+#       Convert multiple white space into a single space.
 #
 # Arguments:
-#	data	plain text
+#       data        plain text
 #
 # Results:
-#	As above
+#       As above
 
 proc sgml::zapWhite data {
     regsub -all "\[ \t\r\n\]+" $data { } data
@@ -159,3 +159,4 @@ proc sgml::Boolean value {
     return $value
 }
 
+# vim:ft=tcl:ts=8:sw=4:sts=4:et

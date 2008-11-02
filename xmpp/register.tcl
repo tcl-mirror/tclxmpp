@@ -20,22 +20,22 @@ namespace eval ::xmpp::register {
     # Register fields (see XEP-0077)
 
     array set labels [list username [::msgcat::mc "Username"] \
-	                   nick     [::msgcat::mc "Nickname"] \
-	                   password [::msgcat::mc "Password"] \
-	                   name     [::msgcat::mc "Full Name"] \
-	                   first    [::msgcat::mc "First Name"] \
-	                   last     [::msgcat::mc "Last Name"] \
-	                   email    [::msgcat::mc "E-mail"] \
-	                   address  [::msgcat::mc "Address"] \
-	                   city     [::msgcat::mc "City"] \
-	                   state    [::msgcat::mc "State"] \
-	                   zip      [::msgcat::mc "Zip"] \
-	                   phone    [::msgcat::mc "Phone"] \
-	                   url      [::msgcat::mc "URL"] \
-	                   date     [::msgcat::mc "Date"] \
-	                   misc     [::msgcat::mc "Misc"] \
-	                   text     [::msgcat::mc "Text"] \
-	                   key      [::msgcat::mc "Key"]]
+                           nick     [::msgcat::mc "Nickname"] \
+                           password [::msgcat::mc "Password"] \
+                           name     [::msgcat::mc "Full Name"] \
+                           first    [::msgcat::mc "First Name"] \
+                           last     [::msgcat::mc "Last Name"] \
+                           email    [::msgcat::mc "E-mail"] \
+                           address  [::msgcat::mc "Address"] \
+                           city     [::msgcat::mc "City"] \
+                           state    [::msgcat::mc "State"] \
+                           zip      [::msgcat::mc "Zip"] \
+                           phone    [::msgcat::mc "Phone"] \
+                           url      [::msgcat::mc "URL"] \
+                           date     [::msgcat::mc "Date"] \
+                           misc     [::msgcat::mc "Misc"] \
+                           text     [::msgcat::mc "Text"] \
+                           key      [::msgcat::mc "Key"]]
 }
 
 # ::xmpp::register::request --
@@ -84,7 +84,7 @@ proc ::xmpp::register::submit {xlib jid fields args} {
                                     -xmlns jabber:iq:register \
                                     -subelements $subels] \
                     -to $jid \
-                    -command $command]
+                    -command [namespace code [list SubmitResult $command]]]
 }
 
 # ::xmpp::register::remove --
@@ -100,11 +100,33 @@ proc ::xmpp::register::remove {xlib jid args} {
     }
 
     return [::xmpp::sendIQ $xlib set \
-	            -query [::xmpp::xml::create query \
-			            -xmlns jabber:iq:register \
-			            -subelement [::xmpp::xml::create remove]] \
-	            -to $jid \
-	            -command $command]
+                    -query [::xmpp::xml::create query \
+                                    -xmlns jabber:iq:register \
+                                    -subelement [::xmpp::xml::create remove]] \
+                    -to $jid \
+                    -command [namespace code [list SubmitResult $command]]]
+}
+
+# ::xmpp::register::password --
+
+proc ::xmpp::register::password {xlib username password args} {
+    set command #
+    foreach {key val} $args {
+        switch -- $key {
+            -command {
+                set command $val
+            }
+        }
+    }
+
+    set subels [list [::xmpp::xml::create username -cdata $username] \
+                     [::xmpp::xml::create password -cdata $password]]
+
+    return [::xmpp::sendIQ $xlib set \
+                    -query [::xmpp::xml::create query \
+                                    -xmlns jabber:iq:register \
+                                    -subelements $subels] \
+                    -command [namespace code [list SubmitResult $command]]]
 }
 
 # ::xmpp::register::ParseForm --
@@ -182,6 +204,29 @@ proc ::xmpp::register::FillFields {fields} {
         lappend res [::xmpp::xml::create $var -cdata [lindex $values 0]]
     }
     return $res
+}
+
+# ::xmpp::register::SubmitResult --
+
+proc ::xmpp::register::SubmitResult {command status xml} {
+    if {![string equal $status error]} {
+        uplevel #0 $command [list $status $xml]
+        return
+    }
+
+    ::xmpp::xml::split $xml tag xmlns attrs cdata subels
+
+    foreach {type form} [::xmpp::data::findForm $subels] break
+
+    if {[string equal $type form]} {
+        set status continue
+        set fields [::xmpp::data::parseForm $form]
+    } else {
+        set fields $xml
+    }
+
+    uplevel #0 $command [list $status $fields]
+    return
 }
 
 # vim:ft=tcl:ts=8:sw=4:sts=4:et
