@@ -16,6 +16,89 @@ package provide xmpp::data 0.1
 
 namespace eval ::xmpp::data {}
 
+# ::xmpp::data::formField --
+
+proc ::xmpp::data::formField {tag args} {
+    array set params $args
+
+    switch -- $tag {
+        instructions -
+        title {
+            if {[info exists params(-value)]} {
+                return [list $tag $params(-value)]
+            } else {
+                return -code error "You must define -value"
+            }
+        }
+        field {
+            if {[info exists params(-var)]} {
+                set field [list $params(-var)]
+            } elseif {![string equal $type fixed]} {
+                return -code error "You must define -var"
+            }
+
+            if {[info exists params(-type)]} {
+                set type $params(-type)
+                lappend field $params(-type)
+            } else {
+                set type ""
+                lappend field ""
+            }
+
+            if {[info exists params(-label)]} {
+                lappend field $params(-label)
+            } else {
+                lappend field ""
+            }
+
+            if {[info exists params(-desc)]} {
+                lappend field $params(-desc)
+            } else {
+                lappend field ""
+            }
+
+            if {[info exists params(-required)]} {
+                lappend field $params(-required)
+            } else {
+                lappend field false
+            }
+
+            if {[lcontain {list-multi list-single} $type]} {
+                if {[info exists params(-options)]} {
+                    lappend field $params(-options)
+                } else {
+                    return -code error "You must define -options"
+                }
+            } else {
+                lappend field {}
+            }
+
+            if {[lcontain {jid-multi text-multi list-multi} $type]} {
+                if {[info exists params(-values)]} {
+                    lappend field $params(-values)
+                } elseif {[lcontain {jid-multi} $type]} {
+                    return -code error "You must define -values"
+                } else {
+                    lappend field {}
+                }
+            } else {
+                if {[info exists params(-value)]} {
+                    lappend field [list $params(-value)]
+                } elseif {[lcontain {hidden fixed} $type]} {
+                    return -code error "You must define -value"
+                } else {
+                    lappend field {}
+                }
+            }
+
+            return [list field $field]
+        }
+        default {
+            return -code error "Unknown type $type"
+        }
+    }
+}
+
 # ::xmpp::data::form --
 
 proc ::xmpp::data::form {fields} {
@@ -29,28 +112,43 @@ proc ::xmpp::data::form {fields} {
                 lappend subels [::xmpp::xml::create instructions -cdata $field]
             }
             field {
-                foreach {var type label options values} $field break
+                foreach {var type label desc required options values} $field break
 
-                set attrs [list var $var type $type]
+                set attrs [list var $var]
+                if {![string equal $type ""]} {
+                    lappend attrs type $type
+                }
                 if {![string equal $label ""]} {
                     lappend attrs label $label
                 }
 
                 set fsubels {}
+
+                if {![string equal $desc ""]} {
+                    lappend fsubels [::xmpp::xml::create desc -cdata $desc]
+                }
+
+                if {$required} {
+                    lappend fsubels [::xmpp::xml::create required]
+                }
+
                 foreach value $values {
                     lappend fsubels [::xmpp::xml::create value -cdata $value]
                 }
+
                 foreach {olabel ovalue} $options {
                     if {[string equal $olabel ""]} {
                         set oattrs {}
                     } else {
                         set oattrs [list label $olabel]
                     }
+
                     lappend fsubels [::xmpp::xml::create option \
                                             -attrs $oattrs \
                                             -subelement [::xmpp::xml::create value \
                                                                 -cdata $ovalue]]
                 }
+
                 lappend subels [::xmpp::xml::create field \
                                         -attrs $attrs \
                                         -subelements $fsubels]
@@ -89,6 +187,45 @@ proc ::xmpp::data::submitForm {fields} {
     return [::xmpp::xml::create x \
                     -xmlns jabber:x:data \
                     -attrs [list type submit] \
+                    -subelements $subels]
+}
+
+# ::xmpp::data::resultForm --
+# TODO: Add items support.
+
+proc ::xmpp::data::resultForm {fields} {
+    set subels {}
+    foreach {tag field} $fields {
+        switch -- $tag {
+            title {
+                lappend subels [::xmpp::xml::create title -cdata $field]
+            }
+            field {
+                foreach {var type label values} $field break
+
+                set attrs [list var $var]
+                if {![string equal $type ""]} {
+                    lappend attrs type $type
+                }
+                if {![string equal $label ""]} {
+                    lappend attrs label $label
+                }
+
+                set fsubels {}
+                foreach value $values {
+                    lappend fsubels [::xmpp::xml::create value -cdata $value]
+                }
+
+                lappend subels [::xmpp::xml::create field \
+                                        -attrs $attrs \
+                                        -subelements $fsubels]
+            }
+        }
+    }
+
+    return [::xmpp::xml::create x \
+                    -xmlns jabber:x:data \
+                    -attrs [list type form] \
                     -subelements $subels]
 }
 

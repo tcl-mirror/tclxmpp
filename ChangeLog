@@ -24,6 +24,11 @@
 
 	* xmpp/data.tcl: Added support for creating data forms.
 
+	* xmpp/data.tcl: Added procedure which creates form field tuple in a
+	  human readable way. Also, added field description and required
+	  fields support for created data forms. Also, added basic result form
+	  support.
+
 2008-11-01  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl, xmpp/pkgIndex.tcl: Added a new package for working
