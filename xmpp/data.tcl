@@ -16,6 +16,26 @@ package provide xmpp::data 0.1
 
 namespace eval ::xmpp::data {}
 
+# ::xmpp::data::submitForm --
+
+proc ::xmpp::data::submitForm {fields} {
+    set subels {}
+    foreach {var values} $fields {
+        set vsubels {}
+        foreach value $values {
+            lappend vsubels [::xmpp::xml::create value -cdata $value]
+        }
+        lappend subels [::xmpp::xml::create field \
+                                -attrs [list var $var] \
+                                -subelements $vsubels]
+    }
+
+    return [::xmpp::xml::create x \
+                    -xmlns jabber:x:data \
+                    -attrs [list type submit] \
+                    -subelements $subels]
+}
+
 # ::xmpp::data::findForm --
 
 proc ::xmpp::data::findForm {xmlElements} {
