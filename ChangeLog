@@ -6,6 +6,13 @@
 	* xmpp/search.tcl, xmpp/pkgIndex.tcl: Added a package which implements
 	  support for Jabber Search (XEP-0055) queries.
 
+	* xmpp/data.tcl: Treat missing form type as "form".
+
+	* xmpp/search.tcl: Fixed typo and removed implicit field label.
+
+	* xmpp/register.tcl, xmpp/pkgIndex.tcl: Added a new package which
+	  implements support for In-Band Registration (XEP-0077) queries.
+
 2008-11-01  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl, xmpp/pkgIndex.tcl: Added a new package for working

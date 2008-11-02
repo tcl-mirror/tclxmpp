@@ -91,7 +91,7 @@ proc ::xmpp::search::ParseForm {command status xml} {
         set fields [::xmpp::data::parseForm $form]
         set old false
     } else {
-        set fields [ParseFields $items]
+        set fields [ParseFields $subels]
         set old true
     }
 
@@ -117,7 +117,7 @@ proc ::xmpp::search::ParseFields {xmlElements} {
                 if {[info exists labels($tag)]} {
                     set label $labels($tag)
                 } else {
-                    set label $tag
+                    set label ""
                 }
 
                 lappend res field \

@@ -42,7 +42,7 @@ proc ::xmpp::data::findForm {xmlElements} {
     foreach xmlElement $xmlElements {
         ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
         if {[string equal $xmlns jabber:x:data]} {
-            set type [::xmpp::xml::getAttr $attrs type]
+            set type [::xmpp::xml::getAttr $attrs type form]
             return [list $type $xmlElement]
         }
     }
