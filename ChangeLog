@@ -22,6 +22,8 @@
 	* xmpp/register.tcl: Added support for data forms in error service
 	  responses and added support for changing password.
 
+	* xmpp/data.tcl: Added support for creating data forms.
+
 2008-11-01  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl, xmpp/pkgIndex.tcl: Added a new package for working

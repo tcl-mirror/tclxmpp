@@ -16,6 +16,62 @@ package provide xmpp::data 0.1
 
 namespace eval ::xmpp::data {}
 
+# ::xmpp::data::form --
+
+proc ::xmpp::data::form {fields} {
+    set subels {}
+    foreach {tag field} $fields {
+        switch -- $tag {
+            title {
+                lappend subels [::xmpp::xml::create title -cdata $field]
+            }
+            instructions {
+                lappend subels [::xmpp::xml::create instructions -cdata $field]
+            }
+            field {
+                foreach {var type label options values} $field break
+
+                set attrs [list var $var type $type]
+                if {![string equal $label ""]} {
+                    lappend attrs label $label
+                }
+
+                set fsubels {}
+                foreach value $values {
+                    lappend fsubels [::xmpp::xml::create value -cdata $value]
+                }
+                foreach {olabel ovalue} $options {
+                    if {[string equal $olabel ""]} {
+                        set oattrs {}
+                    } else {
+                        set oattrs [list label $olabel]
+                    }
+                    lappend fsubels [::xmpp::xml::create option \
+                                            -attrs $oattrs \
+                                            -subelement [::xmpp::xml::create value \
+                                                                -cdata $ovalue]]
+                }
+                lappend subels [::xmpp::xml::create field \
+                                        -attrs $attrs \
+                                        -subelements $fsubels]
+            }
+        }
+    }
+
+    return [::xmpp::xml::create x \
+                    -xmlns jabber:x:data \
+                    -attrs [list type form] \
+                    -subelements $subels]
+}
+
+# ::xmpp::data::cancelForm --
+
+proc ::xmpp::data::cancelForm {} {
+    return [::xmpp::xml::create x \
+                    -xmlns jabber:x:data \
+                    -attrs [list type cancel]]
+}
+
 # ::xmpp::data::submitForm --
 
 proc ::xmpp::data::submitForm {fields} {
