@@ -226,7 +226,7 @@ proc ::xmpp::transport::use {token command args} {
     }
 
     array set attrs $Transports($transport)
-
+puts "$attrs($key) $token $args"
     return [uplevel #0 $attrs($key) $token $args]
 }
 

@@ -6,6 +6,8 @@
 	* xmpp/negotiate.tcl, pkgIndex.tcl: Added a package which implements
 	  feature negotiation protocol (XEP-0020).
 
+	* xmpp/poll.tcl: Fixed typo.
+
 2008-11-02  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl: Added a procedure which fills in form fields for

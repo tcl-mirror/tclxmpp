@@ -318,7 +318,7 @@ proc ::xmpp::transport::poll::flush {token} {
 # Side effects:
 #       None.
 
-proc ::xmpp::transport::tcp::ip {token} {
+proc ::xmpp::transport::poll::ip {token} {
     variable $token
     upvar 0 $token state
 
