@@ -1,3 +1,11 @@
+2008-11-03  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/tcp.tcl, xmpp/zlib.tcl: Fixed typo in a procedure which returns
+	  connection socket IP address.
+
+	* xmpp/negotiate.tcl, pkgIndex.tcl: Added a package which implements
+	  feature negotiation protocol (XEP-0020).
+
 2008-11-02  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl: Added a procedure which fills in form fields for

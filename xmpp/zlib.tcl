@@ -394,7 +394,7 @@ proc ::xmpp::transport::zlib::ip {token} {
     variable $token
     upvar 0 $token state
 
-    return [lindex [fconfigure $state(sock)) -sockname] 0]
+    return [lindex [fconfigure $state(sock) -sockname] 0]
 }
 
 # ::xmpp::transport::zlib::close --

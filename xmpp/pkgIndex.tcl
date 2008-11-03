@@ -24,6 +24,7 @@ package ifneeded xmpp::delay 0.1           [list source [file join $dir delay.tc
 package ifneeded xmpp::dns 0.1             [list source [file join $dir dns.tcl]]
 package ifneeded xmpp::iq 0.1              [list source [file join $dir iq.tcl]]
 package ifneeded xmpp::jid 0.1             [list source [file join $dir jid.tcl]]
+package ifneeded xmpp::negotiate 0.1       [list source [file join $dir negotiate.tcl]]
 package ifneeded xmpp::register 0.1        [list source [file join $dir register.tcl]]
 package ifneeded xmpp::roster 0.1          [list source [file join $dir roster.tcl]]
 package ifneeded xmpp::sasl 0.1            [list source [file join $dir sasl.tcl]]

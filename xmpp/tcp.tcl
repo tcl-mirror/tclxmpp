@@ -352,7 +352,7 @@ proc ::xmpp::transport::tcp::ip {token} {
     variable $token
     upvar 0 $token state
 
-    return [lindex [fconfigure $state(sock)) -sockname] 0]
+    return [lindex [fconfigure $state(sock) -sockname] 0]
 }
 
 # ::xmpp::transport::tcp::close --
