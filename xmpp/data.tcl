@@ -225,7 +225,7 @@ proc ::xmpp::data::resultForm {fields} {
 
     return [::xmpp::xml::create x \
                     -xmlns jabber:x:data \
-                    -attrs [list type form] \
+                    -attrs [list type result] \
                     -subelements $subels]
 }
 
