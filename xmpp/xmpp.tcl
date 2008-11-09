@@ -92,7 +92,8 @@ proc ::xmpp::new {args} {
             -iqcommand -
             -disconnectcommand -
             -statuscommand -
-            -errorcommand {
+            -errorcommand -
+	    -logcommand {
                 set attrs($key) $val
             }
             default {
@@ -514,6 +515,14 @@ proc ::xmpp::GotStream {xlib status attrs} {
     upvar 0 $xlib state
 
     Debug $xlib 2 "$status $attrs"
+    if {[string equal $status ok]} {
+	set msg "<stream:stream "
+	foreach {attr val} $attrs {
+	    append msg " $attr='[xml::Escape $val]'"
+	}
+	append msg ">"
+	CallBack $xlib log input text $msg
+    }
 
     if {[info exists state(openStreamCommand)]} {
         set cmd $state(openStreamCommand)
@@ -797,7 +806,7 @@ proc ::xmpp::outXML {xlib xmlElement} {
     upvar 0 $xlib state
 
     Debug $xlib 2 "[xml::toText $xmlElement]"
-    ::LOG_OUTPUT_XML $xlib $xmlElement
+    CallBack $xlib log output xml $xmlElement
 
     transport::use $state(transport) outXML $xmlElement
 }
@@ -822,7 +831,7 @@ proc ::xmpp::outText {xlib text} {
     upvar 0 $xlib state
 
     Debug $xlib 2 "$text"
-    ::LOG_OUTPUT $xlib $text
+    CallBack $xlib log output text $text
 
     transport::use $state(transport) outText $text
 }
@@ -846,7 +855,7 @@ proc ::xmpp::closeStream {xlib} {
 
     set msg [xml::streamTrailer]
     Debug $xlib 2 "$msg"
-    ::LOG_OUTPUT $xlib $msg
+    CallBack $xlib log output text $msg
 
     transport::use $state(transport) closeStream
 }
@@ -872,6 +881,7 @@ proc ::xmpp::EndOfParse {xlib} {
     upvar 0 $xlib state
 
     Debug $xlib 2 ""
+    CallBack $xlib log input text "</stream:stream>"
 
     switch -- $state(status) {
         disconnecting -
@@ -1183,7 +1193,7 @@ proc ::xmpp::Parse {xlib xmlElement} {
     upvar 0 $xlib state
 
     Debug $xlib 2 "$xmlElement"
-    ::LOG_INPUT_XML $xlib $xmlElement
+    CallBack $xlib log input xml $xmlElement
 
     if {![info exists state(transport)]} {
         Debug $xlib 1 "Connection doesn't exist"
@@ -1886,14 +1896,5 @@ proc ::xmpp::Debug {xlib level str} {
 
     return
 }
-
-######################################################################
-
-proc ::LOG_OUTPUT      {xlib t} {}
-proc ::LOG_OUTPUT_XML  {xlib x} {}
-proc ::LOG_OUTPUT_SIZE {xlib x size} {}
-proc ::LOG_INPUT       {xlib t} {}
-proc ::LOG_INPUT_XML   {xlib x} {}
-proc ::LOG_INPUT_SIZE  {xlib x size} {}
 
 # vim:ts=8:sw=4:sts=4:et
