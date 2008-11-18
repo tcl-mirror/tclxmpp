@@ -63,6 +63,5 @@ they are equivalent or false otherwise.
 Sergei Golovan
 
 [keywords Tcl XMPP JID]
-[comment { vim:ft=tcl:ts=8:sw=4:sts=4:et
-}]
+[comment { vim: set ft=tcl ts=8 sw=4 sts=4 et: }]
 [manpage_end]

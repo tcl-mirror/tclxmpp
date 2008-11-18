@@ -140,6 +140,5 @@ Serialize a given XML element adding indentations.
 Sergei Golovan
 
 [keywords Tcl XMPP XML]
-[comment { vim:ft=tcl:ts=8:sw=4:sts=4:et
-}]
+[comment { vim: set ft=tcl ts=8 sw=4 sts=4 et: }]
 [manpage_end]

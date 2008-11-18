@@ -1,3 +1,7 @@
+2008-11-18  Sergei Golovan  <sgolovan@nes.ru>
+
+	* doc/*.man: Made ViM modelines prettier.
+
 2008-11-09  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Added a new log callback which is invoked on every
