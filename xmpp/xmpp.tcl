@@ -1257,7 +1257,21 @@ proc ::xmpp::ParseMessage {xlib xmlElement} {
     foreach {key val} $attrs {
         switch -- $key {
             from     {set from $val}
-            type     {set type $val}
+            type     {
+                switch -- $val {
+                    chat -
+                    error -
+                    groupchat -
+                    headline -
+                    normal {
+                        set type $val
+                    }
+                    default {
+                        Debug $xlib 1 \
+                              [::msgcat::mc "Unknown message type %s" $val]
+                    }
+                }
+            }
             xml:lang {lappend params -lang $val}
             to       {lappend params -to   $val}
             id       {lappend params -id   $val}
@@ -1420,7 +1434,8 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
 
                 uplevel #0 $cmd [list ok [lindex $subels 0]]
             } else {
-                Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
+                Debug $xlib 1 \
+                      [::msgcat::mc "IQ id %s doesn't exist in memory" $id]
             }
             return
         }
@@ -1440,7 +1455,8 @@ proc ::xmpp::ParseIQ {xlib xmlElement} {
 
                 uplevel #0 $cmd [list error $error]
             } else {
-                Debug $xlib 1 [::msgcat::mc "IQ id doesn't exists in memory"]
+                Debug $xlib 1 \
+                      [::msgcat::mc "IQ id %s doesn't exist in memory" $id]
             }
             return
         }
@@ -1736,7 +1752,10 @@ proc ::xmpp::abortIQ {xlib id status error} {
         unset state(iq,$id)
 
         uplevel #0 $cmd [list $status $error]
+    } else {
+        Debug $xlib 1 [::msgcat::mc "IQ id %s doesn't exist in memory" $id]
     }
+
     return
 }
 
@@ -1891,7 +1910,8 @@ proc ::xmpp::Debug {xlib level str} {
     variable debug
 
     if {$debug >= $level} {
-        puts "[lindex [info level -1] 0] $xlib: $str"
+        puts "[clock format [clock seconds] -format %T]\
+              [lindex [info level -1] 0] $xlib $str"
     }
 
     return
