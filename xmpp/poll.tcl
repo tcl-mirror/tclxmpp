@@ -205,7 +205,8 @@ proc ::xmpp::transport::poll::outText {token text} {
             Poll $token $text
         }
     }
-    return
+    # TODO
+    return [string bytelength $text]
 }
 
 # ::xmpp::transport::poll::outXML --
@@ -588,6 +589,8 @@ proc ::xmpp::transport::poll::ProcessReply {token try query httpToken} {
         ::http::cleanup $httpToken
         return
     }
+
+    Debug $token 2 $httpState(meta)
 
     foreach {name value} $httpState(meta) {
         if {[string equal -nocase $name Set-Cookie] && \
