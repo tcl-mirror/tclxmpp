@@ -192,7 +192,7 @@ proc ::xmpp::transport::poll::outText {token text} {
     upvar 0 $token state
 
     if {![info exists state(wait)]} {
-        return
+        return -1
     }
 
     switch -- $state(wait) {
@@ -200,6 +200,7 @@ proc ::xmpp::transport::poll::outText {token text} {
         waiting       -
         disconnecting {
             # TODO
+            return -1
         }
         default {
             Poll $token $text
