@@ -468,7 +468,7 @@ proc ::pconnect::https::PutsConnectQuery {token {auth ""}} {
 
     fconfigure $state(sock) -buffering line -translation auto
 
-    puts $state(sock) "CONNECT $state(addr):$state(port) HTTP/1.1"
+    puts $state(sock) "CONNECT $state(addr):$state(port) HTTP/1.0"
     puts $state(sock) "Proxy-Connection: keep-alive"
     if {[string length $state(-useragent)]} {
         puts $state(sock) "User-Agent: $state(-useragent)"

@@ -1,3 +1,8 @@
+2009-02-09  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/https.tcl: Changed HTTP protocol version in CONNECT query
+	  from 1.1 to 1.0.
+
 2008-12-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/poll.tcl: Fixed return value for procedure which pushes text
