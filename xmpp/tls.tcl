@@ -59,6 +59,8 @@ namespace eval ::xmpp::transport::tls {
 #       -eofcommand           cmd4  End-of-file callback.
 #       -verifycommand              TLS callback (it turns into -command option
 #                                   for ::tls::import).
+#       -passwordcommand      cmd5  TLS password callback (it turns into
+#                                   -password option for ::tls::import).
 #       -infocommand                Callback to get status of an established
 #                                   TLS connection. It is calles wit a list of
 #                                   key-value pairs returned from tls::status.
@@ -75,7 +77,6 @@ namespace eval ::xmpp::transport::tls {
 #       -tls1
 #       -request
 #       -require
-#       -password
 #       (other arguments are passed to [::pconnect::socket])
 #       -domain string              "inet" (default) or "inet6"
 #       -proxy string               Proxy type "" (default), "socks4",
@@ -134,7 +135,7 @@ proc ::xmpp::transport::tls::open {host port args} {
             -tls1                 -
             -request              -
             -require              -
-            -password             -
+            -passwordcommand      -
             -verifycommand        -
             -infocommand          {lappend tlsArgs $key $val}
             default               {lappend newArgs $key $val}
@@ -227,6 +228,8 @@ proc ::xmpp::transport::tls::Configure {token tlsArgs} {
 #
 # Arguments:
 #       token                   Transport control token.
+#       -passwordcommand        TLS password callback (it turns into -password
+#                               option for ::tls::import).
 #       -verifycommand          TLS callback (it turns into -command option
 #                               for ::tls::import).
 #       -infocommand            Callback to get status of an established
@@ -245,7 +248,6 @@ proc ::xmpp::transport::tls::Configure {token tlsArgs} {
 #       -tls1
 #       -request
 #       -require
-#       -password
 #
 # Result:
 #       Empty string.
@@ -266,6 +268,9 @@ proc ::xmpp::transport::tls::import {token args} {
                 } else {
                     lappend newArgs -cafile $val
                 }
+            }
+            -passwordcommand {
+                lappend newArgs -password $val
             }
             -verifycommand {
                 lappend newArgs -command $val

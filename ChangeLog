@@ -1,3 +1,8 @@
+2009-02-10  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/tls.tcl: Changed -password option to -passwordcommand to avoid
+	  clash with password for proxy.
+
 2009-02-09  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/https.tcl: Changed HTTP protocol version in CONNECT query
