@@ -105,7 +105,7 @@ proc ::xmpp::roster::metacontacts::store {xlib contacts args} {
     }
 
     set id \
-        [::xmpp::private::retrieve \
+        [::xmpp::private::store \
                     $xlib \
                     [list [::xmpp::xml::create storage \
                                         -xmlns storage:metacontacts \

@@ -138,7 +138,7 @@ proc ::xmpp::roster::annotations::store {xlib notes args} {
     }
 
     set id \
-        [::xmpp::private::retrieve \
+        [::xmpp::private::store \
                     $xlib \
                     [list [SerializeNotes $notes]] \
                     -command [namespace code [list ProcessStoreAnswer $commands]] \
