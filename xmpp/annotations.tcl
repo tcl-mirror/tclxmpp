@@ -90,8 +90,6 @@ proc ::xmpp::roster::annotations::ScanTime {timestamp} {
 }
 
 proc ::xmpp::roster::annotations::SerializeNotes {notes} {
-    variable notes
-
     set tags {}
     foreach note $notes {
         array unset n
