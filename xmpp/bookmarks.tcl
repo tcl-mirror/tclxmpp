@@ -74,7 +74,7 @@ proc ::xmpp::roster::bookmarks::ProcessRetrieveAnswer {commands status xml} {
                     lappend res name [::xmpp::xml::getAttr $sattrs name]
                 }
 
-                foreach subel $subels {
+                foreach subel $ssubels {
                     ::xmpp::xml::split $subel sstag ssxmlns ssattrs sscdata sssubels
 
                     switch -- $sstag {
