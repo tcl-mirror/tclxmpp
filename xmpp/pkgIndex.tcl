@@ -29,6 +29,7 @@ package ifneeded xmpp::private 0.1              [list source [file join $dir pri
 package ifneeded xmpp::register 0.1             [list source [file join $dir register.tcl]]
 package ifneeded xmpp::roster 0.1               [list source [file join $dir roster.tcl]]
 package ifneeded xmpp::roster::annotations 0.1  [list source [file join $dir annotations.tcl]]
+package ifneeded xmpp::roster::bookmarks 0.1    [list source [file join $dir bookmarks.tcl]]
 package ifneeded xmpp::roster::delimiter 0.1    [list source [file join $dir delimiter.tcl]]
 package ifneeded xmpp::roster::metacontacts 0.1 [list source [file join $dir metacontacts.tcl]]
 package ifneeded xmpp::sasl 0.1                 [list source [file join $dir sasl.tcl]]
@@ -55,6 +56,7 @@ package ifneeded xmpp::full 0.1 {
     package require xmpp::dns 0.1
     package require xmpp::roster 0.1
     package require xmpp::roster::annotations 0.1
+    package require xmpp::roster::bookmarks 0.1
     package require xmpp::roster::delimiter 0.1
     package require xmpp::roster::metacontacts 0.1
     package require xmpp::starttls 0.1

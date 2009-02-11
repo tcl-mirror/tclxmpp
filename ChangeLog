@@ -14,6 +14,9 @@
 
 	* xmpp/pkgIndex.tcl: Added the above packages.
 
+	* xmpp/bookmarks.tcl, xmpp/pkgIndex.tcl: Added storing/retrieving
+	  conference bookmarks (XEP-0048).
+
 2009-02-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/tls.tcl: Changed -password option to -passwordcommand to avoid
