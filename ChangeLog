@@ -1,3 +1,19 @@
+2009-02-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/private.tcl: Added simple interface to private XML storage
+	  (XEP-0049).
+
+	* xmpp/annotations.tcl: Added storing/retieving roster notes
+	  (XEP-0145).
+
+	* xmpp/delimiter.tcl: Added storing/retrieving nested groups delimiter
+	  (XEP-0083).
+
+	* xmpp/metacontacts.tcl: Added storing/retrieving roster metacontacts
+	  (XEP-0209).
+
+	* xmpp/pkgIndex.tcl: Added the above packages.
+
 2009-02-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/tls.tcl: Changed -password option to -passwordcommand to avoid
