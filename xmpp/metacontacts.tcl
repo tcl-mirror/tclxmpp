@@ -52,8 +52,6 @@ proc ::xmpp::roster::metacontacts::ProcessRetrieveAnswer {commands status xml} {
         uplevel #0 [lindex $commands 0] [list $status $xml]
     }
 
-    set contacts {}
-
     foreach xmldata $xml {
         ::xmpp::xml::split $xmldata tag xmlns attrs cdata subels
 
@@ -64,13 +62,22 @@ proc ::xmpp::roster::metacontacts::ProcessRetrieveAnswer {commands status xml} {
                 set jid   [::xmpp::xml::getAttr $sattrs jid]
                 set tag   [::xmpp::xml::getAttr $sattrs tag]
                 set order [::xmpp::xml::getAttr $sattrs order]
+                if {![string is integer -strict $order]} {
+                    set order 0
+                }
 
-                lappend contacts [list jid $jid tag $tag order $order]
+                lappend contacts($tag) [list $jid $order]
             }
         }
     }
 
-    uplevel #0 [lindex $commands 0] [list ok $contacts]
+    foreach tag [array names contacts] {
+        foreach jo [lsort -integer -index 1 $contacts($tag)] {
+            lappend result($tag) [lindex $jo 0]
+        }
+    }
+
+    uplevel #0 [lindex $commands 0] [list ok [array get result]]
     return
 }
 
@@ -94,14 +101,14 @@ proc ::xmpp::roster::metacontacts::store {xlib contacts args} {
     }
 
     set tags {}
-    foreach meta $contacts {
-        array unset n
-        array set n $meta
+    foreach {tag jids} $contacts {
+        set order 1
+        foreach jid $jids {
+            set attrs [list jid $jid tag $tag order $order]
 
-        set attrs [list jid $n(jid) tag $n(tag) order $n(order)]
-
-        lappend tags [::xmpp::xml::create meta \
-                                          -attrs $vars]
+            lappend tags [::xmpp::xml::create meta -attrs $attrs]
+            incr order
+        }
     }
 
     set id \

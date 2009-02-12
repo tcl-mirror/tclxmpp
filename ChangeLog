@@ -1,3 +1,8 @@
+2009-02-12  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/metacontacts.tcl: Made interface to retrieve/store procedures
+	  more convenient.
+
 2009-02-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/private.tcl: Added simple interface to private XML storage
