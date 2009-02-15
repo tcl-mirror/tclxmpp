@@ -14,7 +14,9 @@ package require xmpp::private
 
 package provide xmpp::roster::annotations 0.1
 
-namespace eval ::xmpp::roster::annotations {}
+namespace eval ::xmpp::roster::annotations {
+    namespace export store retrieve serialize deserialize
+}
 
 proc ::xmpp::roster::annotations::retrieve {xlib args} {
     set commands {}
@@ -52,6 +54,11 @@ proc ::xmpp::roster::annotations::ProcessRetrieveAnswer {commands status xml} {
         uplevel #0 [lindex $commands 0] [list $status $xml]
     }
 
+    uplevel #0 [lindex $commands 0] [list ok [deserialize $xml]]
+    return
+}
+
+proc ::xmpp::roster::annotations::deserialize {xml} {
     set notes {}
 
     foreach xmldata $xml {
@@ -77,8 +84,7 @@ proc ::xmpp::roster::annotations::ProcessRetrieveAnswer {commands status xml} {
         }
     }
 
-    uplevel #0 [lindex $commands 0] [list ok $notes]
-    return
+    return $notes
 }
 
 proc ::xmpp::roster::annotations::ScanTime {timestamp} {
@@ -89,7 +95,7 @@ proc ::xmpp::roster::annotations::ScanTime {timestamp} {
     }
 }
 
-proc ::xmpp::roster::annotations::SerializeNotes {notes} {
+proc ::xmpp::roster::annotations::serialize {notes} {
     set tags {}
     foreach note $notes {
         array unset n
@@ -140,7 +146,7 @@ proc ::xmpp::roster::annotations::store {xlib notes args} {
     set id \
         [::xmpp::private::store \
                     $xlib \
-                    [list [SerializeNotes $notes]] \
+                    [list [serialize $notes]] \
                     -command [namespace code [list ProcessStoreAnswer $commands]] \
                     -timeout $timeout]
     return $id

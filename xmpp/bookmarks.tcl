@@ -14,7 +14,9 @@ package require xmpp::private
 
 package provide xmpp::roster::bookmarks 0.1
 
-namespace eval ::xmpp::roster::bookmarks {}
+namespace eval ::xmpp::roster::bookmarks {
+    namespace export store retrieve serialize deserialize
+}
 
 proc ::xmpp::roster::bookmarks::retrieve {xlib args} {
     set commands {}
@@ -52,6 +54,11 @@ proc ::xmpp::roster::bookmarks::ProcessRetrieveAnswer {commands status xml} {
         uplevel #0 [lindex $commands 0] [list $status $xml]
     }
 
+    uplevel #0 [lindex $commands 0] [list ok [deserialize $xml]]
+    return
+}
+
+proc ::xmpp::roster::bookmarks::deserialize {xml} {
     set bookmarks {}
 
     foreach xmldata $xml {
@@ -92,11 +99,10 @@ proc ::xmpp::roster::bookmarks::ProcessRetrieveAnswer {commands status xml} {
         }
     }
 
-    uplevel #0 [lindex $commands 0] [list ok $bookmarks]
-    return
+    return $bookmarks
 }
 
-proc ::xmpp::roster::bookmarks::SerializeBookmarks {bookmarks} {
+proc ::xmpp::roster::bookmarks::serialize {bookmarks} {
     set tags {}
     foreach bookmark $bookmarks {
         array unset n
@@ -154,7 +160,7 @@ proc ::xmpp::roster::bookmarks::store {xlib bookmarks args} {
     set id \
         [::xmpp::private::store \
                     $xlib \
-                    [list [SerializeBookmarks $bookmarks]] \
+                    [list [serialize $bookmarks]] \
                     -command [namespace code [list ProcessStoreAnswer $commands]] \
                     -timeout $timeout]
     return $id

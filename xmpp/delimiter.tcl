@@ -14,13 +14,15 @@ package require xmpp::private
 
 package provide xmpp::roster::delimiter 0.1
 
-namespace eval ::xmpp::roster::delimiter {}
+namespace eval ::xmpp::roster::delimiter {
+    namespace export store retrieve serialize deserialize
+}
 
 #
 # Retrieving nested groups delimiter
 #
 
-proc ::xmpp::roster::delimiter::retrieve {xlib fallback args} {
+proc ::xmpp::roster::delimiter::retrieve {xlib args} {
     set commands {}
     set timeout 0
 
@@ -45,34 +47,41 @@ proc ::xmpp::roster::delimiter::retrieve {xlib fallback args} {
                     [list [::xmpp::xml::create roster \
                                                -xmlns roster:delimiter]] \
                     -command [namespace code [list ParseRetrieveResult \
-                                                   $fallback \
                                                    $commands] \
                     -timeout $timeout]
     return $id
 }
 
-proc ::xmpp::roster::delimiter::ParseRetireveResult {fallback commands status xml} {
+proc ::xmpp::roster::delimiter::ParseRetireveResult {commands status xml} {
     if {[llength $commands] == 0} return
 
-    set delimiter $fallback
-
-    if {[string equal $status ok]} {
-        foreach item $xml {
-            ::xmpp::xml::split $item tag xmlns attrs cdata subels
-
-            if {[string equal $xmlns roster:delimiter]} {
-                set delimiter $cdata
-            }
-        }
+    if {![string equal $status ok]} {
+        uplevel #0 [lindex $commands 0] [list $status $xml]
     }
 
-    uplevel #0 [lindex $commands 0] [list $delimiter]
+    uplevel #0 [lindex $commands 0] [list ok [deserialize $xml]]
     return
+}
+
+proc ::xmpp::roster::delimiter::deserialize {xml} {
+    foreach item $xml {
+        ::xmpp::xml::split $item tag xmlns attrs cdata subels
+
+        if {[string equal $xmlns roster:delimiter]} {
+            return $cdata
+        }
+    }
 }
 
 #
 # Storing nested groups delimiter
 #
+
+proc ::xmpp::roster::delimiter::serialize {delimiter} {
+    return [::xmpp::xml::create roster \
+                                -xmlns roster:delimiter \
+                                -cdata $delimiter]
+}
 
 proc ::xmpp::roster::delimiter::store {xlib delimiter args} {
     set commands {}
@@ -96,9 +105,7 @@ proc ::xmpp::roster::delimiter::store {xlib delimiter args} {
     set id \
         [::xmpp::private::store \
                     $xlib \
-                    [list [::xmpp::xml::create roster \
-                                               -xmlns roster:delimiter \
-                                               -cdata $delimiter]] \
+                    [list [serialize $delimiter]] \
                     -command [namespace code [list ParseStoreResult $commands]] \
                     -timeout $timeout]
     return $id

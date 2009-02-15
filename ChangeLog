@@ -1,3 +1,10 @@
+2009-02-15  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/annotations.tcl, xmpp/bookmarks.tcl, xmpp/delimiter.tcl,
+	  xmpp/metacontacts.tcl: Added serialize/deserialize procedures
+	  which convert from/to internal representaton to/from XML. They
+	  are useful in roster export/import routines.
+
 2009-02-12  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/metacontacts.tcl: Made interface to retrieve/store procedures

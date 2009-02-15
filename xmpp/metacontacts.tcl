@@ -14,7 +14,9 @@ package require xmpp::private
 
 package provide xmpp::roster::metacontacts 0.1
 
-namespace eval ::xmpp::roster::metacontacts {}
+namespace eval ::xmpp::roster::metacontacts {
+    namespace export store retrieve serialize deserialize
+}
 
 proc ::xmpp::roster::metacontacts::retrieve {xlib args} {
     set commands {}
@@ -52,6 +54,11 @@ proc ::xmpp::roster::metacontacts::ProcessRetrieveAnswer {commands status xml} {
         uplevel #0 [lindex $commands 0] [list $status $xml]
     }
 
+    uplevel #0 [lindex $commands 0] [list ok [deserialize $xml]]
+    return
+}
+
+proc ::xmpp::roster::metacontacts::deserialize {xml} {
     foreach xmldata $xml {
         ::xmpp::xml::split $xmldata tag xmlns attrs cdata subels
 
@@ -77,8 +84,24 @@ proc ::xmpp::roster::metacontacts::ProcessRetrieveAnswer {commands status xml} {
         }
     }
 
-    uplevel #0 [lindex $commands 0] [list ok [array get result]]
-    return
+    return [array get result]
+}
+
+proc ::xmpp::roster::metacontacts::serialize {contacts} {
+    set tags {}
+    foreach {tag jids} $contacts {
+        set order 1
+        foreach jid $jids {
+            set attrs [list jid $jid tag $tag order $order]
+
+            lappend tags [::xmpp::xml::create meta -attrs $attrs]
+            incr order
+        }
+    }
+
+    return [::xmpp::xml::create storage \
+                                -xmlns storage:metacontacts \
+                                -subelements $tags]
 }
 
 proc ::xmpp::roster::metacontacts::store {xlib contacts args} {
@@ -100,23 +123,10 @@ proc ::xmpp::roster::metacontacts::store {xlib contacts args} {
         }
     }
 
-    set tags {}
-    foreach {tag jids} $contacts {
-        set order 1
-        foreach jid $jids {
-            set attrs [list jid $jid tag $tag order $order]
-
-            lappend tags [::xmpp::xml::create meta -attrs $attrs]
-            incr order
-        }
-    }
-
     set id \
         [::xmpp::private::store \
                     $xlib \
-                    [list [::xmpp::xml::create storage \
-                                        -xmlns storage:metacontacts \
-                                        -subelements $tags]] \
+                    [list [serialize $contacts]] \
                     -command [namespace code [list ProcessStoreAnswer $commands]] \
                     -timeout $timeout]
     return $id
