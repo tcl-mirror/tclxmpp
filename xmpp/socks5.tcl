@@ -584,8 +584,8 @@ proc ::pconnect::socks5::Free {token} {
 #
 # Side effects:
 #       If connection is asynchronous then a callback is executed.
-#       Otherwise state(status) is set to allow https::connect to return
-#       with either success or error.
+#       Otherwise state(status) is set to allow ::pconnect::socks5::connect
+#       to return with either success or error.
 
 proc ::pconnect::socks5::Finish {token {errormsg ""}} {
     variable $token
@@ -617,7 +617,7 @@ proc ::pconnect::socks5::Finish {token {errormsg ""}} {
     return
 }
 
-# https::Debug --
+# ::pconnect::socks5::Debug --
 #
 #       Prints debug information.
 #
@@ -631,7 +631,7 @@ proc ::pconnect::socks5::Finish {token {errormsg ""}} {
 #
 # Side effects:
 #       A debug message is printed to the console if the value of
-#       https::debug variable is not less than num.
+#       ::pconnect::socks5::debug variable is not less than num.
 
 proc ::pconnect::socks5::Debug {token level str} {
     variable debug
@@ -641,25 +641,6 @@ proc ::pconnect::socks5::Debug {token level str} {
     }
 
     return
-}
-
-# Test code...
-
-if {0} {
-    # Client
-    proc cb {status socket} {
-        puts "client: status=$status, socket=$socket"
-        if {$status eq "ok"} {
-            fconfigure $socket -buffering none
-            close $socket
-        }
-    }
-    proc dump {} {
-        puts "dump:"
-    }
-    set s [socket 192.168.0.1 1080]
-    #::pconnect::socks5::connect $s jabber.ru 5222 -command cb
-    ::pconnect::socks5::connect $s jabber.ru 5222 -command cb -username xxx -password xxx
 }
 
 # vim:ts=8:sw=4:sts=4:et

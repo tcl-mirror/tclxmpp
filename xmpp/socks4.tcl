@@ -267,8 +267,8 @@ proc ::pconnect::socks4::Free {token} {
 #
 # Side effects:
 #       If connection is asynchronous then a callback is executed.
-#       Otherwise state(status) is set to allow https::connect to return
-#       with either success or error.
+#       Otherwise state(status) is set to allow ::pconnect::socks4::connect
+#       to return with either success or error.
 
 proc ::pconnect::socks4::Finish {token {errormsg ""}} {
     variable $token
@@ -300,7 +300,7 @@ proc ::pconnect::socks4::Finish {token {errormsg ""}} {
     return
 }
 
-# https::Debug --
+# ::pconnect::socks4::Debug --
 #
 #       Prints debug information.
 #
@@ -314,7 +314,7 @@ proc ::pconnect::socks4::Finish {token {errormsg ""}} {
 #
 # Side effects:
 #       A debug message is printed to the console if the value of
-#       https::debug variable is not less than num.
+#       ::pconnect::socks4::debug variable is not less than num.
 
 proc ::pconnect::socks4::Debug {token level str} {
     variable debug
@@ -324,12 +324,6 @@ proc ::pconnect::socks4::Debug {token level str} {
     }
 
     return
-}
-
-# Test
-if {0} {
-    set s [socket 192.168.0.1 1080]
-    set t [::pconnect::socks4::connect $s jabber.ru 5222 -username sergei]
 }
 
 # vim:ts=8:sw=4:sts=4:et

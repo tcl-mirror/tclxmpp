@@ -467,7 +467,7 @@ proc ::xmpp::transport::zlib::InText {token} {
     variable $token
     upvar 0 $token state
 
-    fconfigure $state(sock) -flush input
+    catch {fconfigure $state(sock) -flush input}
     if {[catch {read $state(sock)} msg]} {
         fileevent $state(sock) readable {}
         ::close $state(sock)

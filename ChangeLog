@@ -1,3 +1,9 @@
+2009-02-18  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/zlib.tcl: Ignore errors from fconfigure -flush input.
+
+	* xmpp/https.tcl, xmpp/socks4.tcl, xmpp/socks5.tcl: Fixed comments.
+
 2009-02-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/annotations.tcl, xmpp/bookmarks.tcl, xmpp/delimiter.tcl,

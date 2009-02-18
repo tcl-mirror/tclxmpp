@@ -632,8 +632,8 @@ proc ::pconnect::https::Free {token} {
 #
 # Side effects:
 #       If connection is asynchronous then a callback is executed.
-#       Otherwise state(status) is set to allow https::connect to return
-#       with either success or error.
+#       Otherwise state(status) is set to allow ::pconnect::https::connect
+#       to return with either success or error.
 
 proc ::pconnect::https::Finish {token status {errormsg ""}} {
     variable $token
@@ -679,7 +679,7 @@ proc ::pconnect::https::Finish {token status {errormsg ""}} {
 #
 # Side effects:
 #       A debug message is printed to the console if the value of
-#       https::debug variable is not less than num.
+#       ::pconnect::https::debug variable is not less than num.
 
 proc ::pconnect::https::Debug {token level str} {
     variable debug
@@ -689,19 +689,6 @@ proc ::pconnect::https::Debug {token level str} {
     }
 
     return
-}
-
-# Test
-if {0} {
-    set s [socket 192.168.0.1 3128]
-    set t [https::connect $s google.com 443]
-    puts $t
-    close $t
-
-    set s [socket 192.168.0.1 3128]
-    set t [https::connect $s google.com 80]
-    puts $t
-    close $t
 }
 
 # vim:ts=8:sw=4:sts=4:et
