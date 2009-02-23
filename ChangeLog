@@ -1,3 +1,8 @@
+2009-02-23  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/disco.tcl, xmpp/pkgIndex.tcl: Added basic Service Discovery
+	  support (XEP-0030).
+
 2009-02-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/zlib.tcl: Ignore errors from fconfigure -flush input.
