@@ -4,7 +4,7 @@
 #       This module is based on Mozilla NTLM authenticattion module and
 #       documentation from http://davenport.sourceforge.net/ntlm.html
 #
-# Copyright (c) 2004-2008 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2004-2009 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.

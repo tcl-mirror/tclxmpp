@@ -3,6 +3,8 @@
 	* xmpp/disco.tcl, xmpp/pkgIndex.tcl: Added basic Service Discovery
 	  support (XEP-0030).
 
+	* *: Added 2009 to copyright statements.
+
 2009-02-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/zlib.tcl: Ignore errors from fconfigure -flush input.

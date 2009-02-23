@@ -4,7 +4,7 @@
 #       SASL authentication layer via the tclsasl or tcllib SASL package.
 #       Also, it binds resource and opens XMPP session.
 #
-# Copyright (c) 2008 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2009 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.

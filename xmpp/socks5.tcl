@@ -6,7 +6,7 @@
 #
 # Copyright (c) 2000 Kerem Hadimli
 # Copyright (c) 2003-2007 Mats Bengtsson
-# Copyright (c) 2007-2008 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2007-2009 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
