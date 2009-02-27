@@ -167,12 +167,7 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
 
         switch -- $stag {
             identity {
-                set identity [list category [::xmpp::xml::getAttr $sattrs category] \
-                                   type     [::xmpp::xml::getAttr $sattrs type]]
-                if {[::xmpp::xml::isAttr $sattrs name]} {
-                    lappend identity name [::xmpp::xml::getAttr $sattrs name]
-                }
-                lappend identities $identity
+                lappend identities $sattrs
             }
             feature {
                 lappend features [::xmpp::xml::getAttr $sattrs var]

@@ -1,3 +1,8 @@
+2009-02-27  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/disco.tcl: Include in JID identity all received information and
+	  not only category, type and name.
+
 2009-02-23  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl, xmpp/pkgIndex.tcl: Added basic Service Discovery
