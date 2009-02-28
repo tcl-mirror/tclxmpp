@@ -1,3 +1,8 @@
+2009-02-28  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/delay.tcl: Changed output format of ::xmpp::delay::parse
+	  procedure to preserve optional from attribute.
+
 2009-02-27  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl: Include in JID identity all received information and

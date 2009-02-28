@@ -51,8 +51,11 @@ proc ::xmpp::delay::exists {xmlElements} {
 #
 # Result:
 #       If there's a delay elements in the given list then the result is a
-#       number of seconds since epoch stored in the first one. Otherwise the
-#       current time is returned.
+#       serialized list {stamp $stamp [from $from] seconds $seconds} where
+#       'stamp' and 'from' are copied verbatim from the stanza and 'seconds'
+#       represent number of seconds since epoch stored in the first delay
+#       element. Otherwise the current time is returned. urn:xmpp:delay
+#       element is preferred to jabber:x:delay one.
 #
 # Side effects:
 #       None.
@@ -65,28 +68,40 @@ proc ::xmpp::delay::parse {xmlElements} {
             urn:xmpp:delay {
                 # 2006-07-17T05:29:12Z
                 # 2006-11-18T03:35:56.415699Z
-                if {[regexp {(\d+)-(\d\d)-(\d\d)(T\d+:\d+:\d+)[^Z]*Z?} \
+                if {![regexp {(\d+)-(\d\d)-(\d\d)(T\d+:\d+:\d+)[^Z]*Z?} \
                             [::xmpp::xml::getAttr $attrs stamp] \
                             -> y m d t]} {
-                    if {![catch {clock scan $y$m$d$t -gmt 1} seconds]} {
-                        return $seconds
-                    }
+                    set seconds [clock seconds]
+                } elseif {[catch {clock scan $y$m$d$t -gmt 1} seconds]} {
+                    set seconds [clock seconds]
                 }
-            }
-            jabber:x:delay {
-                # 20060717T05:29:12
-                # 20061118T03:35:56.415699
-                if {[regexp {\d+\d\d\d\dT\d+:\d+:\d+} \
-                            [::xmpp::xml::getAttr $attrs stamp] \
-                            stamp]} {
-                    if {![catch {clock scan $stamp -gmt 1} seconds]} {
-                        return $seconds
-                    }
-                }
+
+                return [linsert $attrs end seconds $seconds]
             }
         }
     }
-    return [clock seconds]
+
+    foreach element $xmlElements {
+        ::xmpp::xml::split $element tag xmlns attrs cdata subels
+
+        switch -- $xmlns {
+            jabber:x:delay {
+                # 20060717T05:29:12
+                # 20061118T03:35:56.415699
+                if {![regexp {\d+\d\d\d\dT\d+:\d+:\d+} \
+                            [::xmpp::xml::getAttr $attrs stamp] \
+                            stamp]} {
+                    set seconds [clock seconds]
+                } elseif {[catch {clock scan $stamp -gmt 1} seconds]} {
+                    set seconds [clock seconds]
+                }
+
+                return [linsert $attrs end seconds $seconds]
+            }
+        }
+    }
+
+    return [list seconds [clock seconds]]
 }
 
 # ::xmpp::delay::create --
