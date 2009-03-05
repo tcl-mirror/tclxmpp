@@ -1,3 +1,8 @@
+2009-03-05  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/iq.tcl: Fixed unregistering XMLNS if it was registered for
+	  more than one callbacks for different types and/or tags.
+
 2009-02-28  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/delay.tcl: Changed output format of ::xmpp::delay::parse

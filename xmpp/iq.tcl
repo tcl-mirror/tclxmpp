@@ -162,12 +162,16 @@ proc ::xmpp::iq::UnregisterIQ {xlib type tag xmlns} {
 
     unset IqCmd($xlib,$type,$tag,$xmlns)
 
+    # TODO: Work with patterns
+    if {[string equal $xmlns *]} return
+
+    if {[llength [array names IqCmd $xlib,*,*,$xmlns]] > 0} return
     if {![info exists SupportedNS($xlib)]} return
 
-    set idx [lsearch -exact $SupportedNS($xlib)]
+    set idx [lsearch -exact $SupportedNS($xlib) $xmlns]
     if {$idx >= 0} {
         set SupportedNS($xlib) [lreplace $SupportedNS($xlib) $idx $idx]
-        if {[llength $SupportedNS($xlib)]} {
+        if {[llength $SupportedNS($xlib)] == 0} {
             unset SupportedNS($xlib)
         }
     }
