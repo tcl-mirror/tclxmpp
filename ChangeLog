@@ -1,3 +1,8 @@
+2009-03-12  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/bob.tcl, xmpp/pkgIndex.tcl: Added a simple interface to Bits of
+	  Binary (XEP-0231).
+
 2009-03-05  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/iq.tcl: Fixed unregistering XMLNS if it was registered for

@@ -17,6 +17,7 @@ package ifneeded pconnect::socks4 0.1           [list source [file join $dir soc
 package ifneeded pconnect::socks5 0.1           [list source [file join $dir socks5.tcl]]
 package ifneeded xmpp 0.1                       [list source [file join $dir xmpp.tcl]]
 package ifneeded xmpp::auth 0.1                 [list source [file join $dir auth.tcl]]
+package ifneeded xmpp::bob 0.1                  [list source [file join $dir bob.tcl]]
 package ifneeded xmpp::component 0.1            [list source [file join $dir component.tcl]]
 package ifneeded xmpp::compress 0.1             [list source [file join $dir compress.tcl]]
 package ifneeded xmpp::data 0.1                 [list source [file join $dir data.tcl]]
@@ -51,6 +52,7 @@ package ifneeded xmpp::full 0.1 {
     package require pconnect::socks5 0.1
     package require xmpp 0.1
     package require xmpp::auth 0.1
+    package require xmpp::bob 0.1
     package require xmpp::component 0.1
     package require xmpp::compress 0.1
     package require xmpp::delay 0.1
