@@ -100,7 +100,7 @@ proc ::xmpp::bob::get {cid} {
     if {[info exists cache($cid)]} {
         return $cache($cid)
     } else {
-        return ""
+        return {}
     }
 }
 
