@@ -69,7 +69,7 @@ proc ::xmpp::bob::cache {xmlElements} {
                 }
                 set maxAge [::xmpp::xml::getAttr $attrs max-age -1]
                 set data [base64::decode $cdata]
-                if {![regexp {cid:(.*)\+(.*)@bob\.xmpp\.org} $cid -> \
+                if {![regexp {(.*)\+(.*)@bob\.xmpp\.org} $cid -> \
                              algo hash]} {
                     return
                 }
@@ -171,7 +171,7 @@ proc ::xmpp::bob::ParseAnswer {xlib jid cid commands status xml} {
 }
 
 proc ::xmpp::bob::cid {data} {
-    return cid:sha-1+[sha1::sha1 $data]@bob.xmpp.org
+    return sha-1+[sha1::sha1 $data]@bob.xmpp.org
 }
 
 proc ::xmpp::bob::data {type data args} {

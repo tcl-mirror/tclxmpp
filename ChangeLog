@@ -1,3 +1,7 @@
+2009-03-13  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/bob.tcl: Removed erroneous cid: prefix from CID values.
+
 2009-03-12  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/bob.tcl, xmpp/pkgIndex.tcl: Added a simple interface to Bits of
