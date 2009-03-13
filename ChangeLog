@@ -2,6 +2,8 @@
 
 	* xmpp/bob.tcl: Removed erroneous cid: prefix from CID values.
 
+	* xmpp/bob.tcl: Fixed typo.
+
 2009-03-12  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/bob.tcl, xmpp/pkgIndex.tcl: Added a simple interface to Bits of

@@ -74,7 +74,7 @@ proc ::xmpp::bob::cache {xmlElements} {
                     return
                 }
                 switch -- $algo {
-                    sha-1 {
+                    sha1 {
                         if {![string equal [sha1::sha1 $data] $hash]} {
                             return
                         }
@@ -171,7 +171,7 @@ proc ::xmpp::bob::ParseAnswer {xlib jid cid commands status xml} {
 }
 
 proc ::xmpp::bob::cid {data} {
-    return sha-1+[sha1::sha1 $data]@bob.xmpp.org
+    return sha1+[sha1::sha1 $data]@bob.xmpp.org
 }
 
 proc ::xmpp::bob::data {type data args} {
