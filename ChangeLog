@@ -1,3 +1,7 @@
+2009-03-14  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/disco.tcl: Fixed searching cached info and items.
+
 2009-03-13  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/bob.tcl: Removed erroneous cid: prefix from CID values.

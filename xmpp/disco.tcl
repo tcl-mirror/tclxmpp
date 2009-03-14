@@ -116,7 +116,7 @@ proc ::xmpp::disco::requestInfo {token jid args} {
     if {$cache} {
         if {[llength $commands] == 0} return
 
-        set idx [lsearch -exact $state(cache) [list info $jid $node]]
+        set idx [lsearch -glob $state(cache) [list [list info $jid $node] *]]
         if {$idx >= 0} {
             set result [lindex $state(cache) $idx]
             after idle [list uplevel #0 [lindex $commands 0] \
@@ -241,7 +241,7 @@ proc ::xmpp::disco::requestItems {token jid args} {
     if {$cache} {
         if {[llength $commands] == 0} return
 
-        set idx [lsearch -exact $state(cache) [list items $jid $node]]
+        set idx [lsearch -glob $state(cache) [list [list items $jid $node] *]]
         if {$idx >= 0} {
             set result [lindex $state(cache) $idx]
             after idle [list uplevel #0 [lindex $commands 0] \
