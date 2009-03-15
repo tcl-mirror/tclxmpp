@@ -1,3 +1,7 @@
+2009-03-15  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/data.tcl: Parse data forms media items.
+
 2009-03-14  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl: Fixed searching cached info and items.

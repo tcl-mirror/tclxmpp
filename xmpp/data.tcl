@@ -1,7 +1,7 @@
 # data.tcl --
 #
 #       This file is a part of the XMPP library. It implements support for
-#       data forms (XEP-0004).
+#       data forms (XEP-0004) and data forms media items (XEP-0221).
 #
 # Copyright (c) 2008-2009 Sergei Golovan <sgolovan@nes.ru>
 #
@@ -338,7 +338,7 @@ proc ::xmpp::data::parseResult {xmlElement} {
 
                     foreach value $sssubels {
                         ::xmpp::xml::split $value s3tag s3xmlns s3attrs s3cdata s3subels
-                            
+
                         if {[string equal $s3tag value]} {
                             lappend values $s3cdata
                         }
@@ -385,6 +385,7 @@ proc ::xmpp::data::ParseField {xmlElement} {
 
     foreach item $subels {
         ::xmpp::xml::split $item stag sxmlns sattrs scdata ssubels
+
         switch -- $stag {
             required {
                 set required true
@@ -410,8 +411,26 @@ proc ::xmpp::data::ParseField {xmlElement} {
             }
             media {
                 if {[string equal $sxmlns urn:xmpp:media-element]} {
-                    # TODO: Parse media item
-                    lappend media $item
+                    set mitem {}
+
+                    foreach sitem $ssubels {
+                        ::xmpp::xml::split $sitem \
+                                           sstag ssxmlns ssattrs \
+                                           sscdata sssubels
+                        switch -- $sstag {
+                            uri {
+                                if {![::xmpp::xml::isAttr $ssattrs type]} {
+                                    continue
+                                }
+                                set mtype [::xmpp::xml::getAttr $ssattrs type]
+                                set uri $sscdata
+
+                                lappend mitem $mtype $uri
+                            }
+                        }
+                    }
+
+                    lappend media $mitem
                 }
             }
         }
