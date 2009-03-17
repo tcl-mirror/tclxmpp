@@ -1,7 +1,8 @@
 2009-03-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl: Cache negative answers to info and items queries
-	  also.
+	  also. Also, check if an item is already in the cache before adding
+	  it to prevent duplicates when several queries are run simultaneously.
 
 2009-03-15  Sergei Golovan  <sgolovan@nes.ru>
 
