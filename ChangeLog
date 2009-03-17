@@ -1,3 +1,8 @@
+2009-03-17  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/disco.tcl: Cache negative answers to info and items queries
+	  also.
+
 2009-03-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl: Parse data forms media items.

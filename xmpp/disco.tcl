@@ -30,7 +30,7 @@ proc ::xmpp::disco::new {xlib args} {
 
     set state(xlib) $xlib
     set state(cache) {}
-    set state(size) 200
+    set state(size) 500
 
     foreach {key val} $args {
         switch -- $key {
@@ -150,6 +150,14 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
     if {![info exists state(xlib)]} return
 
     if {![string equal $status ok]} {
+        if {$cache} {
+            lappend state(cache) [list [list info $jid $node] $status $xml]
+
+            if {[llength $state(cache)] > $state(size)} {
+                set state(cache) [lrange $state(cache) 1 end]
+            }
+        }
+
         if {[llength $commands] > 0} {
             uplevel #0 [lindex $commands 0] [list $status $xml]
         }
@@ -275,6 +283,14 @@ proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
     if {![info exists state(xlib)]} return
 
     if {![string equal $status ok]} {
+        if {$cache} {
+            lappend state(cache) [list [list items $jid $node] $status $xml]
+
+            if {[llength $state(cache)] > $state(size)} {
+                set state(cache) [lrange $state(cache) 1 end]
+            }
+        }
+
         if {[llength $commands] > 0} {
             uplevel #0 [lindex $commands 0] [list $status $xml]
         }
