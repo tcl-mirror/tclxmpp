@@ -386,8 +386,8 @@ proc NTLM::LmHash {password} {
     set key2 [MakeKey [string range $pwd 7 13]]
 
     # do hash
-    set res1 [DES::des -mode encode -key $key1 $NTLM(LM_MAGIC)]
-    set res2 [DES::des -mode encode -key $key2 $NTLM(LM_MAGIC)]
+    set res1 [DES::des -mode encode -key $key1 -- $NTLM(LM_MAGIC)]
+    set res2 [DES::des -mode encode -key $key2 -- $NTLM(LM_MAGIC)]
 
     return [binary format a8a8 $res1 $res2]
 }
@@ -438,9 +438,9 @@ proc NTLM::LmResponse {hash challenge} {
     set key2 [MakeKey [string range $hash 7 13]]
     set key3 [MakeKey [string range $hash 14 20]]
 
-    set res1 [DES::des -mode encode -key $key1 $challenge]
-    set res2 [DES::des -mode encode -key $key2 $challenge]
-    set res3 [DES::des -mode encode -key $key3 $challenge]
+    set res1 [DES::des -mode encode -key $key1 -- $challenge]
+    set res2 [DES::des -mode encode -key $key2 -- $challenge]
+    set res3 [DES::des -mode encode -key $key3 -- $challenge]
 
     return [binary format a8a8a8 $res1 $res2 $res3]
 }

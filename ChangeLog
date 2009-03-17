@@ -4,6 +4,9 @@
 	  also. Also, check if an item is already in the cache before adding
 	  it to prevent duplicates when several queries are run simultaneously.
 
+	* xmpp/ntlm.tcl: Fixed calls to DES::des procedure in case if the
+	  encrypting text begins with dash.
+
 2009-03-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/data.tcl: Parse data forms media items.
