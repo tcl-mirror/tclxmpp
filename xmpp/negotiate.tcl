@@ -27,6 +27,14 @@ proc ::xmpp::negotiate::register {feature command} {
     set CallBack($feature) $command
 }
 
+# ::xmpp::negotiate::unregister --
+
+proc ::xmpp::negotiate::unregister {feature} {
+    variable CallBack
+
+    catch {unset CallBack($feature)}
+}
+
 # ::xmpp::negotiate::sendOptions --
 
 proc ::xmpp::negotiate::sendOptions {xlib to feature options args} {

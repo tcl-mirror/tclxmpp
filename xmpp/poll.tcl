@@ -115,17 +115,18 @@ proc ::xmpp::transport::poll::open {server port args} {
             -stanzacommand        {set state(stanzaCmd)        $val}
             -eofcommand           {set state(eofCmd)           $val}
             -command              {set cmd                     $val}
-            -timeout   -
-            -min       -
-            -max       -
-            -url       -
-            -usekeys   -
-            -numkeys   {set state($key)    $val}
-            -host      {set proxyHost      $val}
-            -port      {set proxyPort      $val}
-            -username  {set proxyUsername  $val}
-            -password  {set proxyPassword  $val}
-            -useragent {set proxyUseragent $val}
+            -timeout     -
+            -min         -
+            -max         -
+            -url         -
+            -usekeys     -
+            -numkeys     {set state($key)    $val}
+            -proxyfilter {set proxyFilter    $val}
+            -host        {set proxyHost      $val}
+            -port        {set proxyPort      $val}
+            -username    {set proxyUsername  $val}
+            -password    {set proxyPassword  $val}
+            -useragent   {set proxyUseragent $val}
         }
     }
 
@@ -141,15 +142,46 @@ proc ::xmpp::transport::poll::open {server port args} {
         ::http::config -useragent $proxyUseragent
     }
 
+    if {[info exists proxyFilter]} {
+        # URLmatcher is borrowed from http package.
+        set URLmatcher {(?x)                    # this is _expanded_ syntax
+            ^
+            (?: (\w+) : ) ?                     # <protocol scheme>
+            (?: //
+                (?:
+                    (
+                        [^@/\#?]+               # <userinfo part of authority>
+                    ) @
+                )?
+                ( [^/:\#?]+ )                   # <host part of authority>
+                (?: : (\d+) )?                  # <port part of authority>
+            )?
+            ( / [^\#?]* (?: \? [^\#?]* )?)?     # <path> (including query)
+            (?: \# (.*) )?                      # <fragment>
+            $
+        }
+
+        if {[regexp -- $URLmatcher $state(-url) -> \
+                       proto user host port srvurl]} {
+            if {![catch {eval $proxyFilter $host} answer]} {
+                foreach {phost pport proxyUsername proxyPassword} $answer {
+                    break
+                }
+            }
+        }
+        
+        ::http::config -proxyfilter $proxyFilter
+    }
+
     if {[info exists proxyHost] && [info exists proxyPort]} {
         ::http::config -proxyhost $proxyHost -proxyport $proxyPort
+    }
 
-        if {[info exists proxyUsername] && [info exists proxyPassword]} {
-            set auth \
-                [base64::encode \
-                        [encoding convertto $proxyUsername:$proxyPassword]]
-            set state(proxyAuth) [list Proxy-Authorization "Basic $auth"]
-        }
+    if {[info exists proxyUsername] && [info exists proxyPassword]} {
+        set auth \
+            [base64::encode \
+                    [encoding convertto $proxyUsername:$proxyPassword]]
+        set state(proxyAuth) [list Proxy-Authorization "Basic $auth"]
     }
 
     if {$state(-usekeys)} {

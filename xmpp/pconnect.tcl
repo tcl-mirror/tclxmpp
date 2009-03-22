@@ -76,6 +76,11 @@ proc ::pconnect::proxies {} {
 #       port             the peer's port number
 #       args 
 #           -domain      inet (default) | inet6
+#           -proxyfilter A callback which takes host and port as its arguments
+#                        and returns a proxy to connect in form of a list
+#                        {type host port username password}. This option takes
+#                        precedence over -proxy, -host, -port, -usermname, and
+#                        -password options
 #           -proxy       "" (default) | socks4 | socks5 | https
 #           -host        proxy hostname (required if -proxy isn't "")
 #           -port        port number (required if -proxy isn't "")
@@ -93,15 +98,28 @@ proc ::pconnect::proxies {} {
 proc ::pconnect::socket {host port args} {
     variable packs
 
-    array set Args {-domain    inet
-                    -proxy     ""
-                    -host      ""
-                    -port      ""
-                    -username  ""
-                    -password  ""
-                    -useragent ""
-                    -command   ""}
+    array set Args {-domain      inet
+                    -proxyfilter ""
+                    -proxy       ""
+                    -host        ""
+                    -port        ""
+                    -username    ""
+                    -password    ""
+                    -useragent   ""
+                    -command     ""}
     array set Args $args
+
+    set proxyfilter $Args(-proxyfilter)
+
+    if {[string length $proxyfilter] > 0 && \
+                ![catch {eval $proxyfilter $host $port} answer]} {
+        array set Args [list -proxy    [lindex $answer 0] \
+                             -host     [lindex $answer 1] \
+                             -port     [lindex $answer 2] \
+                             -username [lindex $answer 3] \
+                             -password [lindex $answer 4]]
+    }
+
     set proxy $Args(-proxy)
 
     if {[string length $proxy] > 0 && ![info exists packs($proxy)]} {
@@ -115,7 +133,8 @@ proc ::pconnect::socket {host port args} {
             set aport $Args(-port)
         } else {
             return -code error [::msgcat::mc "Options \"-host\" and \"-port\"\
-                                              are required"]
+                                              are required (or your proxy filter\
+                                              hasn't returned them)"]
         }
     } else {
         set ahost $host

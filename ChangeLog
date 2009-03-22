@@ -1,3 +1,11 @@
+2009-03-22  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/negotiate.tcl: Added the possibility of unregistering features.
+
+	* xmpp/pconnect.tcl, xmpp/poll.tcl: Added -proxyfilter option for a
+	  callback which is invoked if a connecting routine needs info on which
+	  proxy to use for a particular host.
+
 2009-03-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl: Cache negative answers to info and items queries
