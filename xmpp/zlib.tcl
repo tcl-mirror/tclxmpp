@@ -10,7 +10,30 @@
 #
 # $Id$
 
-package require zlib 1.0
+namespace eval ::xmpp::transport::zlib {}
+
+if {[llength [info commands ::zlib]] == 0} {
+    package require zlib 1.0
+
+    if {[catch {::zlib info version}]} {
+        return -code error "Package zlib from Ztcl cannot be found"
+    }
+
+    rename ::zlib ::xmpp::transport::zlib::zlib
+} else {
+    rename ::zlib ::zlib:saved
+
+    if {[catch {package require zlib 1.0} msg]} {
+        rename ::zlib:saved ::zlib
+        return -code error $msg
+    } elseif {[catch {::zlib info version}]} {
+        rename ::zlib:saved ::zlib
+        return -code error "Package zlib from Ztcl cannot be found"
+    }
+
+    rename ::zlib ::xmpp::transport::zlib::zlib
+    rename ::zlib:saved ::zlib
+}
 
 package require pconnect
 package require xmpp::transport

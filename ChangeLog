@@ -1,3 +1,10 @@
+2009-03-27  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/zlib.tcl: Added a hack which doesn't allow to load xmpp::zlib
+	  package if zlib from Ztcl can't be found. Also, moved zlib command to
+	  ::xmpp::transport::zlib namespace because it isn't standard, so if,
+	  for example, http package tries to get compressed data it fails.
+
 2009-03-22  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/negotiate.tcl: Added the possibility of unregistering features.
