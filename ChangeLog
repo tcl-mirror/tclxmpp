@@ -9,6 +9,9 @@
 	  address returned by a SOCKS proxy. Added support for IPv6 adresses
 	  to socks5 package.
 
+	* xmpp/poll.tcl: Added version to http package requirement to prevent
+	  version 1.0 loading.
+
 2009-03-27  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/zlib.tcl: Added a hack which doesn't allow to load xmpp::zlib

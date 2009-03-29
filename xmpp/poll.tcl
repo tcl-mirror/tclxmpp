@@ -10,7 +10,7 @@
 # $Id$
 
 package require sha1
-package require http
+package require http 2
 
 package require xmpp::transport
 package require xmpp::xml
