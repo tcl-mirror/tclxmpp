@@ -74,7 +74,7 @@ proc ::pconnect::proxies {} {
 # Arguments:
 #       host             the peer address, not SOCKS server
 #       port             the peer's port number
-#       args 
+#       args
 #           -domain      inet (default) | inet6
 #           -proxyfilter A callback which takes host and port as its arguments
 #                        and returns a proxy to connect in form of a list
@@ -88,9 +88,7 @@ proc ::pconnect::proxies {} {
 #           -password    password
 #           -useragent   user agent (for HTTP proxies)
 #           -command     tclProc {token status}
-#                        the 'status' is any of:
-#                        ok, error, timeout, network-failure,
-#                         rsp_*, err_* (see socks4/5)
+#                        the 'status' is any of: ok, error, abort
 # Results:
 #       A socket if -command is not specified or a token to make
 #       possible to interrupt timed out connect.
@@ -106,6 +104,7 @@ proc ::pconnect::socket {host port args} {
                     -username    ""
                     -password    ""
                     -useragent   ""
+                    -timeout     0
                     -command     ""}
     array set Args $args
 
@@ -166,14 +165,20 @@ proc ::pconnect::socket {host port args} {
     set state(port)  $port
     set state(sock)  $sock
 
-    if {[string length $state(-command)] > 0} {
+    # Setup timeout timer.
+    if {$state(-timeout) > 0} {
+        set state(timeoutid) \
+            [after $state(-timeout) [namespace code [list Timeout $token]]]
+    }
+
+    if {![string equal $state(-command) ""]} {
         return $token
     } else {
         vwait $token\(status)
 
         set status $state(status)
         set sock $state(sock)
-        catch {unset state}
+        Free $token
 
         if {[string equal $status ok]} {
             return $sock
@@ -219,7 +224,7 @@ proc ::pconnect::abort {token} {
         uplevel #0 [lindex $packs($proxy) 1] [list $state(ptoken)]
     } else {
         if {[string length $proxy] > 0} {
-            Finish $token abort [::msgcat::mc "Connection to proxy aborted"]
+            Finish $token abort [::msgcat::mc "Connection via proxy aborted"]
         } else {
             Finish $token abort [::msgcat::mc "Connection aborted"]
         }
@@ -256,9 +261,11 @@ proc ::pconnect::Writable {token ahost aport} {
         if {[string length $proxy] > 0} {
             Finish $token error [::msgcat::mc "Cannot connect to proxy %s:%s" \
                                               $ahost $aport]
+            return
         } else {
             Finish $token error [::msgcat::mc "Cannot connect to %s:%s" \
                                               $ahost $aport]
+            return
         }
     } else {
         if {[string length $proxy] > 0} {
@@ -268,10 +275,13 @@ proc ::pconnect::Writable {token ahost aport} {
                                -command [namespace code [list ProxyCallback \
                                                               $token]]] \
                          [GetOpts $token]]
+            return
         } else {
             Finish $token ok
+            return
         }
     }
+
     return
 }
 
@@ -332,10 +342,68 @@ proc ::pconnect::ProxyCallback {token status sock} {
     if {[string equal $status ok]} {
         set state(sock) $sock
         Finish $token ok
+        return
     } else {
         # If $status equals to error or abort then $sock contains error message
         Finish $token $status $sock
+        return
     }
+
+    return
+}
+
+# ::pconnect::Timeout --
+#
+#       Abort connection which is in progress with a timeout.
+#
+# Arguments:
+#       token       A control token which is returned by pconnect::socket
+#
+# Result:
+#       An empty string or error.
+#
+# Side effects:
+#       A connection which is establising currently is aborted. If a callback
+#       procedure was supplied then it is called with error.
+
+proc ::pconnect::Timeout {token} {
+    variable packs
+    variable $token
+    upvar 0 $token state
+
+    set proxy $state(-proxy)
+
+    if {[info exists state(ptoken)]} {
+        uplevel #0 [lindex $packs($proxy) 1] [list $state(ptoken)]
+    } else {
+        if {[string length $proxy] > 0} {
+            Finish $token abort [::msgcat::mc "Connection via proxy timed out"]
+        } else {
+            Finish $token abort [::msgcat::mc "Connection timed out"]
+        }
+    }
+    return
+}
+
+# ::pconnect::Free --
+#
+#       Frees a connection token.
+#
+# Arguments:
+#       token            A connection token.
+#
+# Result:
+#       An empty string.
+#
+# Side effects:
+#       A connection token and its state informationa are destroyed.
+
+proc ::pconnect::Free {token} {
+    variable $token
+    upvar 0 $token state
+
+    catch {after cancel $state(timeoutid)}
+    catch {unset state}
     return
 }
 
@@ -361,10 +429,12 @@ proc ::pconnect::Finish {token status {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
+    catch {after cancel $state(timeoutid)}
+
     if {[string length $state(-command)]} {
         set sock $state(sock)
         set cmd $state(-command)
-        catch {unset state}
+        Free $token
         if {[string equal $status ok]} {
             uplevel #0 $cmd [list ok $sock]
         } else {

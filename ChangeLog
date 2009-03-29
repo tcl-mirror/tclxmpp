@@ -1,3 +1,14 @@
+2009-03-29  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/pconnect.tcl, xmpp/https.tcl, xmpp/socks4.tcl, xmpp/socks5.tcl:
+	  Return human-readable messages when errors occur. Added abortion
+	  procedures to socks4 and socks5  packages, and a timeout procedure
+	  to pconnect package.
+
+	* xmpp/socks4.tcl, xmpp/socks5.tcl: Fixed reconstructing destination
+	  address returned by a SOCKS proxy. Added support for IPv6 adresses
+	  to socks5 package.
+
 2009-03-27  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/zlib.tcl: Added a hack which doesn't allow to load xmpp::zlib

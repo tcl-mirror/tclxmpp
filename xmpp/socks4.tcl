@@ -12,6 +12,7 @@
 # $Id$
 
 package require pconnect
+package require msgcat
 
 package provide pconnect::socks4 0.1
 
@@ -29,17 +30,11 @@ namespace eval ::pconnect::socks4 {
         rsp_erruserid  \x5d
     }
 
-    # Practical when mapping errors to error codes.
-    variable iconst
-    array set iconst {
-        4   ver
-        1   cmd_connect
-        2   cmd_bind
-        90  rsp_granted
-        91  rsp_failure
-        92  rsp_errconnect
-        93  rsp_erruserid
-    }
+    variable msg
+    array set msg [list \
+        91  [::msgcat::mc "Request rejected or failed"] \
+        92  [::msgcat::mc "Server cannot reach client's identd"] \
+        93  [::msgcat::mc "Client's identd could not confirm the userid"]]
 
     variable debug 0
 
@@ -53,7 +48,7 @@ namespace eval ::pconnect::socks4 {
 #       Negotiates with a SOCKS server.
 #
 # Arguments:
-#       sock        an open socket token to the SOCKS server
+#       sock        an open socket to the SOCKS server
 #       addr        the peer address, not SOCKS server
 #       port        the peer's port number
 #       args
@@ -62,7 +57,7 @@ namespace eval ::pconnect::socks4 {
 #               -timeout    millisecs (default 60000)
 #
 # Results:
-#       The connect socket or error if no -command, else empty string.
+#       The connect socket or error if no -command, else a connection token.
 #
 # Side effects:
 #       Socket is prepared for data transfer.
@@ -85,13 +80,12 @@ proc ::pconnect::socks4::connect {sock addr port args} {
         bnd_port    ""
         status      ""
     }
-    array set state [list \
-        addr        $addr \
-        port        $port \
-        sock        $sock]
+    array set state [list addr $addr \
+                          port $port \
+                          sock $sock]
     array set state $args
 
-    if {[string length $state(-command)]} {
+    if {![string equal $state(-command) ""]} {
         set state(async) 1
     }
 
@@ -113,24 +107,27 @@ proc ::pconnect::socks4::connect {sock addr port args} {
     } err]} {
         catch {close $sock}
         if {$state(async)} {
-            after idle [list $state(-command) error network-failure]
+            after idle $state(-command) \
+                  [list error [::msgcat::mc "Failed to send SOCKS4a request"]]
             Free $token
             return
         } else {
             Free $token
-            return -code error network-failure
+            return -code error [::msgcat::mc "Failed to send SOCKS4a request"]
         }
     }
 
     # Setup timeout timer.
-    set state(timeoutid)  \
-        [after $state(-timeout) [namespace current]::Timeout $token]
+    if {$state(-timeout) > 0} {
+        set state(timeoutid) \
+            [after $state(-timeout) [namespace code [list Timeout $token]]]
+    }
 
-    fileevent $sock readable  \
-        [list [namespace current]::Response $token]
+    fileevent $sock readable \
+              [namespace code [list Response $token]]
 
     if {$state(async)} {
-        return
+        return $token
     } else {
         # We should not return from this proc until finished!
         vwait $token\(status)
@@ -144,9 +141,31 @@ proc ::pconnect::socks4::connect {sock addr port args} {
             return $sock
         } else {
             catch {close $sock}
-            return -code error $sock
+            if {[string equal $status abort]} {
+                return -code break $sock
+            } else {
+                return -code error $sock
+            }
         }
     }
+}
+
+# ::pconnect::socks4::abort --
+#
+#       Abort proxy negotiation.
+#
+# Arguments:
+#       token       A connection token.
+#
+# Result:
+#       An empty string.
+#
+# Side effects:
+#       A proxy negotiation is finished with error.
+
+proc ::pconnect::socks4::abort {token} {
+    Finish $token abort [::msgcat::mc "SOCKS4a proxy negotiation aborted"]
+    return
 }
 
 # ::pconnect::socks4::Response --
@@ -166,7 +185,7 @@ proc ::pconnect::socks4::Response {token} {
     variable $token
     upvar 0 $token state
     variable const
-    variable iconst
+    variable msg
 
     Debug $token 2 ""
 
@@ -175,42 +194,43 @@ proc ::pconnect::socks4::Response {token} {
 
     # Read and parse status.
     if {[catch {read $sock 2} data] || [eof $sock]} {
-        Finish $token network-failure
+        Finish $token error [::msgcat::mc "Failed to read SOCKS4a response"]
         return
     }
     binary scan $data cc null status
     if {![string equal $null 0]} {
-        Finish $token err_version
+        Finish $token error [::msgcat::mc "Incorrect SOCKS4a server version"]
         return
     }
-    if {![info exists iconst($status)]} {
-        Finish $token err_unknown
+    if {$status == 90} {
+        # ok
+    } elseif {[info exists msg($status)]} {
+        Finish $token error $msg($status)
         return
-    } elseif {![string equal $iconst($status) rsp_granted]} {
-        Finish $token $iconst($status)
+    } else {
+        Finish $token error [::msgcat::mc "Unknown SOCKS4a server error"]
         return
     }
 
     # Read and parse port (2 bytes) and ip (4 bytes).
     if {[catch {read $sock 6} data] || [eof $sock]} {
-        Finish $token network-failure
+        Finish $token error [::msgcat::mc "Failed to read SOCKS4a\
+                                     destination address"]
         return
     }
     binary scan $data ccccS i0 i1 i2 i3 port
-    set addr ""
+    set addr {}
     foreach n [list $i0 $i1 $i2 $i3] {
         # Translate to unsigned!
-        append addr [expr ( $n + 0x100 ) % 0x100]
-        if {$n <= 2} {
-            append addr .
-        }
+        lappend addr [expr {$n & 0xff}]
     }
     # Translate to unsigned!
-    set port [expr ( $port + 0x10000 ) % 0x10000]
-    set state(bnd_port) $port
-    set state(bnd_addr) $addr
+    set port [expr {$port & 0xffff}]
 
-    Finish $token
+    set state(bnd_addr) [join $addr .]
+    set state(bnd_port) $port
+
+    Finish $token ok
     return
 }
 
@@ -228,7 +248,7 @@ proc ::pconnect::socks4::Response {token} {
 #       A proxy negotiation is finished with error.
 
 proc ::pconnect::socks4::Timeout {token} {
-    Finish $token timeout
+    Finish $token abort [::msgcat::mc "SOCKS4a proxy negotiation timed out"]
     return
 }
 
@@ -270,31 +290,33 @@ proc ::pconnect::socks4::Free {token} {
 #       Otherwise state(status) is set to allow ::pconnect::socks4::connect
 #       to return with either success or error.
 
-proc ::pconnect::socks4::Finish {token {errormsg ""}} {
+proc ::pconnect::socks4::Finish {token status {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
-    Debug $token 2 "$errormsg"
+    Debug $token 2 "status=$status, errormsg=$errormsg"
 
     catch {after cancel $state(timeoutid)}
 
     if {$state(async)} {
         # In case of asynchronous connection we do the cleanup.
-        if {[string length $errormsg]} {
-            catch {close $state(sock)}
-            uplevel #0 $state(-command) [list error $errormsg]
-        } else {
-            uplevel #0 $state(-command) [list ok $state(sock)]
-        }
+        set command $state(-command)
+        set sock $state(sock)
         Free $token
+        if {[string equal $status ok]} {
+            uplevel #0 $command [list ok $sock]
+        } else {
+            catch {close $sock}
+            uplevel #0 $command [list $status $errormsg]
+        }
     } else {
         # Otherwise we trigger state(status).
-        if {[string length $errormsg]} {
+        if {[string equal $status ok]} {
+            set state(status) ok
+        } else {
             catch {close $state(sock)}
             set state(sock) $errormsg
-            set state(status) error
-        } else {
-            set state(status) ok
+            set state(status) $status
         }
     }
     return

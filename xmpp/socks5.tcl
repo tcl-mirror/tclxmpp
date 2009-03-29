@@ -15,6 +15,7 @@
 
 package require pconnect
 package require ip
+package require msgcat
 
 package provide pconnect::socks5 0.1
 
@@ -41,42 +42,18 @@ namespace eval ::pconnect::socks5 {
         atyp_ipv4           \x01
         atyp_domainname     \x03
         atyp_ipv6           \x04
-        rsp_succeeded       \x00
-        rsp_failure         \x01
-        rsp_notallowed      \x02
-        rsp_netunreachable  \x03
-        rsp_hostunreachable \x04
-        rsp_refused         \x05
-        rsp_expired         \x06
-        rsp_cmdunsupported  \x07
-        rsp_addrunsupported \x08
-    }
-
-    # Practical when mapping errors to error codes.
-    variable iconst
-    array set iconst {
-        0    rsp_succeeded
-        1    rsp_failure
-        2    rsp_notallowed
-        3    rsp_netunreachable
-        4    rsp_hostunreachable
-        5    rsp_refused
-        6    rsp_expired
-        7    rsp_cmdunsupported
-        8    rsp_addrunsupported
     }
 
     variable msg
-    array set msg {
-        1 "General SOCKS server failure"
-        2 "Connection not allowed by ruleset"
-        3 "Network unreachable"
-        4 "Host unreachable"
-        5 "Connection refused"
-        6 "TTL expired"
-        7 "Command not supported"
-        8 "Address type not supported"
-    }
+    array set msg [list \
+        1   [::msgcat::mc "General SOCKS server failure"] \
+        2   [::msgcat::mc "Connection not allowed by ruleset"] \
+        3   [::msgcat::mc "Network unreachable"] \
+        4   [::msgcat::mc "Host unreachable"] \
+        5   [::msgcat::mc "Connection refused by destination host"] \
+        6   [::msgcat::mc "TTL expired"] \
+        7   [::msgcat::mc "Command not supported"] \
+        8   [::msgcat::mc "Address type not supported"]]
 
     variable debug 0
 
@@ -90,8 +67,8 @@ namespace eval ::pconnect::socks5 {
 #       Negotiates with a SOCKS server.
 #
 # Arguments:
-#       sock        an open socket token to the SOCKS server
-#       addr        the peer address, not SOCKS server
+#       sock        an open socket to the SOCKS5 server
+#       addr        the peer address, not SOCKS5 server
 #       port        the peer's port number
 #       args
 #               -command    tclProc {status socket}
@@ -100,7 +77,7 @@ namespace eval ::pconnect::socks5 {
 #               -timeout    millisecs (default 60000)
 #
 # Results:
-#       The connect socket or error if no -command, else empty string.
+#       The connect socket or error if no -command, else a connection token.
 #
 # Side effects:
 #       Socket is prepared for data transfer.
@@ -121,27 +98,27 @@ proc ::pconnect::socks5::connect {sock addr port args} {
     Debug $token 2 "$addr $port $args"
 
     array set state {
-        -password         ""
-        -timeout          60000
-        -username         ""
-        async             0
-        auth              0
-        bnd_addr          ""
-        bnd_port          ""
-        state             ""
-        status            ""
+        -password ""
+        -timeout  60000
+        -username ""
+        -command  ""
+        async     0
+        auth      0
+        bnd_addr  ""
+        bnd_port  ""
+        state     ""
+        status    ""
     }
-    array set state [list     \
-      addr          $addr     \
-      port          $port     \
-      sock          $sock]
+    array set state [list addr $addr \
+                          port $port \
+                          sock $sock]
     array set state $args
 
-    if {[string length $state(-username)] ||  \
-      [string length $state(-password)]} {
+    if {[string length $state(-username)] || \
+            [string length $state(-password)]} {
         set state(auth) 1
     }
-    if {[info exists state(-command)] && [string length $state(-command)]} {
+    if {![string equal $state(-command) ""]} {
         set state(async) 1
     }
     if {$state(auth)} {
@@ -163,24 +140,29 @@ proc ::pconnect::socks5::connect {sock addr port args} {
     } err]} {
         catch {close $sock}
         if {$state(async)} {
-            after idle [list $state(-command) error network-failure]
+            after idle $state(-command) \
+                  [list error [::msgcat::mc "Failed to send SOCKS5\
+                                             authorization methods request"]]
             Free $token
             return
         } else {
             Free $token
-            return -code error $err
+            return -code error [::msgcat::mc "Failed to send SOCKS5\
+                                              authorization methods request"]
         }
     }
 
     # Setup timeout timer.
-    set state(timeoutid)  \
-        [after $state(-timeout) [namespace current]::Timeout $token]
+    if {$state(-timeout) > 0} {
+        set state(timeoutid) \
+            [after $state(-timeout) [namespace code [list Timeout $token]]]
+    }
 
-    fileevent $sock readable  \
-        [list [namespace current]::ResponseMethod $token]
+    fileevent $sock readable \
+              [namespace code [list ResponseMethod $token]]
 
     if {$state(async)} {
-        return
+        return $token
     } else {
         # We should not return from this proc until finished!
         vwait $token\(status)
@@ -194,9 +176,31 @@ proc ::pconnect::socks5::connect {sock addr port args} {
             return $sock
         } else {
             catch {close $sock}
-            return -code error $sock
+            if {[string equal $status abort]} {
+                return -code break $sock
+            } else {
+                return -code error $sock
+            }
         }
     }
+}
+
+# ::pconnect::socks5::abort --
+#
+#       Abort proxy negotiation.
+#
+# Arguments:
+#       token       A connection token.
+#
+# Result:
+#       An empty string.
+#
+# Side effects:
+#       A proxy negotiation is finished with error.
+
+proc ::pconnect::socks5::abort {token} {
+    Finish $token abort [::msgcat::mc "SOCKS5 proxy negotiation aborted"]
+    return
 }
 
 # ::pconnect::socks5::ResponseMethod --
@@ -223,7 +227,8 @@ proc ::pconnect::socks5::ResponseMethod {token} {
     set sock $state(sock)
 
     if {[catch {read $sock 2} data] || [eof $sock]} {
-        Finish $token network-failure
+        Finish $token error [::msgcat::mc "Failed to read SOCKS5\
+                                     authorization methods response"]
         return
     }
     set serv_ver ""
@@ -232,7 +237,7 @@ proc ::pconnect::socks5::ResponseMethod {token} {
     Debug $token 2 "serv_ver=$serv_ver, smethod=$smethod"
 
     if {![string equal $serv_ver 5]} {
-        Finish $token err_version
+        Finish $token error [::msgcat::mc "Incorrect SOCKS5 server version"]
         return
     }
 
@@ -242,7 +247,7 @@ proc ::pconnect::socks5::ResponseMethod {token} {
     } elseif {[string equal $smethod 2]} {
         # User/Pass authorization required
         if {$state(auth) == 0} {
-            Finish $token err_authorization_required
+            Finish $token error [::msgcat::mc "SOCKS5 server authorization required"]
             return
         }
 
@@ -252,19 +257,22 @@ proc ::pconnect::socks5::ResponseMethod {token} {
 
         Debug $token 2 "send: auth_userpass ulen -username plen -password"
         if {[catch {
-            puts -nonewline $sock  \
+            puts -nonewline $sock \
                  "$const(auth_userpass)$ulen$state(-username)$plen$state(-password)"
             flush $sock
         } err]} {
-            Finish $token network-failure
+            Finish $token error [::msgcat::mc "Failed to send SOCKS5\
+                                         authorization request"]
             return
         }
 
-        fileevent $sock readable  \
-            [list [namespace current]::ResponseAuth $token]
+        fileevent $sock readable \
+                  [namespace code [list ResponseAuth $token]]
     } else {
-        Finish $token err_unsupported_method
+        Finish $token error [::msgcat::mc "Unsupported SOCKS5 authorization method"]
+        return
     }
+
     return
 }
 
@@ -291,7 +299,8 @@ proc ::pconnect::socks5::ResponseAuth {token} {
     set sock $state(sock)
 
     if {[catch {read $sock 2} data] || [eof $sock]} {
-        Finish $token network-failure
+        Finish $token error [::msgcat::mc "Failed to read SOCKS5\
+                                     authorization response"]
         return
     }
 
@@ -301,11 +310,11 @@ proc ::pconnect::socks5::ResponseAuth {token} {
     Debug $token 2 "auth_ver=$auth_ver, status=$status"
 
     if {![string equal $auth_ver 1]} {
-        Finish $token err_authentication_unsupported
+        Finish $token error [::msgcat::mc "Unsupported SOCKS5 authorization method"]
         return
     }
     if {![string equal $status 0]} {
-        Finish $token err_authorization
+        Finish $token error [::msgcat::mc "SOCKS5 server authorization failed"]
         return
     }
 
@@ -375,12 +384,12 @@ proc ::pconnect::socks5::Request {token} {
         puts -nonewline $sock "$aconst$atyp_addr_port"
         flush $sock
     } err]} {
-        Finish $token network-failure
+        Finish $token error [::msgcat::mc "Failed to send SOCKS5 connection request"]
         return
     }
 
-    fileevent $sock readable  \
-        [list [namespace current]::Response $token]
+    fileevent $sock readable \
+              [namespace code [list Response $token]]
     return
 }
 
@@ -398,9 +407,9 @@ proc ::pconnect::socks5::Request {token} {
 #       The negotiation is finished with either success or error.
 
 proc ::pconnect::socks5::Response {token} {
+    variable msg
     variable $token
     upvar 0 $token state
-    variable iconst
 
     Debug $token 2 ""
 
@@ -409,7 +418,7 @@ proc ::pconnect::socks5::Response {token} {
 
     # Start by reading ver+cmd+rsv.
     if {[catch {read $sock 3} data] || [eof $sock]} {
-        Finish $token network-failure
+        Finish $token error [::msgcat::mc "Failed to read SOCKS5 connection response"]
         return
     }
     set serv_ver ""
@@ -417,22 +426,22 @@ proc ::pconnect::socks5::Response {token} {
     binary scan $data ccc serv_ver rep rsv
 
     if {![string equal $serv_ver 5]} {
-        Finish $token err_version
+        Finish $token error [::msgcat::mc "Incorrect SOCKS5 server version"]
         return
     }
     if {$rep == 0} {
         # ok
-    } elseif {[info exists iconst($rep)]} {
-        Finish $token $iconst($rep)
+    } elseif {[info exists msg($rep)]} {
+        Finish $token error $msg($rep)
         return
     } else {
-        Finish $token err_unknown
+        Finish $token error [::msgcat::msg "Unknown SOCKS5 server error"]
         return
     }
 
     # Now parse the variable length atyp+addr+host.
     if {[catch {ParseAtypAddr $token addr port} err]} {
-        Finish $token $err
+        Finish $token error $err
         return
     }
 
@@ -441,7 +450,7 @@ proc ::pconnect::socks5::Response {token} {
     set state(bnd_port) $port
 
     # And finally let the client know that the bytestream is set up.
-    Finish $token
+    Finish $token ok
     return
 }
 
@@ -473,7 +482,8 @@ proc ::pconnect::socks5::ParseAtypAddr {token addrVar portVar} {
 
     # Start by reading atyp.
     if {[catch {read $sock 1} data] || [eof $sock]} {
-        return -code error network-failure
+        return -code error [::msgcat::mc "Failed to read SOCKS5\
+                                          destination address type"]
     }
     set atyp ""
     binary scan $data c atyp
@@ -482,46 +492,70 @@ proc ::pconnect::socks5::ParseAtypAddr {token addrVar portVar} {
     # Treat the three address types in order.
     switch -- $atyp {
         1 {
+            # IPv4
+
             if {[catch {read $sock 6} data] || [eof $sock]} {
-                return -code error network-failure
+                return -code error [::msgcat::mc "Failed to read SOCKS5\
+                                                  destination IPv4 address\
+                                                  and port"]
             }
             binary scan $data ccccS i0 i1 i2 i3 port
-            set addr ""
+            set addr {}
             foreach n [list $i0 $i1 $i2 $i3] {
                 # Translate to unsigned!
-                append addr [expr ( $n + 0x100 ) % 0x100]
-                if {$n <= 2} {
-                    append addr .
-                }
+                lappend addr [expr {$n & 0xff}]
             }
+            set addr [join $addr .]
             # Translate to unsigned!
-            set port [expr ( $port + 0x10000 ) % 0x10000]
+            set port [expr {$port & 0xffff}]
         }
         3 {
+            # Domain
+
             if {[catch {read $sock 1} data] || [eof $sock]} {
-                return -code error network-failure
+                return -code error [::msgcat::mc "Failed to read SOCKS5\
+                                                  destination domain\
+                                                  length"]
             }
             binary scan $data c len
             Debug $token 2 "len=$len"
-            set len [expr ( $len + 0x100 ) % 0x100]
+            set len [expr {$len & 0xff}]
             if {[catch {read $sock $len} data] || [eof $sock]} {
-                return -code error network-failure
+                return -code error [::msgcat::mc "Failed to read SOCKS5\
+                                                  destination domain"]
             }
             set addr $data
             Debug $token 2 "addr=$addr"
             if {[catch {read $sock 2} data] || [eof $sock]} {
-                return -code error network-failure
+                return -code error [::msgcat::mc "Failed to read SOCKS5\
+                                                  destination port"]
             }
             binary scan $data S port
             # Translate to unsigned!
-            set port [expr ( $port + 0x10000 ) % 0x10000]
+            set port [expr {$port & 0xffff}]
             Debug $token 2 "port=$port"
         }
         4 {
-            # todo
+            # IPv6
+
+            if {[catch {read $sock 18} data] || [eof $sock]} {
+                return -code error [::msgcat::mc "Failed to read SOCKS5\
+                                                  destination IPv6 address\
+                                                  and port"]
+            }
+            binary scan $data SSSSSSSSS s0 s1 s2 s3 s4 s5 s6 s7 s8 port
+            set addr {}
+            foreach n [list $s0 $s1 $s2 $s3 $s4 $s5 $s6 $s7 $s8] {
+                # Translate to unsigned!
+                lappend addr [format %x [expr {$n & 0xffff}]]
+            }
+            set addr [join $addr :]
+            # Translate to unsigned!
+            set port [expr {$port & 0xffff}]
         }
         default {
-            return -code error err_unknown_address_type
+            return -code error [::msgcat::mc "Unknown SOCKS5 destination\
+                                              address type"]
         }
     }
 }
@@ -546,7 +580,7 @@ proc ::pconnect::socks5::GetIpAndPort {token} {
 #       A proxy negotiation is finished with error.
 
 proc ::pconnect::socks5::Timeout {token} {
-    Finish $token timeout
+    Finish $token abort [::msgcat::mc "SOCKS5 negotiation timed out"]
     return
 }
 
@@ -587,31 +621,33 @@ proc ::pconnect::socks5::Free {token} {
 #       Otherwise state(status) is set to allow ::pconnect::socks5::connect
 #       to return with either success or error.
 
-proc ::pconnect::socks5::Finish {token {errormsg ""}} {
+proc ::pconnect::socks5::Finish {token status {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
-    Debug $token 2 "$errormsg"
+    Debug $token 2 "status=$status, errormsg=$errormsg"
 
     catch {after cancel $state(timeoutid)}
 
     if {$state(async)} {
         # In case of asynchronous connection we do the cleanup.
-        if {[string length $errormsg]} {
-            catch {close $state(sock)}
-            uplevel #0 $state(-command) [list error $errormsg]
-        } else {
-            uplevel #0 $state(-command) [list ok $state(sock)]
-        }
+        set command $state(-command)
+        set sock $state(sock)
         Free $token
+        if {[string equal $status ok]} {
+            uplevel #0 $command [list ok $sock]
+        } else {
+            catch {close $sock}
+            uplevel #0 $command [list $status $errormsg]
+        }
     } else {
         # Otherwise we trigger state(status).
-        if {[string length $errormsg]} {
+        if {[string equal $status ok]} {
+            set state(status) ok
+        } else {
             catch {close $state(sock)}
             set state(sock) $errormsg
-            set state(status) error
-        } else {
-            set state(status) ok
+            set state(status) $status
         }
     }
     return

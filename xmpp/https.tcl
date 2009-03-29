@@ -14,6 +14,7 @@
 package require base64
 package require ntlm 1.0
 package require pconnect 0.1
+package require msgcat
 
 package provide pconnect::https 0.1
 
@@ -34,7 +35,7 @@ namespace eval ::pconnect::https {
 #       sock        an open socket token to the proxy server
 #       addr        the peer address, not the proxy server
 #       port        the peer port number
-#       args 
+#       args
 #               -command    tclProc {status socket}
 #               -username   userid
 #               -password   password
@@ -60,18 +61,17 @@ proc ::pconnect::https::connect {sock addr port args} {
     Debug $token 2 "sock=$sock, addr=$addr, port=$port, args=$args"
 
     array set state {
-        -command    ""
-        -timeout    60000
-        -username   ""
-        -password   ""
-        -useragent  ""
-        async       0
-        status      ""
+        -command   ""
+        -timeout   60000
+        -username  ""
+        -password  ""
+        -useragent ""
+        async      0
+        status     ""
     }
-    array set state [list   \
-        addr        $addr \
-        port        $port \
-        sock        $sock]
+    array set state [list addr $addr \
+                          port $port \
+                          sock $sock]
     array set state $args
 
     if {[string length $state(-command)] > 0} {
@@ -81,23 +81,26 @@ proc ::pconnect::https::connect {sock addr port args} {
     if {[catch {set state(peer) [fconfigure $sock -peername]}]} {
         catch {close $sock}
         if {$state(async)} {
-            after idle [list $state(-command) error network-failure]
+            after idle $state(-command) \
+                  [list error [::msgcat::mc "Failed to conect to HTTPS proxy"]]
             Free $token
             return $token
         } else {
             Free $token
-            return -code error network-failure
+            return -code error [::msgcat::mc "Failed to conect to HTTPS proxy"]
         }
     }
 
     PutsConnectQuery $token
 
-    fileevent $sock readable  \
-        [namespace code [list Readable $token]]
+    fileevent $sock readable \
+              [namespace code [list Readable $token]]
 
     # Setup timeout timer.
-    set state(timeoutid) \
-        [after $state(-timeout) [namespace code [list Timeout $token]]]
+    if {$state(-timeout) > 0} {
+        set state(timeoutid) \
+            [after $state(-timeout) [namespace code [list Timeout $token]]]
+    }
 
     if {$state(async)} {
         return $token
@@ -168,9 +171,11 @@ proc ::pconnect::https::Readable {token} {
         # Success
         while {[string length [gets $state(sock)]]} {}
         Finish $token ok
+        return
     } elseif {$code != 407} {
         # Failure
         Finish $token error $state(result)
+        return
     } else {
         # Authorization required
         set content_length -1
@@ -196,7 +201,7 @@ proc ::pconnect::https::Readable {token} {
             [socket -async [lindex $state(peer) 0] [lindex $state(peer) 2]]
 
         fileevent $state(sock) writable \
-            [namespace code [list Authorize $token $method]]
+                  [namespace code [list Authorize $token $method]]
     }
 
     return
@@ -264,7 +269,7 @@ proc ::pconnect::https::AuthorizeBasicStep1 {token} {
     PutsConnectQuery $token "Basic $auth"
 
     fileevent $state(sock) readable \
-        [namespace code [list AuthorizeBasicStep2 $token]]
+              [namespace code [list AuthorizeBasicStep2 $token]]
 
     return
 }
@@ -297,10 +302,13 @@ proc ::pconnect::https::AuthorizeBasicStep2 {token} {
         # Success
         while {[string length [gets $state(sock)]]} { }
         Finish $token ok
+        return
     } else {
         # Failure
         Finish $token error $state(result)
+        return
     }
+
     return
 }
 
@@ -342,7 +350,7 @@ proc ::pconnect::https::AuthorizeNtlmStep1 {token} {
     PutsConnectQuery $token "NTLM $message1"
 
     fileevent $state(sock) readable \
-        [namespace code [list AuthorizeNtlmStep2 $token]]
+              [namespace code [list AuthorizeNtlmStep2 $token]]
 
     return
 }
@@ -406,7 +414,7 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
     PutsConnectQuery $token "NTLM $message3"
 
     fileevent $state(sock) readable \
-        [namespace code [list AuthorizeNtlmStep3 $token]]
+              [namespace code [list AuthorizeNtlmStep3 $token]]
 
     return
 }
@@ -439,10 +447,13 @@ proc ::pconnect::https::AuthorizeNtlmStep3 {token} {
         # Success
         while {[string length [gets $state(sock)]]} { }
         Finish $token ok
+        return
     } else {
         # Failure
         Finish $token error $state(result)
+        return
     }
+
     return
 }
 
@@ -591,7 +602,7 @@ proc ::pconnect::https::HttpHeaderBody {header} {
 #       A proxy negotiation is finished with error.
 
 proc ::pconnect::https::Timeout {token} {
-    Finish $token error [::msgcat::mc "HTTPS proxy negotiation timeout"]
+    Finish $token abort [::msgcat::mc "HTTPS proxy negotiation timed out"]
     return
 }
 
