@@ -1,3 +1,8 @@
+2009-03-30  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/poll.tcl: Do not send Proxy-Authorization header if username
+	  and password are empty.
+
 2009-03-29  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/pconnect.tcl, xmpp/https.tcl, xmpp/socks4.tcl, xmpp/socks5.tcl:

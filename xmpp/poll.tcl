@@ -177,7 +177,9 @@ proc ::xmpp::transport::poll::open {server port args} {
         ::http::config -proxyhost $proxyHost -proxyport $proxyPort
     }
 
-    if {[info exists proxyUsername] && [info exists proxyPassword]} {
+    if {[info exists proxyUsername] && [info exists proxyPassword] && \
+            !([string equal $proxyUsername ""] && \
+              [string equal $proxyPassword ""])} {
         set auth \
             [base64::encode \
                     [encoding convertto $proxyUsername:$proxyPassword]]
