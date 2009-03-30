@@ -12,7 +12,7 @@
 # $Id$
 
 package require base64
-package require ntlm 1.0
+package require SASL::NTLM 1.0
 package require pconnect 0.1
 package require msgcat
 
@@ -340,12 +340,7 @@ proc ::pconnect::https::AuthorizeNtlmStep1 {token} {
     set username $state(-username)
     regexp {(\w+)[\\/](.*)} $username -> domain username
 
-    set ntlmtok [NTLM::new -domain $domain \
-                           -host $host \
-                           -username $username \
-                           -password $state(-password)]
-    set message1 [$ntlmtok type1Message]
-    set state(ntlmtok) $ntlmtok
+    set message1 [::SASL::NTLM::CreateGreeting $domain $host]
 
     PutsConnectQuery $token "NTLM $message1"
 
@@ -408,9 +403,19 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
 
     ReadProxyJunk $token $content_length
 
-    $state(ntlmtok) parseType2Message -message $message2
-    set message3 [$state(ntlmtok) type3Message]
+    array set challenge [::SASL::NTLM::Decode $message2]
 
+    # if username is domain/username or domain\username
+    # then set domain and username
+    set username $state(-username)
+    regexp {(\w+)[\\/](.*)} $username -> domain username
+
+    set message3 [::SASL::NTLM::CreateResponse $challenge(domain) \
+                                               [info hostname]    \
+                                               $username          \
+                                               $state(-password)  \
+                                               $challenge(nonce)  \
+                                               $challenge(flags)]
     PutsConnectQuery $token "NTLM $message3"
 
     fileevent $state(sock) readable \
@@ -623,7 +628,6 @@ proc ::pconnect::https::Free {token} {
     variable $token
     upvar 0 $token state
 
-    catch {$state(ntlmtok) free}
     catch {after cancel $state(timeoutid)}
     catch {unset state}
     return

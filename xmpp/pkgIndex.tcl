@@ -10,7 +10,6 @@
 #
 # $Id$
 
-package ifneeded ntlm 1.0                       [list source [file join $dir ntlm.tcl]]
 package ifneeded pconnect 0.1                   [list source [file join $dir pconnect.tcl]]
 package ifneeded pconnect::https 0.1            [list source [file join $dir https.tcl]]
 package ifneeded pconnect::socks4 0.1           [list source [file join $dir socks4.tcl]]

@@ -3,6 +3,10 @@
 	* xmpp/poll.tcl: Do not send Proxy-Authorization header if username
 	  and password are empty.
 
+	* xmpp/https.tcl, xmpp/ntlm.tcl, xmpp/pkgIndex.tcl: Removed redundant
+	  ntlm package and switched to SASL::NTLM for NTLM authentication at
+	  an HTTPS proxy server.
+
 2009-03-29  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/pconnect.tcl, xmpp/https.tcl, xmpp/socks4.tcl, xmpp/socks5.tcl:
