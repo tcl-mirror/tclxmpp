@@ -1,3 +1,8 @@
+2009-03-31  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/sasl.tcl: Took into account that MD5-DIGEST SASL mechanism in
+	  Tcllib converts username and password to UTF-8 itself.
+
 2009-03-30  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/poll.tcl: Do not send Proxy-Authorization header if username

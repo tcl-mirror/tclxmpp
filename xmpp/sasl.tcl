@@ -356,9 +356,9 @@ proc ::xmpp::sasl::AuthContinue {token featuresList} {
             set code [catch {ChooseMech $token $mechanisms} result]
 
             if {!$code} {
-                set mech $result
-                SASL::configure $state(token) -mech $mech
-                switch -- $mech {
+                set state(mech) $result
+                SASL::configure $state(token) -mech $state(mech)
+                switch -- $state(mech) {
                     PLAIN -
                     X-GOOGLE-TOKEN {
                         # Initial responce
@@ -372,7 +372,7 @@ proc ::xmpp::sasl::AuthContinue {token featuresList} {
                     }
                 }
                 if {!$code} {
-                    set result [list mechanism $mech output $output]
+                    set result [list mechanism $state(mech) output $output]
                 }
             }
         }
@@ -581,17 +581,39 @@ proc ::xmpp::sasl::TcllibCallback {token stoken command args} {
             }
         }
         username {
-            if {[info exists state(-username)]} {
-                return [encoding convertto utf-8 $state(-username)]
-            } else {
-                return [encoding convertto utf-8 $state(-domain)]
+            switch -- $state(mech) {
+                DIGEST-MD5 {
+                    if {[info exists state(-username)]} {
+                        return $state(-username)
+                    } else {
+                        return $state(-domain)
+                    }
+                }
+                default {
+                    if {[info exists state(-username)]} {
+                        return [encoding convertto utf-8 $state(-username)]
+                    } else {
+                        return [encoding convertto utf-8 $state(-domain)]
+                    }
+                }
             }
         }
         password {
-            if {[info exists state(-username)]} {
-                return [encoding convertto utf-8 $state(-password)]
-            } else {
-                return [encoding convertto utf-8 $state(-secret)]
+            switch -- $state(mech) {
+                DIGEST-MD5 {
+                    if {[info exists state(-username)]} {
+                        return $state(-password)
+                    } else {
+                        return $state(-secret)
+                    }
+                }
+                default {
+                    if {[info exists state(-username)]} {
+                        return [encoding convertto utf-8 $state(-password)]
+                    } else {
+                        return [encoding convertto utf-8 $state(-secret)]
+                    }
+                }
             }
         }
         realm {
