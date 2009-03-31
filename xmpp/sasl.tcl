@@ -164,9 +164,14 @@ proc ::xmpp::sasl::auth {xlib args} {
 
     switch -- $saslpack {
         tclsasl {
+            if {[info exists state(-username)]} {
+                set callback TclsaslCallbackUser
+            } else {
+                set callback TclsaslCallbackComponent
+            }
             foreach key {authname pass getrealm cnonce} {
                 lappend callbacks \
-                    [list $key [namespace code [list TclsaslCallback $token]]]
+                    [list $key [namespace code [list $callback $token]]]
             }
 
             set state(token) \
@@ -193,12 +198,16 @@ proc ::xmpp::sasl::auth {xlib args} {
                                        flags $flags]
         }
         tcllib {
+            if {[info exists state(-username)]} {
+                set callback TcllibCallbackUser
+            } else {
+                set callback TcllibCallbackComponent
+            }
             set state(token) \
                 [SASL::new -service xmpp \
                            -type client \
                            -server $state(-server) \
-                           -callback [namespace code [list TcllibCallback \
-                                                           $token]]]
+                           -callback [namespace code [list $callback $token]]]
             # Workaround a bug 1545306 in Tcllib SASL module
             set ::SASL::digest_md5_noncecount 0
         }
@@ -514,7 +523,7 @@ proc ::xmpp::sasl::Step {token serverin64} {
 
 ##########################################################################
 
-proc ::xmpp::sasl::TclsaslCallback {token data} {
+proc ::xmpp::sasl::TclsaslCallbackUser {token data} {
     variable $token
     upvar 0 $token state
     set xlib $state(xlib)
@@ -526,28 +535,48 @@ proc ::xmpp::sasl::TclsaslCallback {token data} {
     switch -- $params(id) {
         user {
             # authzid
-            if {[info exists state(-username)]} {
-                return [encoding convertto utf-8 \
-                                 [::xmpp::jid::jid $state(-username) \
-                                                   $state(-server)]]
-            } else {
-                return [encoding convertto utf-8 $state(-domain)]
-            }
+            return [encoding convertto utf-8 \
+                             [::xmpp::jid::jid $state(-username) \
+                                               $state(-server)]]
         }
         authname {
             #username
-            if {[info exists state(-username)]} {
-                return [encoding convertto utf-8 $state(-username)]
-            } else {
-                return [encoding convertto utf-8 $state(-domain)]
-            }
+            return [encoding convertto utf-8 $state(-username)]
         }
         pass {
-            if {[info exists state(-username)]} {
-                return [encoding convertto utf-8 $state(-password)]
-            } else {
-                return [encoding convertto utf-8 $state(-secret)]
-            }
+            return [encoding convertto utf-8 $state(-password)]
+        }
+        getrealm {
+            return [encoding convertto utf-8 $state(-server)]
+        }
+        default {
+            return -code error \
+                [::msgcat::mc "SASL callback error: client needs to\
+                               write \"%s\"" $params(id)]
+        }
+    }
+}
+
+proc ::xmpp::sasl::TclsaslCallbackComponent {token data} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$token $data"
+
+    array set params $data
+
+    switch -- $params(id) {
+        user {
+            # authzid
+            return [encoding convertto utf-8 $state(-domain)]
+        }
+        authname {
+            #username
+            return [encoding convertto utf-8 $state(-domain)]
+        }
+        pass {
+            return [encoding convertto utf-8 $state(-secret)]
         }
         getrealm {
             return [encoding convertto utf-8 $state(-server)]
@@ -562,7 +591,7 @@ proc ::xmpp::sasl::TclsaslCallback {token data} {
 
 ##########################################################################
 
-proc ::xmpp::sasl::TcllibCallback {token stoken command args} {
+proc ::xmpp::sasl::TcllibCallbackUser {token stoken command args} {
     variable $token
     upvar 0 $token state
     set xlib $state(xlib)
@@ -572,47 +601,73 @@ proc ::xmpp::sasl::TcllibCallback {token stoken command args} {
     switch -- $command {
         login {
             # authzid
-            if {[info exists state(-username)]} {
-                return [encoding convertto utf-8 \
-                                 [::xmpp::jid::jid $state(-username) \
-                                                   $state(-server)]]
-            } else {
-                return [encoding convertto utf-8 $state(-domain)]
-            }
+            return [encoding convertto utf-8 \
+                             [::xmpp::jid::jid $state(-username) \
+                                               $state(-server)]]
         }
         username {
             switch -- $state(mech) {
                 DIGEST-MD5 {
-                    if {[info exists state(-username)]} {
-                        return $state(-username)
-                    } else {
-                        return $state(-domain)
-                    }
+                    return $state(-username)
                 }
                 default {
-                    if {[info exists state(-username)]} {
-                        return [encoding convertto utf-8 $state(-username)]
-                    } else {
-                        return [encoding convertto utf-8 $state(-domain)]
-                    }
+                    return [encoding convertto utf-8 $state(-username)]
                 }
             }
         }
         password {
             switch -- $state(mech) {
                 DIGEST-MD5 {
-                    if {[info exists state(-username)]} {
-                        return $state(-password)
-                    } else {
-                        return $state(-secret)
-                    }
+                    return $state(-password)
                 }
                 default {
-                    if {[info exists state(-username)]} {
-                        return [encoding convertto utf-8 $state(-password)]
-                    } else {
-                        return [encoding convertto utf-8 $state(-secret)]
-                    }
+                    return [encoding convertto utf-8 $state(-password)]
+                }
+            }
+        }
+        realm {
+            return [encoding convertto utf-8 $state(-server)]
+        }
+        hostname {
+            return [info host]
+        }
+        default {
+            return -code error \
+                [::msgcat::mc "SASL callback error: client needs to\
+                               write \"%s\"" $command]
+        }
+    }
+}
+
+proc ::xmpp::sasl::TcllibCallbackComponent {token stoken command args} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$token $stoken $command"
+
+    switch -- $command {
+        login {
+            # authzid
+            return [encoding convertto utf-8 $state(-domain)]
+        }
+        username {
+            switch -- $state(mech) {
+                DIGEST-MD5 {
+                    return $state(-domain)
+                }
+                default {
+                    return [encoding convertto utf-8 $state(-domain)]
+                }
+            }
+        }
+        password {
+            switch -- $state(mech) {
+                DIGEST-MD5 {
+                    return $state(-secret)
+                }
+                default {
+                    return [encoding convertto utf-8 $state(-secret)]
                 }
             }
         }

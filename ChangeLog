@@ -1,7 +1,9 @@
 2009-03-31  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl: Took into account that MD5-DIGEST SASL mechanism in
-	  Tcllib converts username and password to UTF-8 itself.
+	  Tcllib converts username and password to UTF-8 itself. Also, split
+	  SASL callbacks into two separate parts (one for users, another for
+	  components).
 
 2009-03-30  Sergei Golovan  <sgolovan@nes.ru>
 
