@@ -181,6 +181,7 @@ proc ::pconnect::https::Readable {token} {
         set content_length -1
         set method basic
         while {[string length [set header [gets $state(sock)]]]} {
+            Debug $token 2 "$header"
             switch -- [HttpHeaderName $header] {
                 proxy-authenticate {
                     if {[string equal -length 4 [HttpHeaderBody $header] \
@@ -332,17 +333,11 @@ proc ::pconnect::https::AuthorizeNtlmStep1 {token} {
 
     Debug $token 2 ""
 
-    set domain ""
-    set host [info hostname]
-
-    # if username is domain/username or domain\username
-    # then set domain and username
-    set username $state(-username)
-    regexp {(\w+)[\\/](.*)} $username -> domain username
-
     set message1 \
         [string map {\n {}} \
-                [base64::encode [::SASL::NTLM::CreateGreeting $domain $host]]]
+                [base64::encode [::SASL::NTLM::CreateGreeting "" ""]]]
+
+    Debug $token 2 "NTLM $message1"
 
     PutsConnectQuery $token "NTLM $message1"
 
@@ -390,6 +385,7 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
     set content_length -1
     set message2 ""
     while {![string equal [set header [gets $state(sock)]] ""]} {
+        Debug $token 2 "$header"
         switch -- [HttpHeaderName $header] {
             proxy-authenticate {
                 set body [HttpHeaderBody $header]
@@ -404,6 +400,8 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
     }
 
     ReadProxyJunk $token $content_length
+
+    Debug $token 2 "NTLM $message2"
 
     array set challenge [::SASL::NTLM::Decode [base64::decode $message2]]
 
@@ -421,6 +419,8 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
                                                       $state(-password)  \
                                                       $challenge(nonce)  \
                                                       $challenge(flags)]]]
+    Debug $token 2 "NTLM $message3"
+
     PutsConnectQuery $token "NTLM $message3"
 
     fileevent $state(sock) readable \

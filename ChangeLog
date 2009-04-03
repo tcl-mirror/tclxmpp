@@ -1,6 +1,7 @@
 2009-04-03  Sergei Golovan  <sgolovan@nes.ru>
 
-	* xmpp/https.tcl: Fixed proxy NTLM authentication.
+	* xmpp/https.tcl: Fixed proxy NTLM authentication. Also, added a few
+	  additional debug messages.
 
 2009-03-31  Sergei Golovan  <sgolovan@nes.ru>
 
