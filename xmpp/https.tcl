@@ -340,7 +340,9 @@ proc ::pconnect::https::AuthorizeNtlmStep1 {token} {
     set username $state(-username)
     regexp {(\w+)[\\/](.*)} $username -> domain username
 
-    set message1 [::SASL::NTLM::CreateGreeting $domain $host]
+    set message1 \
+        [string map {\n {}} \
+                [base64::encode [::SASL::NTLM::CreateGreeting $domain $host]]]
 
     PutsConnectQuery $token "NTLM $message1"
 
@@ -403,19 +405,22 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
 
     ReadProxyJunk $token $content_length
 
-    array set challenge [::SASL::NTLM::Decode $message2]
+    array set challenge [::SASL::NTLM::Decode [base64::decode $message2]]
 
     # if username is domain/username or domain\username
     # then set domain and username
     set username $state(-username)
     regexp {(\w+)[\\/](.*)} $username -> domain username
 
-    set message3 [::SASL::NTLM::CreateResponse $challenge(domain) \
-                                               [info hostname]    \
-                                               $username          \
-                                               $state(-password)  \
-                                               $challenge(nonce)  \
-                                               $challenge(flags)]
+    set message3 \
+        [string map {\n {}} \
+                [base64::encode \
+                        [::SASL::NTLM::CreateResponse $challenge(domain) \
+                                                      [info hostname]    \
+                                                      $username          \
+                                                      $state(-password)  \
+                                                      $challenge(nonce)  \
+                                                      $challenge(flags)]]]
     PutsConnectQuery $token "NTLM $message3"
 
     fileevent $state(sock) readable \

@@ -1,3 +1,7 @@
+2009-04-03  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/https.tcl: Fixed proxy NTLM authentication.
+
 2009-03-31  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl: Took into account that MD5-DIGEST SASL mechanism in
