@@ -1,3 +1,14 @@
+2009-04-05  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/auth.tcl, xmpp/sasl.tcl: Store user JID as a connection
+	  property. It is useful for pubsub and PEP modules.
+
+	* xmpp/pubsub.tcl, xmpp/pkgIndex.tcl: Added new pubsub interface
+	  module (XEP-0060).
+
+	* xmpp/pep.tcl, xmpp/pkgIndex.tcl: Added new PEP interface module
+	  (XEP-0163).
+
 2009-04-03  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/https.tcl: Fixed proxy NTLM authentication. Also, added a few

@@ -455,6 +455,8 @@ proc ::xmpp::auth::Finish {token status xmlData} {
                               [::xmpp::Set $xlib server] \
                               $state(-resource)]
 
+    ::xmpp::Set $xlib jid $jid
+
     # Cleanup in asynchronous mode
     if {[info exists state(-command)]} {
         set cmd $state(-command)

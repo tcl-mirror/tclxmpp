@@ -26,7 +26,9 @@ package ifneeded xmpp::dns 0.1                  [list source [file join $dir dns
 package ifneeded xmpp::iq 0.1                   [list source [file join $dir iq.tcl]]
 package ifneeded xmpp::jid 0.1                  [list source [file join $dir jid.tcl]]
 package ifneeded xmpp::negotiate 0.1            [list source [file join $dir negotiate.tcl]]
+package ifneeded xmpp::pep 0.1                  [list source [file join $dir pep.tcl]]
 package ifneeded xmpp::private 0.1              [list source [file join $dir private.tcl]]
+package ifneeded xmpp::pubsub 0.1               [list source [file join $dir pubsub.tcl]]
 package ifneeded xmpp::register 0.1             [list source [file join $dir register.tcl]]
 package ifneeded xmpp::roster 0.1               [list source [file join $dir roster.tcl]]
 package ifneeded xmpp::roster::annotations 0.1  [list source [file join $dir annotations.tcl]]
@@ -57,6 +59,7 @@ package ifneeded xmpp::full 0.1 {
     package require xmpp::delay 0.1
     package require xmpp::disco 0.1
     package require xmpp::dns 0.1
+    package require xmpp::pep 0.1
     package require xmpp::roster 0.1
     package require xmpp::roster::annotations 0.1
     package require xmpp::roster::bookmarks 0.1

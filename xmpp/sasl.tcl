@@ -879,6 +879,8 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
         set jid $state(-domain)
     }
 
+    ::xmpp::Set $xlib jid $jid
+
     ::xmpp::Debug $xlib 2 "$status"
 
     ::xmpp::UnregisterElement $xlib * urn:ietf:params:xml:ns:xmpp-sasl
