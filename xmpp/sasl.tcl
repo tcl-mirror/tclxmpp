@@ -20,13 +20,20 @@ namespace eval ::xmpp::sasl {
     namespace export auth abort
 
     variable saslpack
+    variable encodeToUTF8
 
     if {![catch {package require sasl 1.0}]} {
         set saslpack tclsasl
-    } elseif {![catch {package require SASL 1.0}]} {
+    } elseif {![catch {package require SASL 1.0} v]} {
         catch {package require SASL::NTLM}
         catch {package require SASL::XGoogleToken}
         set saslpack tcllib
+
+        if {[package vcompare $v 1.3.2] >= 0} {
+            set encodeToUTF8 0
+        } else {
+            set encodeToUTF8 1
+        }
     } else {
         return -code error -errorinfo [::msgcat::mc "No SASL package found"]
     }
@@ -592,6 +599,7 @@ proc ::xmpp::sasl::TclsaslCallbackComponent {token data} {
 ##########################################################################
 
 proc ::xmpp::sasl::TcllibCallbackUser {token stoken command args} {
+    variable encodeToUTF8
     variable $token
     upvar 0 $token state
     set xlib $state(xlib)
@@ -606,8 +614,8 @@ proc ::xmpp::sasl::TcllibCallbackUser {token stoken command args} {
                                                $state(-server)]]
         }
         username {
-            switch -- $state(mech) {
-                DIGEST-MD5 {
+            switch -- $state(mech)/$encodeToUTF8 {
+                DIGEST-MD5/0 {
                     return $state(-username)
                 }
                 default {
@@ -616,8 +624,8 @@ proc ::xmpp::sasl::TcllibCallbackUser {token stoken command args} {
             }
         }
         password {
-            switch -- $state(mech) {
-                DIGEST-MD5 {
+            switch -- $state(mech)/$encodeToUTF8 {
+                DIGEST-MD5/0 {
                     return $state(-password)
                 }
                 default {
@@ -640,6 +648,7 @@ proc ::xmpp::sasl::TcllibCallbackUser {token stoken command args} {
 }
 
 proc ::xmpp::sasl::TcllibCallbackComponent {token stoken command args} {
+    variable encodeToUTF8
     variable $token
     upvar 0 $token state
     set xlib $state(xlib)
@@ -652,8 +661,8 @@ proc ::xmpp::sasl::TcllibCallbackComponent {token stoken command args} {
             return [encoding convertto utf-8 $state(-domain)]
         }
         username {
-            switch -- $state(mech) {
-                DIGEST-MD5 {
+            switch -- $state(mech)/$encodeToUTF8 {
+                DIGEST-MD5/0 {
                     return $state(-domain)
                 }
                 default {
@@ -662,8 +671,8 @@ proc ::xmpp::sasl::TcllibCallbackComponent {token stoken command args} {
             }
         }
         password {
-            switch -- $state(mech) {
-                DIGEST-MD5 {
+            switch -- $state(mech)/$encodeToUTF8 {
+                DIGEST-MD5/0 {
                     return $state(-secret)
                 }
                 default {
