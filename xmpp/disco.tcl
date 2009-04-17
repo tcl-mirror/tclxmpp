@@ -14,11 +14,12 @@
 package provide xmpp::disco 0.1
 
 namespace eval ::xmpp::disco {
-    variable NonCachable {internal-server-error
-                          item-not-found
-                          remote-server-not-found
-                          remote-server-timeout
-                          resource-constraint}
+    # Error conditions which should not be cached
+
+    variable NonCacheable {internal-server-error
+                           remote-server-not-found
+                           remote-server-timeout
+                           resource-constraint}
 }
 
 # ::xmpp::disco::new --
@@ -150,7 +151,7 @@ proc ::xmpp::disco::requestInfo {token jid args} {
 # ::xmpp::disco::ParseInfo --
 
 proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
-    variable NonCachable
+    variable NonCacheable
     variable $token
     upvar 0 $token state
 
@@ -158,7 +159,7 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
 
     if {[string equal $status error]} {
         set condition [::xmpp::stanzaerror::condition $xml]
-        if {[lsearch -exact $NonCachable $condition] >= 0} {
+        if {[lsearch -exact $NonCacheable $condition] >= 0} {
             # Do not cache certain error conditions
 
             return
@@ -297,7 +298,7 @@ proc ::xmpp::disco::requestItems {token jid args} {
 # ::xmpp::disco::ParseItems --
 
 proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
-    variable NonCachable
+    variable NonCacheable
     variable $token
     upvar 0 $token state
 
@@ -305,7 +306,7 @@ proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
 
     if {[string equal $status error]} {
         set condition [::xmpp::stanzaerror::condition $xml]
-        if {[lsearch -exact $NonCachable $condition] >= 0} {
+        if {[lsearch -exact $NonCacheable $condition] >= 0} {
             # Do not cache certain error conditions
 
             return
