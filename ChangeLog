@@ -1,3 +1,10 @@
+2009-04-17  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/https.tcl: Fixed typo in status message.
+
+	* xmpp/disco.tcl: Do not cache certain error conditions which may be
+	  temporary.
+
 2009-04-07  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl: Do encode username and password into UTF-8 charset

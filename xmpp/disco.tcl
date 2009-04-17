@@ -13,7 +13,13 @@
 
 package provide xmpp::disco 0.1
 
-namespace eval ::xmpp::disco {}
+namespace eval ::xmpp::disco {
+    variable NonCachable {internal-server-error
+                          item-not-found
+                          remote-server-not-found
+                          remote-server-timeout
+                          resource-constraint}
+}
 
 # ::xmpp::disco::new --
 
@@ -144,12 +150,20 @@ proc ::xmpp::disco::requestInfo {token jid args} {
 # ::xmpp::disco::ParseInfo --
 
 proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
+    variable NonCachable
     variable $token
     upvar 0 $token state
 
     if {![info exists state(xlib)]} return
 
-    if {![string equal $status ok]} {
+    if {[string equal $status error]} {
+        set condition [::xmpp::stanzaerror::condition $xml]
+        if {[lsearch -exact $NonCachable $condition] >= 0} {
+            # Do not cache certain error conditions
+
+            return
+        }
+
         if {$cache && [lsearch -glob $state(cache) \
                                      [list [list info $jid $node] *]] < 0} {
             lappend state(cache) [list [list info $jid $node] $status $xml]
@@ -162,6 +176,10 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
         if {[llength $commands] > 0} {
             uplevel #0 [lindex $commands 0] [list $status $xml]
         }
+        return
+    } elseif {![string equal $status ok]} {
+        # Do not cache the answer if status is 'abort'
+
         return
     }
 
@@ -279,12 +297,20 @@ proc ::xmpp::disco::requestItems {token jid args} {
 # ::xmpp::disco::ParseItems --
 
 proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
+    variable NonCachable
     variable $token
     upvar 0 $token state
 
     if {![info exists state(xlib)]} return
 
-    if {![string equal $status ok]} {
+    if {[string equal $status error]} {
+        set condition [::xmpp::stanzaerror::condition $xml]
+        if {[lsearch -exact $NonCachable $condition] >= 0} {
+            # Do not cache certain error conditions
+
+            return
+        }
+
         if {$cache && [lsearch -glob $state(cache) \
                                      [list [list items $jid $node] *]] < 0} {
             lappend state(cache) [list [list items $jid $node] $status $xml]
@@ -297,6 +323,10 @@ proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
         if {[llength $commands] > 0} {
             uplevel #0 [lindex $commands 0] [list $status $xml]
         }
+        return
+    } elseif {![string equal $status ok]} {
+        # Do not cache the answer if status is 'abort'
+
         return
     }
 

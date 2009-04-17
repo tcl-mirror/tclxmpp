@@ -82,12 +82,12 @@ proc ::pconnect::https::connect {sock addr port args} {
         catch {close $sock}
         if {$state(async)} {
             after idle $state(-command) \
-                  [list error [::msgcat::mc "Failed to conect to HTTPS proxy"]]
+                  [list error [::msgcat::mc "Failed to connect to HTTPS proxy"]]
             Free $token
             return $token
         } else {
             Free $token
-            return -code error [::msgcat::mc "Failed to conect to HTTPS proxy"]
+            return -code error [::msgcat::mc "Failed to connect to HTTPS proxy"]
         }
     }
 
