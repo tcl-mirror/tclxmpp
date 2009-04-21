@@ -1,3 +1,8 @@
+2009-04-21  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/pubsub.tcl: Fixed IQ types in queries which request items or
+	  configuration forms.
+
 2009-04-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/https.tcl: Fixed typo in status message.

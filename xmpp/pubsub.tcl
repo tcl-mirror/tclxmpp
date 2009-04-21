@@ -90,7 +90,7 @@ proc ::xmpp::pubsub::retrieveSubscriptions {xlib service args} {
         }
     }
 
-    ::xmpp::sendIQ $xlib set \
+    ::xmpp::sendIQ $xlib get \
         -query [::xmpp::xml::create pubsub \
                     -xmlns $ns(pubsub) \
                     -subelement [::xmpp::xml::create subscriptions \
@@ -152,7 +152,7 @@ proc ::xmpp::pubsub::retrieveAffiliations {xlib service args} {
         }
     }
 
-    ::xmpp::sendIQ $xlib set \
+    ::xmpp::sendIQ $xlib get \
         -query [::xmpp::xml::create pubsub \
                     -xmlns $ns(pubsub) \
                     -subelement [::xmpp::xml::create affiliations \
@@ -536,7 +536,7 @@ proc ::xmpp::pubsub::retrieveItems {xlib service node args} {
         lappend attrs max_items $max_items
     }
 
-    ::xmpp::sendIQ $xlib set \
+    ::xmpp::sendIQ $xlib get \
         -query [::xmpp::xml::create pubsub \
                     -xmlns $ns(pubsub) \
                     -subelement [::xmpp::xml::create items \
@@ -855,7 +855,7 @@ proc ::xmpp::pubsub::configureNode {xlib service node args} {
         return -code error "Node must not be empty"
     }
 
-    ::xmpp::sendIQ $xlib set \
+    ::xmpp::sendIQ $xlib get \
         -query [::xmpp::xml::create pubsub \
                     -xmlns $ns(owner) \
                     -subelement [::xmpp::xml::create configure \
@@ -937,7 +937,7 @@ proc ::xmpp::pubsub::requestDefaultConfig {xlib service args} {
         }
     }
 
-    ::xmpp::sendIQ $xlib set \
+    ::xmpp::sendIQ $xlib get \
         -query [::xmpp::xml::create pubsub \
                     -xmlns $ns(owner) \
                     -subelement [::xmpp::xml::create default]] \
@@ -1086,7 +1086,7 @@ proc ::xmpp::pubsub::requestSubscriptions {xlib service node args} {
         return -code error "Node must not be empty"
     }
 
-    ::xmpp::sendIQ $xlib set \
+    ::xmpp::sendIQ $xlib get \
         -query [::xmpp::xml::create pubsub \
                     -xmlns $ns(owner) \
                     -subelement [::xmpp::xml::create subscriptions \
@@ -1187,7 +1187,7 @@ proc ::xmpp::pubsub::requestAffiliations {xlib service node args} {
         return -code error "Node must not be empty"
     }
 
-    ::xmpp::sendIQ $xlib set \
+    ::xmpp::sendIQ $xlib get \
         -query [::xmpp::xml::create pubsub \
                     -xmlns $ns(owner) \
                     -subelement [::xmpp::xml::create affiliations]] \
