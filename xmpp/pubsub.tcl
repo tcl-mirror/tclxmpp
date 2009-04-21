@@ -435,7 +435,7 @@ proc ::xmpp::pubsub::SubscriptionOptionsResult {commands status xml} {
 
                 if {[llength $commands] > 0} {
                     eval [lindex $commands 0] \
-                         [list ok [list $sattrs [lindex $form 0]]]
+                         [list ok [list $sattrs [lindex $form 1]]]
                     return
                 }
             }
@@ -884,7 +884,7 @@ proc ::xmpp::pubsub::ConfigureNodeResult {commands status xml} {
 
                 if {[llength $commands] > 0} {
                     eval [lindex $commands 0] \
-                         [list ok [list $node [lindex $form 0]]]
+                         [list ok [list $node [lindex $form 1]]]
                     return
                 }
             }
@@ -964,7 +964,7 @@ proc ::xmpp::pubsub::RequestDefaultConfigResult {commands status xml} {
 
                 if {[llength $commands] > 0} {
                     eval [lindex $commands 0] \
-                         [list ok [lindex $form 0]]
+                         [list ok [lindex $form 1]]
                     return
                 }
             }

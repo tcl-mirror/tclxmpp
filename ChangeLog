@@ -3,6 +3,10 @@
 	* xmpp/pubsub.tcl: Fixed IQ types in queries which request items or
 	  configuration forms.
 
+	* xmpp/pubsub.tcl: Fixed data forms returning when requesting
+	  subscription options, node configuration, default node config
+	  options.
+
 2009-04-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/https.tcl: Fixed typo in status message.
