@@ -1,3 +1,8 @@
+2009-04-23  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/disco.tcl: Fixed disco#info and disco#items reply when the
+	  query was received to a non-empty node.
+
 2009-04-21  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/pubsub.tcl: Fixed IQ types in queries which request items or

@@ -399,8 +399,15 @@ proc ::xmpp::disco::ParseInfoRequest {token command xlib from xml args} {
         lappend restags [::xmpp::data::resultForm $extra]
     }
 
+    if {[string equal $node ""]} {
+        set resattrs {}
+    } else {
+        set resattrs [list node $node]
+    }
+
     return [list result [::xmpp::xml::create query \
                                 -xmlns http://jabber.org/protocol/disco#info \
+                                -attrs $resattrs \
                                 -subelements $restags]]
 }
 
@@ -427,8 +434,15 @@ proc ::xmpp::disco::ParseItemsRequest {token command xlib from xml args} {
         lappend restags [::xmpp::xml::create item -attrs $item]
     }
 
+    if {[string equal $node ""]} {
+        set resattrs {}
+    } else {
+        set resattrs [list node $node]
+    }
+
     return [list result [::xmpp::xml::create query \
                                 -xmlns http://jabber.org/protocol/disco#items \
+                                -attrs $resattrs \
                                 -subelements $restags]]
 }
 
