@@ -163,7 +163,7 @@ proc ::xmpp::search::ParseResult {command status xml} {
 
 # ::xmpp::search::ParseLegacyItems --
 
-proc ::xmpp::search::ParseItems {items} {
+proc ::xmpp::search::ParseLegacyItems {items} {
     variable labels
 
     set res {}

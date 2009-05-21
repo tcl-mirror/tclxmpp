@@ -1,3 +1,7 @@
+2009-05-21  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/search.tcl: Fixed typo in procedure name.
+
 2009-04-23  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl: Fixed disco#info and disco#items reply when the
