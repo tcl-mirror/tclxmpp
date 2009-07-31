@@ -97,8 +97,8 @@ proc xsend::sendit {stayP to args} {
 
     array set aprops [lindex [mime::parseaddress $options(-from)] 0]
     if {[set x [string first / $aprops(domain)]] >= 0} {
-        set aprops(resource) [string range $aprops(domain) [expr $x+1] end]
-        set aprops(domain) [string range $aprops(domain) 0 [expr $x-1]]
+        set aprops(resource) [string range $aprops(domain) [expr {$x + 1}] end]
+        set aprops(domain) [string range $aprops(domain) 0 [expr {$x - 1}]]
     } else {
         set aprops(resource) "xsend"
     }
@@ -299,7 +299,7 @@ proc xsend::iqLast {xlib from xmlElement args} {
     set xmldata \
         [::xmpp::xml::create query -xmlns jabber:iq:last \
                                    -attrs [list seconds \
-                                                [expr {$now-$lib(lastwhen)}]] \
+                                                [expr {$now - $lib(lastwhen)}]] \
                                    -cdata $lib(lastwhat)]
     return [list result $xmldata]
 }
@@ -369,7 +369,7 @@ proc xsend::follow {file argv} {
     array set st [list dev 0 ino 0 size 0]
 
     for {set i 0} {1} {incr i} {
-        if {[expr $i%5] == 0} {
+        if {[expr {$i % 5}] == 0} {
             if {[catch { file stat $file st2 } result]} {
                 ::LOG $result
                 break
@@ -422,7 +422,7 @@ proc xsend::follow {file argv} {
                 ::LOG $result
             }
             if {$result} {
-                set buffer [string range $buffer [expr $x+1] end]
+                set buffer [string range $buffer [expr {$x + 1}] end]
             }
         }
 
@@ -452,7 +452,7 @@ proc xsend::reconnect_aux {argv} {
     variable stayP
 
     while {$stayP} {
-        after [expr 60*1000]
+        after [expr {60*1000}]
         if {![catch { eval [list xsend::sendit 2] $argv } result]} {
             break
         }
@@ -491,7 +491,7 @@ if {[string equal [file tail [lindex $argv 0]] "xsend.tcl"]} {
 
 if {(([set x [lsearch -exact $argv -help]] >= 0) \
             || ([set x [lsearch -exact $argv --help]] >= 0)) \
-        && (($x == 0) || ([expr $x%2]))} {
+        && (($x == 0) || ([expr {$x % 2}]))} {
     puts stdout \
 "usage: xsend.tcl recipient ?options...?
             -follow      file
@@ -522,7 +522,7 @@ e.g.,
 for default values."
 
     set status 0
-} elseif {($argc < 1) || (![expr $argc%2])} {
+} elseif {($argc < 1) || (![expr {$argc % 2}])} {
     puts stderr "usage: xsend.tcl recipent ?-key value?..."
 } elseif {[catch {
     if {([file exists [set file .xsendrc.tcl]]) \
@@ -534,9 +534,9 @@ for default values."
         array set at [list -permissions 600]
         array set at [file attributes $file]
 
-        if {([set x [lsearch -exact $args "-password"]] > 0) \
-                    && (![expr $x%2]) \
-                    && (![string match *00 $at(-permissions)])} {
+        if {[set x [lsearch -exact $args "-password"]] >= 0 \
+                    && ![expr {$x % 2}] \
+                    && ![string match *00 $at(-permissions)]} {
             error "file should be mode 0600"
         }
 
@@ -546,18 +546,18 @@ for default values."
     }
 } result]} {
     puts stderr "error in $file: $result"
-} elseif {([set x [lsearch -exact $argv "-follow"]] > 0) && ([expr $x%2])} {
+} elseif {[set x [lsearch -exact $argv "-follow"]] > 0 && [expr {$x % 2}]} {
     set keep_alive 1
     set keep_alive_interval 3
 
-    if {([set y [lsearch -exact $argv "-pidfile"]] > 0) && ([expr $y%2])} {
-        set fd [open [set pf [lindex $argv [expr $y+1]]] \
-                     { WRONLY CREAT TRUNC }]
+    if {[set y [lsearch -exact $argv "-pidfile"]] > 0 && [expr {$y % 2}]} {
+        set fd [open [set pf [lindex $argv [expr {$y + 1}]]] \
+                     {WRONLY CREAT TRUNC}]
         puts $fd [pid]
         close $fd
     }
 
-    xsend::follow  [lindex $argv [expr $x+1]] $argv
+    xsend::follow [lindex $argv [expr {$x + 1}]] $argv
 
     catch { file delete -- $pf }
 } elseif {[catch { eval [list xsend::sendit 0] $argv } result]} {

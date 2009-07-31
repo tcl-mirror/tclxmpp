@@ -72,9 +72,9 @@ if {[catch {
         array set at [list -permissions 600]
         array set at [file attributes $file]
 
-        if {([set x [lsearch -exact $args "-secret"]] > 0) \
-                    && (![expr $x%2]) \
-                    && (![string match *00 $at(-permissions)])} {
+        if {([set x [lsearch -exact $args "-secret"]] >= 0) \
+                    && ![expr {$x % 2}] \
+                    && ![string match *00 $at(-permissions)]} {
             error "file should be mode 0600"
         }
 

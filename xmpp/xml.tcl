@@ -173,6 +173,8 @@ proc ::xmpp::xml::reset {token} {
 # Arguments:
 #       xmldata         A parsed (or created by create) XML element.
 #       pxmlns          Optional. XMLNS of a parent XML element.
+#       prefixes        Optional. List of defined XMLNS prefixes.
+#                       Pairs (XMLNS, prefix)
 #
 # Results:
 #       A converted raw XML data.
@@ -180,7 +182,7 @@ proc ::xmpp::xml::reset {token} {
 # Side effects:
 #       None.
 
-proc ::xmpp::xml::toText {xmldata {pxmlns ""}} {
+proc ::xmpp::xml::toText {xmldata {pxmlns ""} {prefixes {xml xml}}} {
     set retext ""
 
     set tag    [lindex $xmldata 0]
@@ -189,12 +191,42 @@ proc ::xmpp::xml::toText {xmldata {pxmlns ""}} {
     set subels [lindex $xmldata 3]
     set cdata  [lindex $xmldata 4]
 
-    append retext "<$tag"
-    if {![string equal $xmlns ""] && ![string equal $xmlns $pxmlns]} {
-        append retext " xmlns='[Escape $xmlns]'"
-        set pxmlns $xmlns
-    }
+    array set p $prefixes
+
+    # Parsimoniously adding new prefixes (only when XMLNS is prepended
+    # to an attribute).
+
+    set newattrs {}
     foreach {attr value} $attrs {
+        set l [::split $attr :]
+        if {[llength $l] > 1} {
+            set axmlns [join [lrange $l 0 end-1] :]
+            set aattr [lindex $l end]
+
+            if {[string equal $axmlns $xmlns]} {
+                lappend newattrs $aattr $value
+            } elseif {[info exists p($axmlns)]} {
+                lappend newattrs $p($axmlns):$aattr $value
+            } else {
+                set p($axmlns) [FindNewPrefix [array names p]]
+                lappend newattrs xmlns:$p($axmlns) $axmlns $p($axmlns):$aattr $value
+            }
+        } else {
+            lappend newattrs $attr $value
+        }
+    }
+
+    if {![string equal $xmlns ""] && ![string equal $xmlns $pxmlns]} {
+        if {![info exists p($xmlns)]} {
+            append retext "<$tag xmlns='[Escape $xmlns]'"
+            set pxmlns $xmlns
+        } else {
+            append retext "<$p($xmlns):$tag"
+        }
+    } else {
+        append retext "<$tag"
+    }
+    foreach {attr value} $newattrs {
         append retext " $attr='[Escape $value]'"
     }
     if {[string equal $cdata ""] && [llength $subels] == 0} {
@@ -207,7 +239,7 @@ proc ::xmpp::xml::toText {xmldata {pxmlns ""}} {
     append retext [Escape $cdata]
 
     foreach subdata $subels {
-        append retext [toText $subdata $pxmlns]
+        append retext [toText $subdata $pxmlns [array get p]]
         append retext [Escape [lindex $subdata 5]]
     }
 
@@ -697,6 +729,60 @@ proc ::xmpp::xml::lang {} {
         return [string tolower $l1]-[string toupper $l2]
     } else {
         return $lang
+    }
+}
+
+
+# ::xmpp::xml::FindNewPrefix --
+#
+#       Find new XMLNS prefix.
+#
+# Arguments:
+#       prefixes            A list of defined prefixes.
+#
+# Results:
+#       A string which isn't contained in the prefixes list.
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::xml::FindNewPrefix {prefixes} {
+    set l0 {a b c d e f g h i j k l m n o p q r s t u v w x y z}
+    set l1 $l0
+
+    while {1} {
+        foreach p $l1 {
+            if {[lsearch -exact $prefixes $p] < 0} {
+                return $p
+            }
+        }
+
+        set l1 [DescartesProduct $l1 $l0]
+    }
+}
+
+# ::xmpp::xml::DescartesProduct --
+#
+#       Returns a sort of Descartes product of two lists of strings - the list
+#       of appended strings from the first and the second list.
+#
+# Arguments:
+#       prefixes            The list of prefixes.
+#       suffixes            The lsit of suffixes.
+#
+# Results:
+#       The list of strings, where prefixes from the first list are joined with
+#       suffixes from the second one.
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::xml::DescartesProduct {prefixes suffixes} {
+    set res {}
+    foreach p $prefixes {
+        foreach s $suffixes {
+            lappend res $p$s
+        }
     }
 }
 
