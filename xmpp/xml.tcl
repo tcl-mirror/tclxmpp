@@ -192,6 +192,10 @@ proc ::xmpp::xml::toText {xmldata {pxmlns ""} {prefixes {xml xml}}} {
     set cdata  [lindex $xmldata 4]
 
     array set p $prefixes
+    set ps {}
+    foreach ns [array names p] {
+        lappend ps $p($ns)
+    }
 
     # Parsimoniously adding new prefixes (only when XMLNS is prepended
     # to an attribute).
@@ -208,7 +212,7 @@ proc ::xmpp::xml::toText {xmldata {pxmlns ""} {prefixes {xml xml}}} {
             } elseif {[info exists p($axmlns)]} {
                 lappend newattrs $p($axmlns):$aattr $value
             } else {
-                set p($axmlns) [FindNewPrefix [array names p]]
+                set p($axmlns) [FindNewPrefix $ps]
                 lappend newattrs xmlns:$p($axmlns) $axmlns $p($axmlns):$aattr $value
             }
         } else {
