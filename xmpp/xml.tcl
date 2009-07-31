@@ -218,14 +218,13 @@ proc ::xmpp::xml::toText {xmldata {pxmlns ""} {prefixes {xml xml}}} {
 
     if {![string equal $xmlns ""] && ![string equal $xmlns $pxmlns]} {
         if {![info exists p($xmlns)]} {
-            append retext "<$tag xmlns='[Escape $xmlns]'"
+            lappend newattrs xmlns $xmlns
             set pxmlns $xmlns
         } else {
-            append retext "<$p($xmlns):$tag"
+            set tag "$p($xmlns):$tag"
         }
-    } else {
-        append retext "<$tag"
     }
+    append retext "<$tag"
     foreach {attr value} $newattrs {
         append retext " $attr='[Escape $value]'"
     }
