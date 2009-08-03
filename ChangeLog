@@ -3,6 +3,8 @@
 	* xmpp/ping.tcl, xmpp/pkgIndex.tcl: Added support for XMPP Ping
 	  (XEP-0199). Client-side only for now.
 
+	* xmpp/ping.tcl: Added reply to XMPP ping requests support.
+
 2009-07-31  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Add unique XMLNS prefixes when serializing XML element

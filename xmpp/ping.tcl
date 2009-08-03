@@ -12,7 +12,9 @@
 
 package provide xmpp::ping 0.1
 
-namespace eval ::xmpp::ping {}
+namespace eval ::xmpp::ping {
+    namespace export ping register unregister
+}
 
 # ::xmpp::ping::ping --
 #
@@ -82,6 +84,92 @@ proc ::xmpp::ping::ParseAnswer {commands status xml} {
     if {[llength $commands] > 0} {
         uplevel #0 [lindex $commands 0] [list $status $xml]
     }
+    return
+}
+
+# ::xmpp::ping::register --
+#
+#       Register handler to answer XMPP ping IQ requests.
+#
+# Arguments:
+#       -command cmd    (optional) Command to call when ping request is
+#                       arrived. The result of the command is sent back.
+#                       It must be either {result {}}, or {error type condition},
+#                       or empty string if the application will reply to the
+#                       request separately.
+#                       The command's arguments are xlib, from, xml, and
+#                       optional parameters -to, -id, -lang.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       XMPP ping callback is registered.
+
+proc ::xmpp::ping::register {args} {
+    set commands {}
+    foreach {key val} $args {
+        switch -- $key {
+            -command {
+                set commands [list $val]
+            }
+            default {
+                return -code error \
+                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+            }
+        }
+    }
+
+    ::xmpp::iq::register get query urn:xmpp:ping \
+                         [namespace code [list ParseRequest $commands]]
+    return
+}
+
+# ::xmpp::ping::ParseRequest --
+#
+#       A helper procedure which is called on any incoming XMPP ping request.
+#       It either calls a command specified during registration or simply
+#       returns result (if there weren't any command).
+#
+# Arguments:
+#       commands            A list of commands to call (only the first one
+#                           will be invoked).
+#       xlib                XMPP token where request was received.
+#       from                JID of user who sent the request.
+#       xml                 Request XML element (in ping requests it is empty).
+#       args                optional arguments (-lang, -to, -id).
+#
+# Result:
+#       Either {result, {}}, or {error type condition}, or empty string, if
+#       the application desided to reply later.
+#
+# Side effects:
+#       Side effects of the called command.
+
+proc ::xmpp::ping::ParseRequest {commands xlib from xml args} {
+    if {[llength $commands] > 0} {
+        return [uplevel #0 [lindex $commands 0] [list $xlib $from $xml] $args]
+    } else {
+        return [list result {}]
+    }
+}
+
+# ::xmpp::ping::unregister --
+#
+#       Unregister handler which used to answer XMPP ping IQ requests.
+#
+# Arguments:
+#       None.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       XMPP ping callback is registered.
+
+proc ::xmpp::ping::unregister {} {
+    ::xmpp::iq::unregister get query urn:xmpp:ping
+
     return
 }
 
