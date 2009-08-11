@@ -120,7 +120,7 @@ proc ::xmpp::ping::register {args} {
         }
     }
 
-    ::xmpp::iq::register get query urn:xmpp:ping \
+    ::xmpp::iq::register get ping urn:xmpp:ping \
                          [namespace code [list ParseRequest $commands]]
     return
 }
@@ -148,7 +148,7 @@ proc ::xmpp::ping::register {args} {
 
 proc ::xmpp::ping::ParseRequest {commands xlib from xml args} {
     if {[llength $commands] > 0} {
-        return [uplevel #0 [lindex $commands 0] [list $xlib $from $xml] $args]
+        return [uplevel #0 [lindex $commands 0] [list $xlib $from] $args]
     } else {
         return [list result {}]
     }
@@ -168,7 +168,7 @@ proc ::xmpp::ping::ParseRequest {commands xlib from xml args} {
 #       XMPP ping callback is registered.
 
 proc ::xmpp::ping::unregister {} {
-    ::xmpp::iq::unregister get query urn:xmpp:ping
+    ::xmpp::iq::unregister get ping urn:xmpp:ping
 
     return
 }

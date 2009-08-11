@@ -1,3 +1,13 @@
+2009-08-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/ping.tcl: Fixed IQ registering (register ping tag instead of
+	  query) and removed received XML from regitered callback invocation
+	  because it's useless as it's supposed to be always empty.
+
+	* xmpp/blocking.tcl: Added support for Simple Communication Blocking
+	  (XEP-0191). It is untested because there's no server implementations
+	  yet.
+
 2009-08-03  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/ping.tcl, xmpp/pkgIndex.tcl: Added support for XMPP Ping
