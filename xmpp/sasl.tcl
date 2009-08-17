@@ -870,6 +870,9 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
     variable saslpack
     variable $token
     upvar 0 $token state
+
+    if {![info exists state(xlib)]} return
+
     set xlib $state(xlib)
 
     if {[info exists state(afterid)]} {
@@ -878,17 +881,19 @@ proc ::xmpp::sasl::Finish {token status xmlData} {
 
     ::xmpp::Unset $xlib abortCommand
 
-    if {[info exists state(jid)]} {
-        set jid $state(jid)
-    } elseif {[info exists state(-username)]} {
-        set jid [::xmpp::jid::jid $state(-username) \
-                                  $state(-server) \
-                                  $state(-resource)]
-    } else {
-        set jid $state(-domain)
-    }
+    if {[string equal $status ok]} {
+        if {[info exists state(jid)]} {
+            set jid $state(jid)
+        } elseif {[info exists state(-username)]} {
+            set jid [::xmpp::jid::jid $state(-username) \
+                                      $state(-server) \
+                                      $state(-resource)]
+        } else {
+            set jid $state(-domain)
+        }
 
-    ::xmpp::Set $xlib jid $jid
+        ::xmpp::Set $xlib jid $jid
+    }
 
     ::xmpp::Debug $xlib 2 "$status"
 

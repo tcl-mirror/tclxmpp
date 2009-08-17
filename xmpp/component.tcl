@@ -255,6 +255,9 @@ proc ::xmpp::component::Parse {token xmlElement} {
 proc ::xmpp::component::Finish {token status msg} {
     variable $token
     upvar 0 $token state
+
+    if {![info exists state(xlib)]} return
+
     set xlib $state(xlib)
 
     if {[info exists state(afterid)]} {

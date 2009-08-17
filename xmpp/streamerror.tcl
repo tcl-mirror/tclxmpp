@@ -180,7 +180,9 @@ proc ::xmpp::streamerror::error {cond args} {
         }
     }
 
-    return [::xmpp::xml::create stream:error -subelements $subels]
+    return [::xmpp::xml::create error \
+                    -xmlns http://etherx.jabber.org/streams \
+                    -subelements $subels]
 }
 
 # vim:ts=8:sw=4:sts=4:et

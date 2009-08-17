@@ -414,6 +414,9 @@ proc ::xmpp::starttls::Failure {token xmlElements} {
 proc ::xmpp::starttls::Finish {token status xmlData} {
     variable $token
     upvar 0 $token state
+
+    if {![info exists state(xlib)]} return
+
     set xlib $state(xlib)
 
     if {[info exists state(afterid)]} {

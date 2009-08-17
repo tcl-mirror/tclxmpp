@@ -1,3 +1,12 @@
+2009-08-17  Sergei Golovan  <sgolovan@nes.ru>
+
+	* auth.tcl, component.tcl, compress.tcl, sasl.tcl, starttls.tcl: Added
+	  protection from a duble abort or timeout. Set JID after
+	  authentiaction only in case of success.
+
+	* streamerror.tcl, xml.tcl: Changed the way of generating stream XMLNS
+	  prefix.
+
 2009-08-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/ping.tcl: Fixed IQ registering (register ping tag instead of

@@ -182,7 +182,8 @@ proc ::xmpp::xml::reset {token} {
 # Side effects:
 #       None.
 
-proc ::xmpp::xml::toText {xmldata {pxmlns ""} {prefixes {xml xml}}} {
+proc ::xmpp::xml::toText {xmldata {pxmlns ""}
+            {prefixes {xml xml http://etherx.jabber.org/streams stream}}} {
     set retext ""
 
     set tag    [lindex $xmldata 0]
