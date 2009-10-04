@@ -1,3 +1,12 @@
+2009-10-04  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/jsend.tcl: Restored historical name and added -date option
+	  to include delay subelement with a given date.
+
+	* examples/rssbot.tcl: Adapted RSS bot from tkabber examples/tools to
+	  TclXMPP. Also, added thorough dates parsers taken from Tclers' wiki
+	  (http://wiki.tcl.tk/13094 and http://wiki.tcl.tk/24074).
+
 2009-08-17  Sergei Golovan  <sgolovan@nes.ru>
 
 	* auth.tcl, component.tcl, compress.tcl, sasl.tcl, starttls.tcl: Added

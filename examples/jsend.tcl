@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 
-# xsend.tcl --
+# jsend.tcl --
 #
 #       This file is an example provided with the XMPP library. It allows to
 #       send messages via XMPP non-interactively. It was initially developed
@@ -22,19 +22,20 @@ package require xmpp::auth
 package require xmpp::sasl
 package require xmpp::starttls
 package require xmpp::roster
+package require xmpp::delay
 
 # Register IQ XMLNS
 ::xmpp::iq::register get * http://jabber.org/protocol/disco#info \
-                           xsend::iqDiscoInfo
+                           jsend::iqDiscoInfo
 ::xmpp::iq::register get * http://jabber.org/protocol/disco#items \
-                           xsend::iqDiscoItems
-::xmpp::iq::register get * jabber:iq:last    xsend::iqLast
-::xmpp::iq::register get * jabber:iq:time    xsend::iqTime
-::xmpp::iq::register get * jabber:iq:version xsend::iqVersion
+                           jsend::iqDiscoItems
+::xmpp::iq::register get * jabber:iq:last    jsend::iqLast
+::xmpp::iq::register get * jabber:iq:time    jsend::iqTime
+::xmpp::iq::register get * jabber:iq:version jsend::iqVersion
 
-namespace eval xsend {}
+namespace eval jsend {}
 
-proc xsend::sendit {stayP to args} {
+proc jsend::sendit {stayP to args} {
     global xlib
     global env
 
@@ -51,6 +52,7 @@ proc xsend::sendit {stayP to args} {
                             -subject     ""    \
                             -body        ""    \
                             -xhtml       ""    \
+                            -date        ""    \
                             -description ""    \
                             -url         ""    \
                             -tls         false \
@@ -100,7 +102,7 @@ proc xsend::sendit {stayP to args} {
         set aprops(resource) [string range $aprops(domain) [expr {$x + 1}] end]
         set aprops(domain) [string range $aprops(domain) 0 [expr {$x - 1}]]
     } else {
-        set aprops(resource) "xsend"
+        set aprops(resource) "jsend"
     }
 
     if {[string equal $options(-body) ""] && $stayP < 2} {
@@ -115,7 +117,11 @@ proc xsend::sendit {stayP to args} {
                        -subelement [::xmpp::xml::create url \
                                         -cdata $options(-url)] \
                        -subelement [::xmpp::xml::create desc \
-                                        -cdata $options(-description)]]]
+                                        -cdata $options(-description)]]
+    }
+    if {[string compare $options(-date) ""]} {
+        lappend options(-xlist) \
+                [::xmpp::delay::create $options(-date)]
     }
     if {![string equal $options(-xhtml) ""] \
             && ![string equal $options(-body) ""] \
@@ -125,7 +131,7 @@ proc xsend::sendit {stayP to args} {
                        -xmlns http://jabber.org/protocol/xhtml-im \
                        -subelement [::xmpp::xml::create body \
                                         -xmlns http://www.w3.org/1999/xhtml \
-                                        -subelements [xsend::parse_xhtml \
+                                        -subelements [jsend::parse_xhtml \
                                                             $options(-xhtml)]]]
     }
     if {[string equal $options(-type) announce]} {
@@ -240,15 +246,15 @@ proc xsend::sendit {stayP to args} {
         }
     }
     if {!$stayP} {
-        set xsend::stayP 0
+        set jsend::stayP 0
         ::xmpp::disconnect $xlib
     }
 
     return 1
 }
 
-proc xsend::iqDiscoInfo {xlib from xmlElement args} {
-    ::LOG "xsend::iqDiscoInfo $from"
+proc jsend::iqDiscoInfo {xlib from xmlElement args} {
+    ::LOG "jsend::iqDiscoInfo $from"
 
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
@@ -257,7 +263,7 @@ proc xsend::iqDiscoInfo {xlib from xmlElement args} {
     }
 
     set identity [::xmpp::xml::create identity \
-                                      -attrs [list name     xsend \
+                                      -attrs [list name     jsend \
                                                    category client \
                                                    type     bot]]
 
@@ -278,8 +284,8 @@ proc xsend::iqDiscoInfo {xlib from xmlElement args} {
     return [list result $xmldata]
 }
 
-proc xsend::iqDiscoItems {xlib from xmlElement args} {
-    ::LOG "xsend::iqDiscoItems $from"
+proc jsend::iqDiscoItems {xlib from xmlElement args} {
+    ::LOG "jsend::iqDiscoItems $from"
 
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
@@ -290,10 +296,10 @@ proc xsend::iqDiscoItems {xlib from xmlElement args} {
     return [list result [::xmpp::xml::create query -xmlns $xmlns]]
 }
 
-proc xsend::iqLast {xlib from xmlElement args} {
+proc jsend::iqLast {xlib from xmlElement args} {
     variable lib
 
-    ::LOG "xsend::iqLast $from"
+    ::LOG "jsend::iqLast $from"
 
     set now [clock seconds]
     set xmldata \
@@ -304,8 +310,8 @@ proc xsend::iqLast {xlib from xmlElement args} {
     return [list result $xmldata]
 }
 
-proc xsend::iqTime {xlib from xmlElement args} {
-    ::LOG "xsend::iqTime $from"
+proc jsend::iqTime {xlib from xmlElement args} {
+    ::LOG "jsend::iqTime $from"
 
     set now [clock seconds]
     set gmtP true
@@ -322,10 +328,10 @@ proc xsend::iqTime {xlib from xmlElement args} {
     return [list result $xmldata]
 }
 
-proc xsend::iqVersion {xlib from xmlElement args} {
+proc jsend::iqVersion {xlib from xmlElement args} {
     global argv0 tcl_platform
 
-    ::LOG "xsend::iqVersion $from"
+    ::LOG "jsend::iqVersion $from"
 
     foreach {k v} [list name    [file tail [file rootname $argv0]] \
                         version "1.0 (Tcl [info patchlevel])"      \
@@ -338,11 +344,11 @@ proc xsend::iqVersion {xlib from xmlElement args} {
 }
 
 proc client:reconnect {xlib} {
-    xsend::reconnect
+    jsend::reconnect
 }
 
 proc client:disconnect {xlib} {
-    xsend::reconnect
+    jsend::reconnect
 }
 
 proc client:status {args} {
@@ -350,15 +356,15 @@ proc client:status {args} {
 }
 
 
-namespace eval xsend {
+namespace eval jsend {
     variable stayP 1
 }
 
-proc xsend::follow {file argv} {
+proc jsend::follow {file argv} {
     proc [namespace current]::reconnect {} \
          [list [namespace current]::reconnect_aux $argv]
 
-    if {[catch { eval [list xsend::sendit 2] $argv } result]} {
+    if {[catch { eval [list jsend::sendit 2] $argv } result]} {
         ::bgerror $result
         return
     }
@@ -395,7 +401,7 @@ proc xsend::follow {file argv} {
                 }
 
                 if {[string length $buffer] > 0} {
-                    if {[catch { eval [list xsend::sendit 1] $argv \
+                    if {[catch { eval [list jsend::sendit 1] $argv \
                                       [parse $buffer] \
                                       [list -body $buffer] } result]} {
                         ::LOG $result
@@ -417,7 +423,7 @@ proc xsend::follow {file argv} {
         } elseif {[set x [string first "\n" $buffer]] < 0} {
         } else {
             set body [string range $buffer 0 [expr {$x-1}]]
-            while {[catch { eval [list xsend::sendit 1] $argv [parse $body] \
+            while {[catch { eval [list jsend::sendit 1] $argv [parse $body] \
                                  [list -body $body] } result]} {
                 ::LOG $result
             }
@@ -431,7 +437,7 @@ proc xsend::follow {file argv} {
     }
 }
 
-proc xsend::parse {line} {
+proc jsend::parse {line} {
     set args {}
 
     if {![string equal [string index $line 15] " "]} {
@@ -448,12 +454,12 @@ proc xsend::parse {line} {
     return $args
 }
 
-proc xsend::reconnect_aux {argv} {
+proc jsend::reconnect_aux {argv} {
     variable stayP
 
     while {$stayP} {
         after [expr {60*1000}]
-        if {![catch { eval [list xsend::sendit 2] $argv } result]} {
+        if {![catch { eval [list jsend::sendit 2] $argv } result]} {
             break
         }
 
@@ -461,7 +467,7 @@ proc xsend::reconnect_aux {argv} {
     }
 }
 
-proc xsend::parse_xhtml {text} {
+proc jsend::parse_xhtml {text} {
     return [::xmpp::xml::parseData "<body>$text</body>"]
 }
 
@@ -482,9 +488,9 @@ proc ::bgerror {err} {
 
 set status 1
 
-array set xsend::lib [list lastwhen [clock seconds] lastwhat ""]
+array set jsend::lib [list lastwhen [clock seconds] lastwhat ""]
 
-if {[string equal [file tail [lindex $argv 0]] "xsend.tcl"]} {
+if {[string equal [file tail [lindex $argv 0]] "jsend.tcl"]} {
     incr argc -1
     set argv [lrange $argv 1 end]
 }
@@ -493,7 +499,7 @@ if {(([set x [lsearch -exact $argv -help]] >= 0) \
             || ([set x [lsearch -exact $argv --help]] >= 0)) \
         && (($x == 0) || ([expr {$x % 2}]))} {
     puts stdout \
-"usage: xsend.tcl recipient ?options...?
+"usage: jsend.tcl recipient ?options...?
             -follow      file
             -pidfile     file
             -from        jid
@@ -514,7 +520,7 @@ If recipient is '-', roster is used.
 
 If both '-body' and '-follow' are absent, the standard input is used.
 
-The file .xsendrc.tcl in the current or in home directory is consulted,
+The file .jsendrc.tcl in the current or in home directory is consulted,
 e.g.,
 
     set args {-from fred@example.com/bedrock -password wilma}
@@ -523,10 +529,10 @@ for default values."
 
     set status 0
 } elseif {($argc < 1) || (![expr {$argc % 2}])} {
-    puts stderr "usage: xsend.tcl recipent ?-key value?..."
+    puts stderr "usage: jsend.tcl recipent ?-key value?..."
 } elseif {[catch {
-    if {([file exists [set file .xsendrc.tcl]]) \
-            || ([file exists [set file ~/.xsendrc.tcl]])} {
+    if {([file exists [set file .jsendrc.tcl]]) \
+            || ([file exists [set file ~/.jsendrc.tcl]])} {
         set args {}
 
         source $file
@@ -557,10 +563,10 @@ for default values."
         close $fd
     }
 
-    xsend::follow [lindex $argv [expr {$x + 1}]] $argv
+    jsend::follow [lindex $argv [expr {$x + 1}]] $argv
 
     catch { file delete -- $pf }
-} elseif {[catch { eval [list xsend::sendit 0] $argv } result]} {
+} elseif {[catch { eval [list jsend::sendit 0] $argv } result]} {
     puts stderr $result
 } else {
     set status 0
