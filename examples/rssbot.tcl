@@ -15,9 +15,9 @@
 
 package require Tcl 8.5
 package require http 2
-package require mime
 package require tls
 package require uri
+package require htmlparse
 
 package require xmpp
 package require xmpp::auth
@@ -93,12 +93,9 @@ proc rssbot::sendit {stayP to args} {
         }
     }
 
-    array set aprops [lindex [mime::parseaddress $options(-from)] 0]
-    if {[set x [string first / $aprops(domain)]] >= 0} {
-        set aprops(resource) [string range $aprops(domain) [expr {$x + 1}] end]
-        set aprops(domain) [string range $aprops(domain) 0 [expr {$x - 1}]]
-    } else {
-        set aprops(resource) "rssbot"
+    ::xmpp::jid::split $options(-from) node domain resource
+    if {[string equal $resource ""]} {
+        set resource "rssbot"
     }
 
     set options(-xlist) {}
@@ -150,35 +147,35 @@ proc rssbot::sendit {stayP to args} {
         }
 
         # Connect to a server
-        ::xmpp::connect $xlib $aprops(domain) $port -transport $transport
+        ::xmpp::connect $xlib $domain $port -transport $transport
 
         if {!$options(-tls) && $options(-starttls)} {
             # Open XMPP stream
-            set sessionID [::xmpp::openStream $xlib $aprops(domain) \
+            set sessionID [::xmpp::openStream $xlib $domain \
                                                     -version 1.0]
 
             ::xmpp::starttls::starttls $xlib
 
-            ::xmpp::sasl::auth $xlib -username  $aprops(local) \
+            ::xmpp::sasl::auth $xlib -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $aprops(resource)
+                                     -resource  $resource
         } elseif {$options(-sasl)} {
             # Open XMPP stream
-            set sessionID [::xmpp::openStream $xlib $aprops(domain) \
+            set sessionID [::xmpp::openStream $xlib $domain \
                                                     -version 1.0]
 
-            ::xmpp::sasl::auth $xlib -username  $aprops(local) \
+            ::xmpp::sasl::auth $xlib -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $aprops(resource)
+                                     -resource  $resource
         } else {
             # Open XMPP stream
-            set sessionID [::xmpp::openStream $xlib $aprops(domain)]
+            set sessionID [::xmpp::openStream $xlib $domain]
 
             # Authenticate
             ::xmpp::auth::auth $xlib -sessionid $sessionID \
-                                     -username  $aprops(local) \
+                                     -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $aprops(resource)
+                                     -resource  $resource
         }
 
         set roster [::xmpp::roster::new $xlib]
@@ -476,7 +473,10 @@ proc rssbot::loop_aux {argv} {
             continue
         }
 
-        if {[catch { ::http::geturl $site } httpT]} {
+        # Sometimes the RSS encoding can be application/xml instead of text/xml,
+        # so treat all data as binary and recode it separately
+
+        if {[catch { ::http::geturl $site -binary 1 } httpT]} {
             ::LOG "$site: $httpT"
             continue
         }
@@ -500,7 +500,7 @@ proc rssbot::loop_aux {argv} {
                         set mtime $t
                     }
                     foreach {k v} [process $site $mtime [expr {$now + (30*60)}] \
-                                           $now [::http::data $httpT]] {
+                                           $now [recodeXML [::http::data $httpT]]] {
                         if {$v} {
                             set updateP($k) 1
                         }
@@ -662,8 +662,12 @@ proc rssbot::element {tag name {av {}} args} {
                 return
             }
 
+            set info(description) [removeHTTPMarkup $info(description)]
+
             if {![string compare $info(body) ""]} {
                 set info(body) [string trim "$info(description)\n$info(url)"]
+            } else {
+                set info(body) [removeHTTPMarkup $info(body)]
             }
 
             set args {}
@@ -1043,6 +1047,90 @@ proc rssbot::iq_private {setP status xmlList} {
     }
 }
 
+proc rssbot::removeHTTPMarkup {html} {
+    set text ""
+    ::htmlparse::parse \
+        -cmd [namespace code [list processHTTPTag [info level] text]] $html
+    return $text
+}
+
+proc rssbot::processHTTPTag {level var tag slash attrs cdata} {
+    upvar #$level $var text
+
+    set cdata [regsub {\s+} [::htmlparse::mapEscapes $cdata] { }]
+
+    switch -glob -- $tag:$slash {
+        p: -
+        br: {
+            append text "\n" $cdata
+        }
+        tr: {
+            append text "\n"
+        }
+        th: -
+        td: {
+            append text "\t" $cdata
+        }
+        default {
+            append text $cdata
+        }
+    }
+}
+
+# The following code is mostly taken from http://wiki.tcl.tk/15326
+
+proc rssbot::recodeXML {xml} {
+    # The autodetection of the encoding follows
+    # XML Recomendation, Appendix F
+
+    set closeIndex 0
+
+    if {![binary scan $xml "H8" firstBytes]} {
+        # very short (< 4 Bytes) file
+        set encoding utf-8
+    }
+
+    # If the entity has a XML Declaration, the first four characters
+    # must be "<?xm".
+    switch $firstBytes {
+        "3c3f786d" {
+            # UTF-8, ISO 646, ASCII, some part of ISO 8859, Shift-JIS,
+            # EUC, or any other 7-bit, 8-bit, or mixed-width encoding which
+            # ensures that the characters of ASCII have their normal positions,
+            # width and values; the actual encoding declaration must be read to
+            # detect which of these applies, but since all of these encodings
+            # use the same bit patterns for the ASCII characters, the encoding
+            # declaration itself can be read reliably.
+
+            # Try to find the end of the XML Declaration
+            set closeIndex [string first ">" $xml]
+            if {$closeIndex < 0} {
+                error "Weird XML data or not XML data at all"
+            }
+
+            set xmlDeclaration [string range $xml 0 $closeIndex]
+            incr closeIndex
+            # extract the encoding information
+            set pattern {^[^>]+encoding=[\x20\x9\xd\xa]*["']([^ "']+)['"]}
+            # emacs or vim: "
+            if {![regexp $pattern $xmlDeclaration - encStr]} {
+                # Probably something like <?xml version="1.0"?>.
+                # Without encoding declaration, pass-thru
+                set encoding utf-8
+            } else {
+                set encoding [::http::CharsetToEncoding $encStr]
+            }
+        }
+        default {
+            # TODO: 16 and 32-bit encodings
+            # pass-thru
+            set encoding iso8859-1
+        }
+    }
+
+    return [encoding convertfrom $encoding [string range $xml $closeIndex end]]
+}
+
 # The following code is taken from http://wiki.tcl.tk/13094
 
 namespace eval iso8601 {
@@ -1193,11 +1281,9 @@ proc iso8601::parse_time { timeString args } {
 # The following code is taken from http://wiki.tcl.tk/13094
 
 namespace eval rfc2822 {
-
     namespace export parseDate
 
     variable datepats {}
-    
 }
 
 # AddDatePat --
@@ -1223,9 +1309,8 @@ namespace eval rfc2822 {
 #       Adds a complete regexp and a complete [clock scan] pattern to
 #       'datepats'
 
-proc rfc2822::AddDatePat { wpat wgrp ypat ygrp mdpat mdgrp 
+proc rfc2822::AddDatePat { wpat wgrp ypat ygrp mdpat mdgrp
                            spat sgrp zpat zgrp } {
-        
     variable datepats
     set regexp {^[[:space:]]*}
     set pat {}
@@ -1239,7 +1324,7 @@ proc rfc2822::AddDatePat { wpat wgrp ypat ygrp mdpat mdgrp
     lappend datepats $regexp $pat
     return
 }
-    
+
 # InitDatePats --
 #
 #       Internal rocedure that initializes the set of date patterns allowed in
@@ -1255,29 +1340,26 @@ proc rfc2822::AddDatePat { wpat wgrp ypat ygrp mdpat mdgrp
 # Side effects:
 
 proc rfc2822::InitDatePats { permissible } {
-        
     # Produce formats for the observed variants of ISO2822 dates.  Permissible
     # variants come first in the list; impermissible ones come later.
-    
+
     # The month and day may be "%b %d" or "%d %b"
-    
-    foreach mdpat {{[[:alpha:]]+[[:space:]]+\d\d?} 
+
+    foreach mdpat {{[[:alpha:]]+[[:space:]]+\d\d?}
         {\d\d?[[:space:]]+[[:alpha:]]+}} \
         mdgrp {{%b %d} {%d %b}} \
         mdperm {0 1} {
 
-            # The year may be two digits, or four. Four digit year is done 
+            # The year may be two digits, or four. Four digit year is done
             # first.
-    
+
             foreach ypat {{\d\d\d\d} {\d\d}} ygrp {%Y %y} {
-                
                 # The seconds of the minute may be provided, or omitted.
-                
+
                 foreach spat {{:\d\d} {}} sgrp {:%S {}} {
-                    
                     # The weekday may be provided or omitted. It is common but
                     # impermissible to omit the comma after the weekday name.
-                    
+
                     foreach wpat {
                         {(?:Mon|T(?:ue|hu)|Wed|Fri|S(?:at|un)),[[:space:]]+}
                         {(?:Mon|T(?:ue|hu)|Wed|Fri|S(?:at|un))[[:space:]]+}
@@ -1291,15 +1373,14 @@ proc rfc2822::InitDatePats { permissible } {
                         0
                         1
                     } {
-                        
                         # Time zone is defined as +/- hhmm, or as a
                         # named time zone.  Other common but buggy
                         # formats are GMT+-hh:mm, a time zone name in
                         # quotation marks, and complete omission of
                         # the time zone.
-                
+
                         foreach zpat {
-                            {[[:space:]]+(?:[-+]\d\d\d\d|[[:alpha:]]+)} 
+                            {[[:space:]]+(?:[-+]\d\d\d\d|[[:alpha:]]+)}
                             {[[:space:]]+GMT[-+]\d\d:?\d\d}
                             {[[:space:]]+"[[:alpha:]]+"}
                             {}

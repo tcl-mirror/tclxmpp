@@ -1,3 +1,8 @@
+2009-10-10  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/rssbot.tcl: Get XML encoding from XML document itself and
+	  not from HTTP header. Also, strip HTML markup from items description.
+
 2009-10-04  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/jsend.tcl: Restored historical name and added -date option
