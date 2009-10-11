@@ -13,7 +13,6 @@
 #
 # $Id$
 
-package require mime
 package require sha1
 package require tls
 
@@ -97,12 +96,9 @@ proc jsend::sendit {stayP to args} {
         }
     }
 
-    array set aprops [lindex [mime::parseaddress $options(-from)] 0]
-    if {[set x [string first / $aprops(domain)]] >= 0} {
-        set aprops(resource) [string range $aprops(domain) [expr {$x + 1}] end]
-        set aprops(domain) [string range $aprops(domain) 0 [expr {$x - 1}]]
-    } else {
-        set aprops(resource) "jsend"
+    ::xmpp::jid::split $options(-from) node domain resource
+    if {[string equal $resource ""]} {
+        set resource "jsend"
     }
 
     if {[string equal $options(-body) ""] && $stayP < 2} {
@@ -177,35 +173,35 @@ proc jsend::sendit {stayP to args} {
         }
 
         # Connect to a server
-        ::xmpp::connect $xlib $aprops(domain) $port -transport $transport
+        ::xmpp::connect $xlib $domain $port -transport $transport
 
         if {!$options(-tls) && $options(-starttls)} {
             # Open XMPP stream
-            set sessionID [::xmpp::openStream $xlib $aprops(domain) \
+            set sessionID [::xmpp::openStream $xlib $domain \
                                                     -version 1.0]
 
             ::xmpp::starttls::starttls $xlib
 
-            ::xmpp::sasl::auth $xlib -username  $aprops(local) \
+            ::xmpp::sasl::auth $xlib -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $aprops(resource)
+                                     -resource  $resource
         } elseif {$options(-sasl)} {
             # Open XMPP stream
-            set sessionID [::xmpp::openStream $xlib $aprops(domain) \
+            set sessionID [::xmpp::openStream $xlib $domain \
                                                     -version 1.0]
 
-            ::xmpp::sasl::auth $xlib -username  $aprops(local) \
+            ::xmpp::sasl::auth $xlib -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $aprops(resource)
+                                     -resource  $resource
         } else {
             # Open XMPP stream
-            set sessionID [::xmpp::openStream $xlib $aprops(domain)]
+            set sessionID [::xmpp::openStream $xlib $domain]
 
             # Authenticate
             ::xmpp::auth::auth $xlib -sessionid $sessionID \
-                                     -username  $aprops(local) \
+                                     -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $aprops(resource)
+                                     -resource  $resource
         }
 
         set roster [::xmpp::roster::new $xlib]
@@ -220,7 +216,7 @@ proc jsend::sendit {stayP to args} {
         ::xmpp::sendPresence $xlib -status Online
 
         if {[string equal $options(-type) groupchat]} {
-            set nick $aprops(local)@$aprops(domain)/$aprops(resource)
+            set nick [::xmpp::jid::jid $username $domain $resource]
             set nick [string range [sha1::sha1 $nick+[clock seconds]] 0 7]
             foreach to $options(-to) {
                 ::xmpp::sendPresence $xlib -to $to/$nick

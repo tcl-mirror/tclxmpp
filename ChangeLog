@@ -3,6 +3,9 @@
 	* examples/rssbot.tcl: Fixed removing extra space characters from HTML
 	  descriptions. Fixed processing uppercase tags in HTML descriptions.
 
+	* examples/jsend.tcl: Use ::xmpp::jid::split to parse from JID instead
+	  of ::mime::parseaddress.
+
 2009-10-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/rssbot.tcl: Get XML encoding from XML document itself and
