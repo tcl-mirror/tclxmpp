@@ -1059,7 +1059,7 @@ proc rssbot::processHTTPTag {level var tag slash attrs cdata} {
 
     regsub -all {\s+} [::htmlparse::mapEscapes $cdata] { } cdata
 
-    switch -glob -- $tag:$slash {
+    switch -glob -- [string tolower $tag]:$slash {
         p: -
         br: {
             append text "\n" $cdata
