@@ -1057,7 +1057,7 @@ proc rssbot::removeHTTPMarkup {html} {
 proc rssbot::processHTTPTag {level var tag slash attrs cdata} {
     upvar #$level $var text
 
-    set cdata [regsub {\s+} [::htmlparse::mapEscapes $cdata] { }]
+    regsub -all {\s+} [::htmlparse::mapEscapes $cdata] { } cdata
 
     switch -glob -- $tag:$slash {
         p: -

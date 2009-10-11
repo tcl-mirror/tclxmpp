@@ -1,3 +1,8 @@
+2009-10-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/rssbot.tcl: Fixed removing extra space characters from HTML
+	  descriptions.
+
 2009-10-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/rssbot.tcl: Get XML encoding from XML document itself and
