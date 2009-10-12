@@ -216,9 +216,9 @@ proc rssbot::message {xlib from type x args} {
     set jid [::xmpp::jid::stripResource $from]
 
     switch -- $type {
-        normal -
-        chat { }
-        "" { set type normal }
+        normal  -
+        chat    { }
+        ""      { set type normal }
         default {
             ::LOG "$from ignoring $type"
             return
@@ -229,10 +229,12 @@ proc rssbot::message {xlib from type x args} {
     set subject ""
     foreach {key val} $args {
         switch -- $key {
-            -body { set body $val }
+            -body    { set body    $val }
             -subject { set subject $val }
         }
     }
+
+    if {[string equal $body ""]} return
 
     if {[catch { rssbot::message_aux $jid $body } answer]} {
         ::LOG "$jid/$body: $answer"

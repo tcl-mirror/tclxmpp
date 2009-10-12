@@ -1,3 +1,7 @@
+2009-10-12  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/rssbot.tcl: Ignore messages with empty bodies.
+
 2009-10-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/rssbot.tcl: Fixed removing extra space characters from HTML
