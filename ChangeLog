@@ -1,3 +1,8 @@
+2009-10-18  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/disco.tcl: Fixed calling back when info or items are received
+	  with status error or abort.
+
 2009-10-12  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/rssbot.tcl: Ignore messages with empty bodies.

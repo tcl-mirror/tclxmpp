@@ -162,15 +162,14 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
         if {[lsearch -exact $NonCacheable $condition] >= 0} {
             # Do not cache certain error conditions
 
-            return
-        }
+        } else {
+            if {$cache && [lsearch -glob $state(cache) \
+                                   [list [list info $jid $node] *]] < 0} {
+                lappend state(cache) [list [list info $jid $node] $status $xml]
 
-        if {$cache && [lsearch -glob $state(cache) \
-                                     [list [list info $jid $node] *]] < 0} {
-            lappend state(cache) [list [list info $jid $node] $status $xml]
-
-            if {[llength $state(cache)] > $state(size)} {
-                set state(cache) [lrange $state(cache) 1 end]
+                if {[llength $state(cache)] > $state(size)} {
+                    set state(cache) [lrange $state(cache) 1 end]
+                }
             }
         }
 
@@ -181,6 +180,9 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
     } elseif {![string equal $status ok]} {
         # Do not cache the answer if status is 'abort'
 
+        if {[llength $commands] > 0} {
+            uplevel #0 [lindex $commands 0] [list $status $xml]
+        }
         return
     }
 
@@ -225,7 +227,6 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
         uplevel #0 [lindex $commands 0] \
                    [list ok [list $identities $features $extras]]
     }
-
     return
 }
 
@@ -309,15 +310,15 @@ proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
         if {[lsearch -exact $NonCacheable $condition] >= 0} {
             # Do not cache certain error conditions
 
-            return
-        }
+        } else {
 
-        if {$cache && [lsearch -glob $state(cache) \
-                                     [list [list items $jid $node] *]] < 0} {
-            lappend state(cache) [list [list items $jid $node] $status $xml]
+            if {$cache && [lsearch -glob $state(cache) \
+                                   [list [list items $jid $node] *]] < 0} {
+                lappend state(cache) [list [list items $jid $node] $status $xml]
 
-            if {[llength $state(cache)] > $state(size)} {
-                set state(cache) [lrange $state(cache) 1 end]
+                if {[llength $state(cache)] > $state(size)} {
+                    set state(cache) [lrange $state(cache) 1 end]
+                }
             }
         }
 
@@ -328,6 +329,9 @@ proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
     } elseif {![string equal $status ok]} {
         # Do not cache the answer if status is 'abort'
 
+        if {[llength $commands] > 0} {
+            uplevel #0 [lindex $commands 0] [list $status $xml]
+        }
         return
     }
 
@@ -364,7 +368,6 @@ proc ::xmpp::disco::ParseItems {token jid node cache commands status xml} {
     if {[llength $commands] > 0} {
         uplevel #0 [lindex $commands 0] [list ok $items]
     }
-
     return
 }
 
