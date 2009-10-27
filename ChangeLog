@@ -1,3 +1,7 @@
+2009-10-27  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/poll.tcl, xmpp/xml.tcl: Removed trailing whitespaces.
+
 2009-10-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl: Fixed calling back when info or items are received

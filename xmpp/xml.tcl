@@ -868,7 +868,7 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
             set xmlns undefined
         } else {
             set xmlns $namespace($prefix)
-        } 
+        }
     } else {
         set xmlns $namespace()
     }

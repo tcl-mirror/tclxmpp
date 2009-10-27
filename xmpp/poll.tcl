@@ -169,7 +169,7 @@ proc ::xmpp::transport::poll::open {server port args} {
                 }
             }
         }
-        
+
         ::http::config -proxyfilter $proxyFilter
     }
 
