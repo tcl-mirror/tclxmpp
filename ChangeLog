@@ -7,7 +7,8 @@
 	  calls, and a bit improved error reporting in some catch calls.
 
 	* xmpp/xmpp.tcl: Disconnect before connecting a stream if it isn't in
-	  disconnected state.
+	  disconnected state. Also, don't react to stale stream headers after
+	  stream abortion.
 
 2009-10-27  Sergei Golovan  <sgolovan@nes.ru>
 

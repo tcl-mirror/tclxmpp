@@ -514,6 +514,12 @@ proc ::xmpp::GotStream {xlib status attrs} {
     variable $xlib
     upvar 0 $xlib state
 
+    if {![info exists state(abortCommand)]} {
+        # state(abortCommand) must exist, otherwise it's a stale stream
+        Debug $xlib 2 "Stale stream: $status $attrs"
+        return
+    }
+
     Debug $xlib 2 "$status $attrs"
     if {[string equal $status ok]} {
 	set msg "<stream:stream "
