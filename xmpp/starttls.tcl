@@ -108,8 +108,7 @@ proc ::xmpp::starttls::starttls {xlib args} {
             }
             default {
                 unset state
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

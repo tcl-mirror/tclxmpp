@@ -70,9 +70,8 @@ proc ::xmpp::new {args} {
 
         if {[info exists $xlib]} {
             return -code error \
-                   -errorinfo [::msgcat::mc "An existing variable \"%s\"\
-                                             cannot be used as an XMPP\
-                                             token" $xlib]
+                   [::msgcat::mc "An existing variable \"%s\" cannot be used\
+                                  as an XMPP token" $xlib]
         }
     } else {
         set xlib [namespace current]::[incr id]
@@ -97,8 +96,7 @@ proc ::xmpp::new {args} {
                 set attrs($key) $val
             }
             default {
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -158,8 +156,7 @@ proc ::xmpp::free {xlib} {
     Debug $xlib 2 ""
 
     if {![status $xlib disconnected]} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Free without disconnect"]
+        return -code error [::msgcat::mc "Free without disconnect"]
     }
 
     if {[info exists state(-messagecommand)]} {
@@ -437,9 +434,8 @@ proc ::xmpp::OpenStreamAux {xlib args} {
             -xmlns:stream {
                 if {![string equal $val http://etherx.jabber.org/streams]} {
                     return -code error \
-                           -errorinfo [::msgcat::mc \
-                                           "Unsupported stream XMLNS \"%s\"" \
-                                           $val]
+                           [::msgcat::mc "Unsupported stream XMLNS \"%s\"" \
+                                         $val]
                 }
             }
             -xmlns -
@@ -455,8 +451,7 @@ proc ::xmpp::OpenStreamAux {xlib args} {
                 set state(openStreamCommand) $val
             }
             default  {
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -960,10 +955,10 @@ proc ::xmpp::ForcedDisconnect {xlib} {
                 catch {unset state(abortCommand)}
             }
 
-            catch {
-                transport::use $state(transport) close
-                unset state(transport)
+            if {[catch {transport::use $state(transport) close} msg]} {
+                Debug $xlib 1 "Closing connection failed: $msg"
             }
+            catch {unset state(transport)}
 
             CallBack $xlib disconnect
 
@@ -1006,11 +1001,13 @@ proc ::xmpp::disconnect {xlib} {
                 catch {unset state(abortCommand)}
             }
 
-            catch {
-                closeStream $xlib
-                transport::use $state(transport) close
-                unset state(transport)
+            if {[catch {closeStream $xlib} msg]} {
+                Debug $xlib 1 "Closing stream failed: $msg"
             }
+            if {[catch {transport::use $state(transport) close} msg]} {
+                Debug $xlib 1 "Closing connection failed: $msg"
+            }
+            catch {unset state(transport)}
 
             ClearState $xlib
         }
@@ -1661,9 +1658,8 @@ proc ::xmpp::sendIQ {xlib type args} {
                 # Option -command makes sense for get or set IQs only
                 if {!$getset} {
                     return -code error \
-                           -errorinfo [::msgcat::mc "Option \"-command\" is\
-                                                     illegal for IQ type\
-                                                     \"%s\"" $attrs(type)]
+                           [::msgcat::mc "Option \"-command\" is illegal for\
+                                          IQ type \"%s\"" $attrs(type)]
                 }
 
                 # Only the last -command takes effect

@@ -214,8 +214,7 @@ proc ::pconnect::abort {token} {
     upvar 0 $token state
 
     if {![info exists $token]} {
-        return -code error \
-               -errorinfo "Connection either established or failed already"
+        return -code error "Connection either established or failed already"
     }
 
     set proxy $state(-proxy)

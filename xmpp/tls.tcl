@@ -292,8 +292,7 @@ proc ::xmpp::transport::tls::import {token args} {
     if {[catch {::tls::handshake $state(sock)} result]} {
         catch {::close $state(sock)}
         # TODO: Cleanup.
-        return -code error \
-               -errorinfo [::msgcat::mc "TLS handshake failed: %s" $result]
+        return -code error [::msgcat::mc "TLS handshake failed: %s" $result]
     }
 
     fconfigure $state(sock) -blocking    false \
@@ -495,10 +494,8 @@ proc ::xmpp::transport::tls::close {token} {
     variable $token
     upvar 0 $token state
 
-    catch {
-        fileevent $state(sock) readable {}
-        ::close $state(sock)
-    }
+    catch {fileevent $state(sock) readable {}}
+    catch {::close $state(sock)}
 
     if {[info exists state(parser)]} {
         ::xmpp::xml::free $state(parser)

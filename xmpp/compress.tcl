@@ -89,8 +89,7 @@ proc ::xmpp::compress::compress {xlib args} {
                 set timeout $val
             }
             default {
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

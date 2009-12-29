@@ -1,3 +1,11 @@
+2009-12-29  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/compress.tcl, xmpp/iq.tcl,
+	  xmpp/pconnect.tcl, xmpp/sasl.tcl, xmpp/starttls.tcl, xmpp/tcp.tcl,
+	  xmpp/tls.tcl, xmpp/transport.tcl, xmpp/xml.tcl, xmpp/xmpp.tcl,
+	  xmpp/zlib.tcl: Removed incorrect -errorinfo options from return
+	  calls, and a bit improved error reporting in some catch calls.
+
 2009-10-27  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/poll.tcl, xmpp/xml.tcl: Removed trailing whitespaces.

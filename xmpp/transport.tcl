@@ -78,9 +78,8 @@ proc ::xmpp::transport::register {transport args} {
     variable Transports
 
     if {[lsearch -exact $TransportsList $transport] >= 0} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Transport \"%s\" already\
-                                         registered" $transport]
+        return -code error [::msgcat::mc "Transport \"%s\" already\
+                                          registered" $transport]
     }
 
     foreach {key val} $args {
@@ -99,8 +98,7 @@ proc ::xmpp::transport::register {transport args} {
                 set attrs($key) $val
             }
             default {
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -118,8 +116,7 @@ proc ::xmpp::transport::register {transport args} {
                  -closestreamcommand} {
         if {![info exists attrs($key)]} {
             unset Transports($transport)
-            return -code error \
-                   -errorinfo [::msgcat::mc "Missing option \"%s\"" $key]
+            return -code error [::msgcat::mc "Missing option \"%s\"" $key]
         } else {
             lappend Transports($transport) $key $attrs($key)
         }
@@ -154,8 +151,7 @@ proc ::xmpp::transport::unregister {transport} {
     variable Transports
 
     if {[set idx [lsearch -exact $TransportsList $transport]] < 0} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Unknown transport \"%s\"" $transport]
+        return -code error [::msgcat::mc "Unknown transport \"%s\"" $transport]
     } else {
         set TransportsList [lreplace $TransportsList $idx $idx]
         unset $Transports($transport)
@@ -169,8 +165,7 @@ proc ::xmpp::transport::open {transport args} {
     variable Transports
 
     if {[lsearch -exact $TransportsList $transport] < 0} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Unknown transport \"%s\"" $transport]
+        return -code error [::msgcat::mc "Unknown transport \"%s\"" $transport]
     }
 
     array set attrs $Transports($transport)
@@ -205,8 +200,7 @@ proc ::xmpp::transport::use {token command args} {
     set transport $state(transport)
 
     if {[lsearch -exact $TransportsList $transport] < 0} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Unknown transport \"%s\"" $transport]
+        return -code error [::msgcat::mc "Unknown transport \"%s\"" $transport]
     }
 
     ::switch -- $command {
@@ -220,8 +214,7 @@ proc ::xmpp::transport::use {token command args} {
         openStream  {set key -openstreamcommand}
         closeStream {set key -closestreamcommand}
         default {
-            return -code error \
-                   -errorinfo [::msgcat::mc "Illegal command \"%s\"" $command]
+            return -code error [::msgcat::mc "Illegal command \"%s\"" $command]
         }
     }
 
@@ -251,8 +244,7 @@ proc ::xmpp::transport::switch {token transport args} {
     variable Transports
 
     if {[lsearch -exact $TransportsList $transport] < 0} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Unknown transport \"%s\"" $transport]
+        return -code error [::msgcat::mc "Unknown transport \"%s\"" $transport]
     }
 
     array set attrs $Transports($transport)
@@ -262,8 +254,8 @@ proc ::xmpp::transport::switch {token transport args} {
         } token2]} {
 
         return -code error \
-               -errorinfo [::msgcat::mc "Can't switch transport to \"%s\": %s" \
-                                        $transport $token2]
+               [::msgcat::mc "Can't switch transport to \"%s\": %s" \
+                             $transport $token2]
     } else {
         return $token2
     }

@@ -372,10 +372,8 @@ proc ::xmpp::transport::tcp::close {token} {
     variable $token
     upvar 0 $token state
 
-    catch {
-        fileevent $state(sock) readable {}
-        ::close $state(sock)
-    }
+    catch {fileevent $state(sock) readable {}}
+    catch {::close $state(sock)}
 
     if {[info exists state(parser)]} {
         ::xmpp::xml::free $state(parser)

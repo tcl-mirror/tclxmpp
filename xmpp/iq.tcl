@@ -116,8 +116,7 @@ proc ::xmpp::iq::RegisterIQ {xlib type tag xmlns cmd} {
         get -
         set {}
         default {
-            return -code error \
-                   -errorinfo [::msgcat::mc "Illegal IQ type \"%s\"" $type]
+            return -code error [::msgcat::mc "Illegal IQ type \"%s\"" $type]
         }
     }
 

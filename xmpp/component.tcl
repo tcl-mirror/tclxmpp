@@ -81,8 +81,7 @@ proc ::xmpp::component::auth {xlib args} {
             }
             default {
                 unset state
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -91,8 +90,7 @@ proc ::xmpp::component::auth {xlib args} {
                  -secret} {
         if {![info exists state($key)]} {
             unset state
-            return -code error \
-                   -errorinfo [::msgcat::mc "Missing option \"%s\"" $key]
+            return -code error [::msgcat::mc "Missing option \"%s\"" $key]
         }
     }
 

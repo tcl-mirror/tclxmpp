@@ -94,8 +94,7 @@ proc ::xmpp::xml::free {token} {
     upvar 0 $token state
 
     if {![info exists state(parser)]} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
+        return -code error [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
 
     $state(parser) free
@@ -123,8 +122,7 @@ proc ::xmpp::xml::parser {token command args} {
     upvar 0 $token state
 
     if {![info exists state(parser)]} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
+        return -code error [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
 
     # TODO: catch and process errors
@@ -149,8 +147,7 @@ proc ::xmpp::xml::reset {token} {
     upvar 0 $token state
 
     if {![info exists state(parser)]} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
+        return -code error [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
 
     $state(parser) reset
@@ -362,10 +359,8 @@ proc ::xmpp::xml::create {tag args} {
                 foreach {attr value} $val {
                     if {[string equal $attr xmlns]} {
                         return -code error \
-                               -errorinfo \
-                                    [::msgcat::mc \
-                                            "Illegal attribute \"xmlns\".\
-                                             Use -xmlns option"]
+                               [::msgcat::mc "Illegal attribute \"xmlns\".\
+                                              Use -xmlns option"]
                     }
                     lappend attrs $attr $value
                 }
@@ -401,8 +396,7 @@ proc ::xmpp::xml::create {tag args} {
                 }
             }
             default {
-                return -code error \
-                       -errorinfo [::msgcat::mc "Invalid option \"%s\"" $key]
+                return -code error [::msgcat::mc "Invalid option \"%s\"" $key]
             }
         }
     }
@@ -605,15 +599,13 @@ proc ::xmpp::xml::streamHeader {to args} {
     if {[isAttr $args -xmlns:stream]} {
         set xmlns_stream [getAttr $args -xmlns:stream]
     } else {
-        return -code error \
-               -errorinfo [::msgcat::mc "Missing option \"%s\"" -xmlns:stream]
+        return -code error [::msgcat::mc "Missing option \"%s\"" -xmlns:stream]
     }
 
     if {[isAttr $args -xmlns]} {
         set xmlns [getAttr $args -xmlns]
     } else {
-        return -code error \
-               -errorinfo [::msgcat::mc "Missing option \"%s\"" -xmlns]
+        return -code error [::msgcat::mc "Missing option \"%s\"" -xmlns]
     }
 
     set retext "<stream:stream xmlns:stream='[Escape $xmlns_stream]'\
@@ -630,8 +622,7 @@ proc ::xmpp::xml::streamHeader {to args} {
             -xmlns:stream -
             -xmlns {}
             default {
-                return -code error \
-                       -errorinfo [::msgcat::mc "Invalid option \"%s\"" $key]
+                return -code error [::msgcat::mc "Invalid option \"%s\"" $key]
             }
         }
     }
@@ -841,8 +832,7 @@ proc ::xmpp::xml::ElementStart {token tag attrs args} {
     upvar 0 $token state
 
     if {![info exists state(parser)]} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
+        return -code error [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
 
     array set namespace [lindex $state(namespace) end]
@@ -924,8 +914,7 @@ proc ::xmpp::xml::ElementEnd {token tag args} {
     upvar 0 $token state
 
     if {![info exists state(parser)]} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
+        return -code error [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
 
     set state(namespace) [lreplace $state(namespace) end end]
@@ -969,8 +958,7 @@ proc ::xmpp::xml::ElementCdata {token cdata} {
     upvar 0 $token state
 
     if {![info exists state(parser)]} {
-        return -code error \
-               -errorinfo [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
+        return -code error [::msgcat::mc "Parser \"%s\" doesn't exist" $token]
     }
 
     set newEl [lindex $state(stack) 0]

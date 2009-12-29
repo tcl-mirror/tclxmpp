@@ -35,7 +35,7 @@ namespace eval ::xmpp::sasl {
             set encodeToUTF8 1
         }
     } else {
-        return -code error -errorinfo [::msgcat::mc "No SASL package found"]
+        return -code error [::msgcat::mc "No SASL package found"]
     }
 
     switch -- $saslpack {
@@ -113,15 +113,13 @@ proc ::xmpp::sasl::auth {xlib args} {
                 } else {
                     unset state
                     return -code error \
-                           -errorinfo [::msgcat::mc \
-                                           "Illegal value \"%s\" for\
-                                            option \"%s\"" $val $key]
+                           [::msgcat::mc "Illegal value \"%s\" for\
+                                          option \"%s\"" $val $key]
                 }
             }
             default {
                 unset state
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -134,9 +132,8 @@ proc ::xmpp::sasl::auth {xlib args} {
     }
     if {$count >= 2} {
         unset state
-        return -code error \
-               -errorinfo [::msgcat::mc "Only one option \"-username\"\
-                                         or \"-domain\" is allowed"]
+        return -code error [::msgcat::mc "Only one option \"-username\"\
+                                          or \"-domain\" is allowed"]
     }
 
     if {[info exists state(-username)]} {
@@ -144,23 +141,20 @@ proc ::xmpp::sasl::auth {xlib args} {
                      -password} {
             if {![info exists state($key)]} {
                 unset state
-                return -code error \
-                       -errorinfo [::msgcat::mc "Missing option \"%s\"" $key]
+                return -code error [::msgcat::mc "Missing option \"%s\"" $key]
             }
         }
     } elseif {[info exists state(-domain)]} {
         foreach key {-secret} {
             if {![info exists state($key)]} {
                 unset state
-                return -code error \
-                       -errorinfo [::msgcat::mc "Missing option \"%s\"" $key]
+                return -code error [::msgcat::mc "Missing option \"%s\"" $key]
             }
         }
     } else {
         unset state
-        return -code error \
-               -errorinfo [::msgcat::mc "Missing option \"-username\"\
-                                         or \"-domain\""]
+        return -code error [::msgcat::mc "Missing option \"-username\"\
+                                          or \"-domain\""]
     }
 
     ::xmpp::RegisterElement $xlib * urn:ietf:params:xml:ns:xmpp-sasl \
@@ -193,9 +187,8 @@ proc ::xmpp::sasl::auth {xlib args} {
                 set flags {}
             } else {
                 unset state
-                return -code error \
-                       -errorinfo [::msgcat::mc "Cannot forbid digest\
-                                                 mechanisms"]
+                return -code error [::msgcat::mc "Cannot forbid digest\
+                                                  mechanisms"]
             }
 
             $state(token) -operation setprop \

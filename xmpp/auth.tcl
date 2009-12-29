@@ -101,15 +101,13 @@ proc ::xmpp::auth::auth {xlib args} {
                 } else {
                     unset state
                     return -code error \
-                           -errorinfo [::msgcat::mc \
-                                           "Illegal value \"%s\" for\
-                                            option \"%s\"" $val $key]
+                           [::msgcat::mc "Illegal value \"%s\" for\
+                                          option \"%s\"" $val $key]
                 }
             }
             default {
                 unset state
-                return -code error \
-                       -errorinfo [::msgcat::mc "Illegal option \"%s\"" $key]
+                return -code error [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -120,8 +118,7 @@ proc ::xmpp::auth::auth {xlib args} {
                  -resource} {
         if {![info exists state($key)]} {
             unset state
-            return -code error \
-                   -errorinfo [::msgcat::mc "Missing option \"%s\"" $key]
+            return -code error [::msgcat::mc "Missing option \"%s\"" $key]
         }
     }
 
