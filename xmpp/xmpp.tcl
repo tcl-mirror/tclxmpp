@@ -214,6 +214,11 @@ proc ::xmpp::connect {xlib args} {
     variable $xlib
     upvar 0 $xlib state
 
+    if {![string equal $state(status) disconnected]} {
+        # TODO: Should we use ForcedDisconnect or call back?
+        disconnect $xlib
+    }
+
     set transport tcp
     set host      localhost
     set port      5222
