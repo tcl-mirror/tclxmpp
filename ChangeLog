@@ -1,3 +1,9 @@
+2010-01-04  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/pkgIndex.tcl, xmpp/privacy.tcl: Implemented low-level interface
+	  to XMPP privacy lists (XEP-0016). Synchronous and asynchronous query
+	  modes are supported.
+
 2009-12-29  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/compress.tcl, xmpp/iq.tcl,
