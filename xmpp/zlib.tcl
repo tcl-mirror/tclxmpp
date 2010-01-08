@@ -176,7 +176,11 @@ proc ::xmpp::transport::zlib::OpenAux {token cmd zlibArgs status sock} {
 
     if {[string equal $status ok]} {
         unset state(pconnect)
-        Configure $token $zlibArgs
+        if {[catch {Configure $token $zlibArgs} msg]} {
+            set status error
+            set token $msg
+            # TODO: Cleanup
+        }
     } else {
         # Here $sock contains error message
         set token $sock

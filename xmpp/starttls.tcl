@@ -300,7 +300,8 @@ proc ::xmpp::starttls::Parse {token xmlElement} {
 #       Empty string.
 #
 # Side effects:
-#       XMPP channel becomes encrypted, XMPP stream is reopened.
+#       In case of success XMPP channel becomes encrypted, XMPP stream is
+#       reopened.
 
 proc ::xmpp::starttls::Proceed {token} {
     variable $token
@@ -309,16 +310,13 @@ proc ::xmpp::starttls::Proceed {token} {
 
     ::xmpp::Debug $xlib 2 "$token"
 
-    eval [list ::xmpp::SwitchTransport $xlib tls] $state(tlsArgs)
-
-    # TODO
-    #if {[catch {eval [list ::xmpp::transport::tcp::toTLS $state(xlib)] \
-    #                 $args} msg]} {
-    #    set err [::xmpp::stanzaerror::error modify undefined-condition \
-    #                                        -text $msg]
-    #    Finish $token error $err
-    #    return
-    #}
+    if {[catch {eval [list ::xmpp::SwitchTransport $xlib tls] \
+                           $state(tlsArgs)} msg]} {
+        set err [::xmpp::stanzaerror::error modify undefined-condition \
+                                            -text $msg]
+        Finish $token error $err
+        return
+    }
 
     set state(reopenStream) \
         [::xmpp::ReopenStream $xlib \

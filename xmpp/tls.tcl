@@ -182,7 +182,11 @@ proc ::xmpp::transport::tls::OpenAux {token cmd status sock} {
     upvar 0 $token state
 
     if {[string equal $status ok]} {
-        Configure $token $tlsArgs
+        if {[catch {Configure $token $tlsArgs} msg]} {
+            set status error
+            set token $msg
+            # TODO: Cleanup
+        }
     } else {
         # Here $sock contains error message
         set token $sock

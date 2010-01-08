@@ -368,7 +368,8 @@ proc ::xmpp::compress::Failure {token xmlElements} {
 #       Empty string.
 #
 # Side effects:
-#       XMPP channel becomes compressed, XMPP stream is reopened.
+#       In case of success XMPP channel becomes compressed, XMPP stream is
+#       reopened.
 
 proc ::xmpp::compress::Compressed {token} {
     variable $token
@@ -377,7 +378,13 @@ proc ::xmpp::compress::Compressed {token} {
 
     ::xmpp::Debug $xlib 2 "$token"
 
-    eval [list ::xmpp::SwitchTransport $xlib $state(method)] $state(zlibArgs)
+    if {[catch {eval [list ::xmpp::SwitchTransport $xlib $state(method)] \
+                           $state(zlibArgs)} msg]} {
+        set err [::xmpp::stanzaerror::error modify undefined-condition \
+                                            -text $msg]
+        Finish $token error $err
+        return
+    }
 
     set state(reopenStream) \
         [::xmpp::ReopenStream $xlib \

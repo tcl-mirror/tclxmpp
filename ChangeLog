@@ -1,3 +1,9 @@
+2010-01-08  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/compress.tcl, xmpp/starttls.tcl, xmpp/tls.tcl, xmpp/zlib.tcl:
+	  Process errors when switching to or opening ZLIB or TLS channel and
+	  don't throw it immediately to a user.
+
 2010-01-04  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/pkgIndex.tcl, xmpp/privacy.tcl: Implemented low-level interface
