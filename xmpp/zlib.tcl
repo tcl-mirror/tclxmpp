@@ -174,8 +174,10 @@ proc ::xmpp::transport::zlib::OpenAux {token cmd zlibArgs status sock} {
     variable $token
     upvar 0 $token state
 
+    unset state(pconnect)
+
     if {[string equal $status ok]} {
-        unset state(pconnect)
+        set state(sock) $sock
         if {[catch {Configure $token $zlibArgs} msg]} {
             set status error
             set token $msg
@@ -271,8 +273,10 @@ proc ::xmpp::transport::zlib::abort {token} {
     variable $token
     upvar 0 $token state
 
-    # If ::pconnect::abort returns error then propagate it to the caller
-    ::pconnect::abort $state(pconnect)
+    if {[info exists state(pconnect)]} {
+        # If ::pconnect::abort returns error then propagate it to the caller
+        ::pconnect::abort $state(pconnect)
+    }
 
     if {[info exists state(parser)]} {
         ::xmpp::xml::free $state(parser)

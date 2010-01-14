@@ -143,8 +143,10 @@ proc ::xmpp::transport::tcp::OpenAux {token cmd status sock} {
     variable $token
     upvar 0 $token state
 
+    unset state(pconnect)
+
     if {[string equal $status ok]} {
-        unset state(pconnect)
+        set state(sock) $sock
         Configure $token
     } else {
         # Here $sock contains error message
@@ -206,8 +208,10 @@ proc ::xmpp::transport::tcp::abort {token} {
     variable $token
     upvar 0 $token state
 
-    # If ::pconnect::abort returns error then propagate it to the caller
-    ::pconnect::abort $state(pconnect)
+    if {[info exists state(pconnect)]} {
+        # If ::pconnect::abort returns error then propagate it to the caller
+        ::pconnect::abort $state(pconnect)
+    }
 
     if {[info exists state(parser)]} {
         ::xmpp::xml::free $state(parser)

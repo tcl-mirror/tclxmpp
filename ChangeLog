@@ -1,3 +1,8 @@
+2010-01-14  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed aborting underlying
+	  connection. Fixed connecting in asynchronous mode.
+
 2010-01-08  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/compress.tcl, xmpp/starttls.tcl, xmpp/tls.tcl, xmpp/zlib.tcl:

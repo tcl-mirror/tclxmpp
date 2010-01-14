@@ -177,11 +177,14 @@ proc ::xmpp::transport::tls::open {host port args} {
 #       If status is ok then a new XML parser is created. In all cases a
 #       callback procedure is executed.
 
-proc ::xmpp::transport::tls::OpenAux {token cmd status sock} {
+proc ::xmpp::transport::tls::OpenAux {token cmd tlsArgs status sock} {
     variable $token
     upvar 0 $token state
 
+    unset state(pconnect)
+
     if {[string equal $status ok]} {
+        set state(sock) $sock
         if {[catch {Configure $token $tlsArgs} msg]} {
             set status error
             set token $msg
@@ -332,8 +335,10 @@ proc ::xmpp::transport::tls::abort {token} {
     variable $token
     upvar 0 $token state
 
-    # If ::pconnect::abort returns error then propagate it to the caller
-    ::pconnect::abort $state(pconnect)
+    if {[info exists state(pconnect)]} {
+        # If ::pconnect::abort returns error then propagate it to the caller
+        ::pconnect::abort $state(pconnect)
+    }
 
     if {[info exists state(parser)]} {
         ::xmpp::xml::free $state(parser)
