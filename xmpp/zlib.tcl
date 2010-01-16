@@ -141,10 +141,18 @@ proc ::xmpp::transport::zlib::open {host port args} {
         Configure $token $zlibArgs
     } else {
         # Asynchronous mode
-        set state(pconnect) \
-            [eval [list ::pconnect::socket $host $port] $newArgs \
-                  [list -command [namespace code [list OpenAux $token $cmd \
-                                                               $zlibArgs]]]]
+        if {[catch {
+            set state(pconnect) \
+                [eval [list ::pconnect::socket $host $port] $newArgs \
+                      [list -command [namespace code [list OpenAux $token \
+                                                           $cmd \
+                                                           $zlibArgs]]]]
+            } msg]} {
+            # We can't even open a socket
+
+            after idle [namespace code [list OpenAux $token $cmd $zlibArgs \
+                                                     error $msg]]
+        }
     }
 
     return $token
@@ -174,7 +182,7 @@ proc ::xmpp::transport::zlib::OpenAux {token cmd zlibArgs status sock} {
     variable $token
     upvar 0 $token state
 
-    unset state(pconnect)
+    catch {unset state(pconnect)}
 
     if {[string equal $status ok]} {
         set state(sock) $sock

@@ -1,3 +1,9 @@
+2010-01-16  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed opening connection
+	  in asynchronous mode where the operation must always succeede and
+	  its status is reported via a callback.
+
 2010-01-14  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed aborting underlying

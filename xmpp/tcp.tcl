@@ -112,9 +112,16 @@ proc ::xmpp::transport::tcp::open {host port args} {
         Configure $token
     } else {
         # Asynchronous mode
-        set state(pconnect) \
-            [eval [list ::pconnect::socket $host $port] $newArgs \
-                  [list -command [namespace code [list OpenAux $token $cmd]]]]
+        if {[catch {
+                set state(pconnect) \
+                    [eval [list ::pconnect::socket $host $port] $newArgs \
+                          [list -command [namespace code [list OpenAux $token \
+                                                               $cmd]]]]
+            } msg]} {
+            # We can't even open a socket
+
+            after idle [namespace code [list OpenAux $token $cmd error $msg]]
+        }
     }
 
     return $token
@@ -143,7 +150,7 @@ proc ::xmpp::transport::tcp::OpenAux {token cmd status sock} {
     variable $token
     upvar 0 $token state
 
-    unset state(pconnect)
+    catch {unset state(pconnect)}
 
     if {[string equal $status ok]} {
         set state(sock) $sock
