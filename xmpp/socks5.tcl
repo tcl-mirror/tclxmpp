@@ -580,7 +580,7 @@ proc ::pconnect::socks5::GetIpAndPort {token} {
 #       A proxy negotiation is finished with error.
 
 proc ::pconnect::socks5::Timeout {token} {
-    Finish $token abort [::msgcat::mc "SOCKS5 negotiation timed out"]
+    Finish $token timeout [::msgcat::mc "SOCKS5 negotiation timed out"]
     return
 }
 

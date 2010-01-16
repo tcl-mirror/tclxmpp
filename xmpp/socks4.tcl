@@ -248,7 +248,7 @@ proc ::pconnect::socks4::Response {token} {
 #       A proxy negotiation is finished with error.
 
 proc ::pconnect::socks4::Timeout {token} {
-    Finish $token abort [::msgcat::mc "SOCKS4a proxy negotiation timed out"]
+    Finish $token timeout [::msgcat::mc "SOCKS4a proxy negotiation timed out"]
     return
 }
 

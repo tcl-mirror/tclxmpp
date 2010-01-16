@@ -1,3 +1,9 @@
+2010-01-17  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/https.tcl, xmpp/socks4.tcl, xmpp/socks5.tcl, xmpp/pconnect.tcl:
+	  Return "timeout" status instead of "abort" in case of timeout because
+	  "abort" means breaking connection process by a user.
+
 2010-01-16  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed opening connection

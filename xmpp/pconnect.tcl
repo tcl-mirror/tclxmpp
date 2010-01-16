@@ -376,9 +376,9 @@ proc ::pconnect::Timeout {token} {
         uplevel #0 [lindex $packs($proxy) 1] [list $state(ptoken)]
     } else {
         if {[string length $proxy] > 0} {
-            Finish $token abort [::msgcat::mc "Connection via proxy timed out"]
+            Finish $token timeout [::msgcat::mc "Connection via proxy timed out"]
         } else {
-            Finish $token abort [::msgcat::mc "Connection timed out"]
+            Finish $token timeout [::msgcat::mc "Connection timed out"]
         }
     }
     return

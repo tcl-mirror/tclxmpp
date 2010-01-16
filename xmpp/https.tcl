@@ -612,7 +612,7 @@ proc ::pconnect::https::HttpHeaderBody {header} {
 #       A proxy negotiation is finished with error.
 
 proc ::pconnect::https::Timeout {token} {
-    Finish $token abort [::msgcat::mc "HTTPS proxy negotiation timed out"]
+    Finish $token timeout [::msgcat::mc "HTTPS proxy negotiation timed out"]
     return
 }
 
