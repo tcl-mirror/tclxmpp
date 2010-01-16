@@ -4,6 +4,9 @@
 	  in asynchronous mode where the operation must always succeede and
 	  its status is reported via a callback.
 
+	* xmpp/sasl.tcl, xmpp/stanzaerror.tcl, xmpp/streamerror.tcl: Changed
+	  capitalization of error messages.
+
 2010-01-14  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Fixed aborting underlying

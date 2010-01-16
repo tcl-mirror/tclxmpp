@@ -48,7 +48,7 @@ namespace eval ::xmpp::sasl {
     }
 
     # SASL error messages
-    ::xmpp::stanzaerror::registerType sasl [::msgcat::mc "Authentication Error"]
+    ::xmpp::stanzaerror::registerType sasl [::msgcat::mc "Authentication error"]
 
     foreach {lcode type cond description} [list \
         401 sasl aborted                [::msgcat::mc "Aborted"] \
@@ -56,7 +56,7 @@ namespace eval ::xmpp::sasl {
         401 sasl invalid-authzid        [::msgcat::mc "Invalid authzid"] \
         401 sasl invalid-mechanism      [::msgcat::mc "Invalid mechanism"] \
         401 sasl mechanism-too-weak     [::msgcat::mc "Mechanism too weak"] \
-        401 sasl not-authorized         [::msgcat::mc "Not Authorized"] \
+        401 sasl not-authorized         [::msgcat::mc "Not authorized"] \
         401 sasl temporary-auth-failure [::msgcat::mc "Temporary auth\
                                                        failure"]] \
     {

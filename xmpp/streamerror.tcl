@@ -17,30 +17,30 @@ namespace eval ::xmpp::streamerror {
 
     # Defined error conditions (see XMPP core, section 4.7.3)
     foreach {cond message} [list \
-        bad-format               [::msgcat::mc "Bad Format"] \
-        bad-namespace-prefix     [::msgcat::mc "Bad Namespace Prefix"] \
+        bad-format               [::msgcat::mc "Bad format"] \
+        bad-namespace-prefix     [::msgcat::mc "Bad namespace prefix"] \
         conflict                 [::msgcat::mc "Conflict"] \
-        connection-timeout       [::msgcat::mc "Connection Timeout"] \
-        host-gone                [::msgcat::mc "Host Gone"] \
-        host-unknown             [::msgcat::mc "Host Unknown"] \
-        improper-addressing      [::msgcat::mc "Improper Addressing"] \
-        internal-server-error    [::msgcat::mc "Internal Server Error"] \
-        invalid-from             [::msgcat::mc "Invalid From"] \
+        connection-timeout       [::msgcat::mc "Connection timeout"] \
+        host-gone                [::msgcat::mc "Host gone"] \
+        host-unknown             [::msgcat::mc "Host unknown"] \
+        improper-addressing      [::msgcat::mc "Improper addressing"] \
+        internal-server-error    [::msgcat::mc "Internal server error"] \
+        invalid-from             [::msgcat::mc "Invalid from"] \
         invalid-id               [::msgcat::mc "Invalid ID"] \
-        invalid-namespace        [::msgcat::mc "Invalid Namespace"] \
+        invalid-namespace        [::msgcat::mc "Invalid namespace"] \
         invalid-xml              [::msgcat::mc "Invalid XML"] \
-        not-authorized           [::msgcat::mc "Not Authorized"] \
-        policy-violation         [::msgcat::mc "Policy Violation"] \
-        remote-connection-failed [::msgcat::mc "Remote Connection Failed"] \
-        resource-constraint      [::msgcat::mc "Resource Constraint"] \
+        not-authorized           [::msgcat::mc "Not authorized"] \
+        policy-violation         [::msgcat::mc "Policy violation"] \
+        remote-connection-failed [::msgcat::mc "Remote connection failed"] \
+        resource-constraint      [::msgcat::mc "Resource constraint"] \
         restricted-xml           [::msgcat::mc "Restricted XML"] \
-        see-other-host           [::msgcat::mc "See Other Host"] \
-        system-shutdown          [::msgcat::mc "System Shutdown"] \
-        undefined-condition      [::msgcat::mc "Undefined Condition"] \
-        unsupported-encoding     [::msgcat::mc "Unsupported Encoding"] \
-        unsupported-stanza-type  [::msgcat::mc "Unsupported Stanza Type"] \
-        unsupported-version      [::msgcat::mc "Unsupported Version"] \
-        xml-not-well-formed      [::msgcat::mc "XML Not Well-Formed"]] \
+        see-other-host           [::msgcat::mc "See other host"] \
+        system-shutdown          [::msgcat::mc "System shutdown"] \
+        undefined-condition      [::msgcat::mc "Undefined condition"] \
+        unsupported-encoding     [::msgcat::mc "Unsupported encoding"] \
+        unsupported-stanza-type  [::msgcat::mc "Unsupported stanza type"] \
+        unsupported-version      [::msgcat::mc "Unsupported version"] \
+        xml-not-well-formed      [::msgcat::mc "XML not well-formed"]] \
     {
         set StreamerrorDesc($cond) $message
     }
@@ -102,9 +102,9 @@ proc ::xmpp::streamerror::ToList {xmlElement} {
         # Legacy error
         set cdata [string trim $cdata]
         if {[string length $cdata] > 0} {
-            return [list legacy [::msgcat::mc "Stream Error (%s)" $cdata]]
+            return [list legacy [::msgcat::mc "Stream error (%s)" $cdata]]
         } else {
-            return [list legacy [::msgcat::mc "Stream Error"]]
+            return [list legacy [::msgcat::mc "Stream error"]]
         }
     } else {
         # XMPP error
@@ -133,18 +133,18 @@ proc ::xmpp::streamerror::ToList {xmlElement} {
         }
         switch -glob -- [string length $desc]/[string length $text] {
             0/0 {
-                return [list $condition [::msgcat::mc "Stream Error"]]
+                return [list $condition [::msgcat::mc "Stream error"]]
             }
             0/* {
-                return [list $condition [::msgcat::mc "Stream Error: %s" \
+                return [list $condition [::msgcat::mc "Stream error: %s" \
                                                       $text]]
             }
             */0 {
-                return [list $condition [::msgcat::mc "Stream Error (%s)" \
+                return [list $condition [::msgcat::mc "Stream error (%s)" \
                                                       $desc]]
             }
             default {
-                return [list $condition [::msgcat::mc "Stream Error (%s): %s" \
+                return [list $condition [::msgcat::mc "Stream error (%s): %s" \
                                                       $desc $text]]
             }
         }

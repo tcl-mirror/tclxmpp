@@ -18,56 +18,56 @@ namespace eval ::xmpp::stanzaerror {
 
     # Defined error types (see XMPP core, section 9.3.2)
     array set Type [list \
-        cancel   [::msgcat::mc "Unrecoverable Error"] \
+        cancel   [::msgcat::mc "Unrecoverable error"] \
         continue [::msgcat::mc "Warning"] \
-        modify   [::msgcat::mc "Request Error"] \
-        auth     [::msgcat::mc "Authentication Error"] \
-        wait     [::msgcat::mc "Temporary Error"]]
+        modify   [::msgcat::mc "Request error"] \
+        auth     [::msgcat::mc "Authentication error"] \
+        wait     [::msgcat::mc "Temporary error"]]
 
     set DefinedConditions {}
 
     # Defined error conditions (see XMPP core, section 9.3.3, and XEP-0086).
     foreach {clist lcode type cond description} [list \
-        {400} 400 modify bad-request             [::msgcat::mc "Bad Request"] \
+        {400} 400 modify bad-request             [::msgcat::mc "Bad request"] \
         {409} 409 cancel conflict                [::msgcat::mc "Conflict"] \
-        {501} 501 cancel feature-not-implemented [::msgcat::mc "Feature Not\
-                                                                Implemented"] \
+        {501} 501 cancel feature-not-implemented [::msgcat::mc "Feature not\
+                                                                implemented"] \
         {403} 403 auth   forbidden               [::msgcat::mc "Forbidden"] \
         {302} 302 modify gone                    [::msgcat::mc "Gone"] \
-        {500} 500 wait   internal-server-error   [::msgcat::mc "Internal Server\
-                                                                Error"] \
-        {404} 404 cancel item-not-found          [::msgcat::mc "Item Not\
-                                                                Found"] \
+        {500} 500 wait   internal-server-error   [::msgcat::mc "Internal server\
+                                                                error"] \
+        {404} 404 cancel item-not-found          [::msgcat::mc "Item not\
+                                                                found"] \
         {}    400 modify jid-malformed           [::msgcat::mc "JID\
-                                                                Malformed"] \
+                                                                malformed"] \
         {406} 406 modify not-acceptable          [::msgcat::mc "Not\
-                                                                Acceptable"] \
-        {405} 405 cancel not-allowed             [::msgcat::mc "Not Allowed"] \
+                                                                acceptable"] \
+        {405} 405 cancel not-allowed             [::msgcat::mc "Not allowed"] \
         {401} 401 auth   not-authorized          [::msgcat::mc "Not\
-                                                                Authorized"] \
+                                                                authorized"] \
         {402} 402 auth   payment-required        [::msgcat::mc "Payment\
-                                                                Required"] \
+                                                                required"] \
         {}    404 wait   recipient-unavailable   [::msgcat::mc "Recipient\
-                                                                Unavailable"] \
+                                                                unavailable"] \
         {}    302 modify redirect                [::msgcat::mc "Redirect"] \
         {407} 407 auth   registration-required   [::msgcat::mc "Registration\
-                                                                Required"] \
-        {}    404 cancel remote-server-not-found [::msgcat::mc "Remote Server\
-                                                                Not Found"] \
+                                                                required"] \
+        {}    404 cancel remote-server-not-found [::msgcat::mc "Remote server\
+                                                                not found"] \
         {408 504} \
-              504 wait   remote-server-timeout   [::msgcat::mc "Remote Server\
-                                                                Timeout"] \
+              504 wait   remote-server-timeout   [::msgcat::mc "Remote server\
+                                                                timeout"] \
         {}    500 wait   resource-constraint     [::msgcat::mc "Resource\
-                                                                Constraint"] \
+                                                                constraint"] \
         {502 503 510} \
               503 cancel service-unavailable     [::msgcat::mc "Service\
-                                                                Unavailable"] \
+                                                                unavailable"] \
         {}    407 auth   subscription-required   [::msgcat::mc "Subscription\
-                                                                Required"] \
+                                                                required"] \
         {}    500 any    undefined-condition     [::msgcat::mc "Undefined\
-                                                                Condition"] \
+                                                                condition"] \
         {}    400 wait   unexpected-request      [::msgcat::mc "Unexpected\
-                                                                Request"]] \
+                                                                request"]] \
     {
         lappend DefinedConditions $cond
         set Description($type,$cond) $description
