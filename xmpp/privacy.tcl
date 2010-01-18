@@ -65,13 +65,13 @@ proc ::xmpp::privacy::requestLists {xlib args} {
     }
 
     variable rid
-    incr rid
+    set lrid [incr rid]
 
     set id \
         [::xmpp::sendIQ $xlib get \
                 -query [::xmpp::xml::create query \
                                             -xmlns jabber:iq:privacy] \
-                -command [namespace code [list ParseListsReply $rid $commands]] \
+                -command [namespace code [list ParseListsReply $lrid $commands]] \
                 -timeout $timeout]
 
     if {[llength $commands] > 0} {
@@ -80,9 +80,9 @@ proc ::xmpp::privacy::requestLists {xlib args} {
     } else {
         # Synchronous mode
         variable answer
-        vwait [namespace current]::answer($rid)
-        foreach {status msg} $answer($rid) break
-        unset answer($rid)
+        vwait [namespace current]::answer($lrid)
+        foreach {status msg} $answer($lrid) break
+        unset answer($lrid)
 
         switch -- $status {
             ok {
@@ -195,7 +195,7 @@ proc ::xmpp::privacy::requestItems {xlib name args} {
     }
 
     variable rid
-    incr rid
+    set lrid [incr rid]
 
     set id \
         [::xmpp::sendIQ $xlib get \
@@ -203,7 +203,7 @@ proc ::xmpp::privacy::requestItems {xlib name args} {
                                 -xmlns jabber:iq:privacy \
                                 -subelement [::xmpp::xml::create list \
                                                     -attrs [list name $name]]] \
-                -command [namespace code [list ParseItemsReply $rid $commands]] \
+                -command [namespace code [list ParseItemsReply $lrid $commands]] \
                 -timeout $timeout]
 
     if {[llength $commands] > 0} {
@@ -212,9 +212,9 @@ proc ::xmpp::privacy::requestItems {xlib name args} {
     } else {
         # Synchronous mode
         variable answer
-        vwait [namespace current]::answer($rid)
-        foreach {status msg} $answer($rid) break
-        unset answer($rid)
+        vwait [namespace current]::answer($lrid)
+        foreach {status msg} $answer($lrid) break
+        unset answer($lrid)
 
         switch -- $status {
             ok {
@@ -409,7 +409,7 @@ proc ::xmpp::privacy::sendItems {xlib name items args} {
     }
 
     variable rid
-    incr rid
+    set lrid [incr rid]
 
     set id \
         [::xmpp::sendIQ $xlib set \
@@ -418,7 +418,7 @@ proc ::xmpp::privacy::sendItems {xlib name items args} {
                                 -subelement [::xmpp::xml::create list \
                                                     -attrs [list name $name] \
                                                     -subelements $subels]] \
-                -command [namespace code [list ParseSendItemsReply $rid $commands]] \
+                -command [namespace code [list ParseSendItemsReply $lrid $commands]] \
                 -timeout $timeout]
 
     if {[llength $commands] > 0} {
@@ -427,9 +427,9 @@ proc ::xmpp::privacy::sendItems {xlib name items args} {
     } else {
         # Synchronous mode
         variable answer
-        vwait [namespace current]::answer($rid)
-        foreach {status msg} $answer($rid) break
-        unset answer($rid)
+        vwait [namespace current]::answer($lrid)
+        foreach {status msg} $answer($lrid) break
+        unset answer($lrid)
 
         switch -- $status {
             ok {
@@ -518,7 +518,7 @@ proc ::xmpp::privacy::setDefault {xlib args} {
     }
 
     variable rid
-    incr rid
+    set lrid [incr rid]
 
     set id \
         [::xmpp::sendIQ $xlib set \
@@ -526,7 +526,7 @@ proc ::xmpp::privacy::setDefault {xlib args} {
                                 -xmlns jabber:iq:privacy \
                                 -subelement [::xmpp::xml::create default \
                                                     -attrs $attrs]] \
-                -command [namespace code [list ParseDefaultReply $rid $commands]] \
+                -command [namespace code [list ParseDefaultReply $lrid $commands]] \
                 -timeout $timeout]
 
     if {[llength $commands] > 0} {
@@ -535,9 +535,9 @@ proc ::xmpp::privacy::setDefault {xlib args} {
     } else {
         # Synchronous mode
         variable answer
-        vwait [namespace current]::answer($rid)
-        foreach {status msg} $answer($rid) break
-        unset answer($rid)
+        vwait [namespace current]::answer($lrid)
+        foreach {status msg} $answer($lrid) break
+        unset answer($lrid)
 
         switch -- $status {
             ok {
@@ -626,7 +626,7 @@ proc ::xmpp::privacy::setActive {xlib args} {
     }
 
     variable rid
-    incr rid
+    set lrid [incr rid]
 
     set id \
         [::xmpp::sendIQ $xlib set \
@@ -634,7 +634,7 @@ proc ::xmpp::privacy::setActive {xlib args} {
                                 -xmlns jabber:iq:privacy \
                                 -subelement [::xmpp::xml::create active \
                                                     -attrs $attrs]] \
-                -command [namespace code [list ParseActiveReply $rid $commands]] \
+                -command [namespace code [list ParseActiveReply $lrid $commands]] \
                 -timeout $timeout]
 
     if {[llength $commands] > 0} {
@@ -643,9 +643,9 @@ proc ::xmpp::privacy::setActive {xlib args} {
     } else {
         # Synchronous mode
         variable answer
-        vwait [namespace current]::answer($rid)
-        foreach {status msg} $answer($rid) break
-        unset answer($rid)
+        vwait [namespace current]::answer($lrid)
+        foreach {status msg} $answer($lrid) break
+        unset answer($lrid)
 
         switch -- $status {
             ok {
