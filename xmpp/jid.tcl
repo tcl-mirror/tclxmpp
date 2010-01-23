@@ -159,7 +159,7 @@ proc ::xmpp::jid::resource {jid} {
     }
 }
 
-# ::xmpp::jid::stripResource --
+# ::xmpp::jid::bareJid --
 #
 #       Remove resource part from JID.
 #
@@ -173,8 +173,26 @@ proc ::xmpp::jid::resource {jid} {
 # Side effects:
 #       None.
 
-proc ::xmpp::jid::stripResource {jid} {
+proc ::xmpp::jid::bareJid {jid} {
     jid [node $jid] [server $jid]
+}
+
+# ::xmpp::jid::stripResource --
+#
+#       The same as bareJid (for backward compatibility.
+#
+# Arguments:
+#       jid         JID.
+#
+# Result:
+#       A JID constructed from node and server parts extracted from the
+#       given JID.
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::jid::stripResource {jid} {
+    bareJid $jid
 }
 
 # ::xmpp::jid::normalize --

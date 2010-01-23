@@ -29,11 +29,11 @@ namespace eval ::xmpp::search {
 # ::xmpp::search::request --
 
 proc ::xmpp::search::request {xlib jid args} {
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -42,21 +42,21 @@ proc ::xmpp::search::request {xlib jid args} {
                     -query [::xmpp::xml::create query \
                                     -xmlns jabber:iq:search] \
                     -to $jid \
-                    -command [namespace code [list ParseForm $command]]]
+                    -command [namespace code [list ParseForm $commands]]]
 }
 
 # ::xmpp::search::submit --
 
 proc ::xmpp::search::submit {xlib jid fields args} {
     set old false
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -old {
                 set old $val
             }
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -72,14 +72,18 @@ proc ::xmpp::search::submit {xlib jid fields args} {
                                     -xmlns jabber:iq:search \
                                     -subelements $subels] \
                     -to $jid \
-                    -command [namespace code [list ParseResult $command]]]
+                    -command [namespace code [list ParseResult $commands]]]
 }
 
 # ::xmpp::search::ParseForm --
 
-proc ::xmpp::search::ParseForm {command status xml} {
+proc ::xmpp::search::ParseForm {commands status xml} {
+    if {[llength $commands] == 0} {
+        return
+    }
+
     if {![string equal $status ok]} {
-        uplevel #0 $command [list $status $xml]
+        uplevel #0 [lindex $commands 0] [list $status $xml]
         return
     }
 
@@ -95,7 +99,7 @@ proc ::xmpp::search::ParseForm {command status xml} {
         set old true
     }
 
-    uplevel #0 $command [list $status $fields -old $old]
+    uplevel #0 [lindex $commands 0] [list $status $fields -old $old]
     return
 }
 
@@ -141,9 +145,13 @@ proc ::xmpp::search::FillFields {fields} {
 
 # ::xmpp::search::ParseResult --
 
-proc ::xmpp::search::ParseResult {command status xml} {
+proc ::xmpp::search::ParseResult {commands status xml} {
+    if {[llength $commands] == 0} {
+        return
+    }
+
     if {![string equal $status ok]} {
-        uplevel #0 $command [list $status $xml]
+        uplevel #0 [lindex $commands 0] [list $status $xml]
         return
     }
 
@@ -157,7 +165,7 @@ proc ::xmpp::search::ParseResult {command status xml} {
         set fields [ParseLegacyItems $subels]
     }
 
-    uplevel #0 $command [list $status $fields]
+    uplevel #0 [lindex $commands 0] [list $status $fields]
     return
 }
 

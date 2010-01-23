@@ -38,11 +38,11 @@ proc ::xmpp::negotiate::unregister {feature} {
 # ::xmpp::negotiate::sendOptions --
 
 proc ::xmpp::negotiate::sendOptions {xlib to feature options args} {
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -60,16 +60,18 @@ proc ::xmpp::negotiate::sendOptions {xlib to feature options args} {
                         -xmlns http://jabber.org/protocol/feature-neg \
                         -subelement [::xmpp::data::form $fields]] \
         -to $to \
-        -command [namespace code [list RecvOptionsResponse $xlib $to $command]]
+        -command [namespace code [list RecvOptionsResponse $xlib $to $commands]]
 }
 
 # ::xmpp::negotiate::RecvOptionsResponse --
 
-proc ::xmpp::negotiate::RecvOptionsResponse {xlib jid command status xml} {
-    variable tmp
+proc ::xmpp::negotiate::RecvOptionsResponse {xlib jid commands status xml} {
+    if {[llength $commands] == 0} {
+        return
+    }
 
     if {![string equal $status ok]} {
-        uplevel #0 $command [list $status $xml]
+        uplevel #0 [lindex $commands 0] [list $status $xml]
         return
     }
 
@@ -78,18 +80,18 @@ proc ::xmpp::negotiate::RecvOptionsResponse {xlib jid command status xml} {
     foreach {type form} [::xmpp::data::findForm $subels] break
     set fields [::xmpp::data::parseSubmit $form]
 
-    uplevel #0 $command [list ok $fields]
+    uplevel #0 [lindex $commands 0] [list ok $fields]
     return
 }
 
 # ::xmpp::negotiate::sendRequest --
 
 proc ::xmpp::negotiate::sendRequest {xlib to feature args} {
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -101,16 +103,18 @@ proc ::xmpp::negotiate::sendRequest {xlib to feature args} {
                         -xmlns http://jabber.org/protocol/feature-neg \
                         -subelement [::xmpp::data::submitForm $fields]] \
         -to $to \
-        -command [namespace code [list RecvRequestResponse $xlib $to $command]]
+        -command [namespace code [list RecvRequestResponse $xlib $to $commands]]
 }
 
 # ::xmpp::negotiate::RecvRequestResponse --
 
-proc ::xmpp::negotiate::RecvRequestResponse {xlib jid command status xml} {
-    variable tmp
+proc ::xmpp::negotiate::RecvRequestResponse {xlib jid commands status xml} {
+    if {[llength $commands] == 0} {
+        return
+    }
 
     if {![string equal $status ok]} {
-        uplevel #0 $command [list $status $xml]
+        uplevel #0 [lindex $commands 0] [list $status $xml]
         return
     }
 
@@ -119,7 +123,7 @@ proc ::xmpp::negotiate::RecvRequestResponse {xlib jid command status xml} {
     foreach {type form} [::xmpp::data::findForm $subels] break
     set fields [::xmpp::data::parseForm $form]
 
-    uplevel #0 $command [list ok $fields]
+    uplevel #0 [lindex $commands 0] [list ok $fields]
     return
 }
 

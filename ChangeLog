@@ -1,3 +1,11 @@
+2010-01-23  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/negotiate.tcl, xmpp/register.tcl, xmpp/search.tcl: Reimplemented
+	  calling back in a more sane way. Removed unused variable tmp.
+
+	* xmpp/jid.tcl, doc/xmpp_jid.man: Renamed stripResource procedure to
+	  bareJid. The former name is retained for backward compatibility.
+
 2010-01-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/privacy.tcl: Fixed processing server replies in synchronous mode

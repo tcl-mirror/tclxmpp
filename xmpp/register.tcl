@@ -41,11 +41,11 @@ namespace eval ::xmpp::register {
 # ::xmpp::register::request --
 
 proc ::xmpp::register::request {xlib jid args} {
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -54,21 +54,21 @@ proc ::xmpp::register::request {xlib jid args} {
                     -query [::xmpp::xml::create query \
                                     -xmlns jabber:iq:register] \
                     -to $jid \
-                    -command [namespace code [list ParseForm $command]]]
+                    -command [namespace code [list ParseForm $commands]]]
 }
 
 # ::xmpp::register::submit --
 
 proc ::xmpp::register::submit {xlib jid fields args} {
     set old false
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -old {
                 set old $val
             }
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -84,17 +84,17 @@ proc ::xmpp::register::submit {xlib jid fields args} {
                                     -xmlns jabber:iq:register \
                                     -subelements $subels] \
                     -to $jid \
-                    -command [namespace code [list SubmitResult $command]]]
+                    -command [namespace code [list SubmitResult $commands]]]
 }
 
 # ::xmpp::register::remove --
 
 proc ::xmpp::register::remove {xlib jid args} {
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -104,17 +104,17 @@ proc ::xmpp::register::remove {xlib jid args} {
                                     -xmlns jabber:iq:register \
                                     -subelement [::xmpp::xml::create remove]] \
                     -to $jid \
-                    -command [namespace code [list SubmitResult $command]]]
+                    -command [namespace code [list SubmitResult $commands]]]
 }
 
 # ::xmpp::register::password --
 
 proc ::xmpp::register::password {xlib username password args} {
-    set command #
+    set commands {}
     foreach {key val} $args {
         switch -- $key {
             -command {
-                set command $val
+                set commands [list $val]
             }
         }
     }
@@ -126,14 +126,18 @@ proc ::xmpp::register::password {xlib username password args} {
                     -query [::xmpp::xml::create query \
                                     -xmlns jabber:iq:register \
                                     -subelements $subels] \
-                    -command [namespace code [list SubmitResult $command]]]
+                    -command [namespace code [list SubmitResult $commands]]]
 }
 
 # ::xmpp::register::ParseForm --
 
-proc ::xmpp::register::ParseForm {command status xml} {
+proc ::xmpp::register::ParseForm {commands status xml} {
+    if {[llength $commands] == 0} {
+        return
+    }
+
     if {![string equal $status ok]} {
-        uplevel #0 $command [list $status $xml]
+        uplevel #0 [lindex $commands 0] [list $status $xml]
         return
     }
 
@@ -149,7 +153,7 @@ proc ::xmpp::register::ParseForm {command status xml} {
         set old true
     }
 
-    uplevel #0 $command [list $status $fields -old $old]
+    uplevel #0 [lindex $commands 0] [list $status $fields -old $old]
     return
 }
 
@@ -208,9 +212,13 @@ proc ::xmpp::register::FillFields {fields} {
 
 # ::xmpp::register::SubmitResult --
 
-proc ::xmpp::register::SubmitResult {command status xml} {
+proc ::xmpp::register::SubmitResult {commands status xml} {
+    if {[llength $commands] == 0} {
+        return
+    }
+
     if {![string equal $status error]} {
-        uplevel #0 $command [list $status $xml]
+        uplevel #0 [lindex $commands 0] [list $status $xml]
         return
     }
 
@@ -225,7 +233,7 @@ proc ::xmpp::register::SubmitResult {command status xml} {
         set fields $xml
     }
 
-    uplevel #0 $command [list $status $fields]
+    uplevel #0 [lindex $commands 0] [list $status $fields]
     return
 }
 
