@@ -36,7 +36,7 @@ proc ::xmpp::roster::delimiter::retrieve {xlib args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -97,7 +97,7 @@ proc ::xmpp::roster::delimiter::store {xlib delimiter args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

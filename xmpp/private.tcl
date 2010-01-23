@@ -30,7 +30,7 @@ proc ::xmpp::private::store {xlib query args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -66,7 +66,7 @@ proc ::xmpp::private::retrieve {xlib query args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

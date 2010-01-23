@@ -32,7 +32,7 @@ proc ::xmpp::roster::annotations::retrieve {xlib args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -138,7 +138,7 @@ proc ::xmpp::roster::annotations::store {xlib notes args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

@@ -47,7 +47,7 @@ proc ::xmpp::blocking::blocklist {xlib args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -146,14 +146,14 @@ proc ::xmpp::blocking::block {xlib args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
 
     if {[llength $items] == 0} {
         return -code error \
-               -errorcode [::msgcat::mc "Nothing to block"]
+               [::msgcat::mc "Nothing to block"]
     }
 
     ::xmpp::sendIQ $xlib set \
@@ -236,7 +236,7 @@ proc ::xmpp::blocking::unblock {xlib args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -302,7 +302,7 @@ proc ::xmpp::blocking::register {args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

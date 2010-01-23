@@ -6,6 +6,16 @@
 	* xmpp/jid.tcl, doc/xmpp_jid.man: Renamed stripResource procedure to
 	  bareJid. The former name is retained for backward compatibility.
 
+	* xmpp/annotations.tcl, xmpp/blocking.tcl, xmpp/bob.tcl,
+	  xmpp/bookmarks.tcl, xmpp/delimiter.tcl, xmpp/disco.tcl,
+	  xmpp/metacontacts.tcl, xmpp/ping.tcl, xmpp/privacy.tcl,
+	  xmpp/private.tcl, xmpp/roster.tcl, xmpp/xmpp.tcl: Removed useless
+	  errorcodes from error returns.
+
+	* xmpp/auth.tcl, xmpp/disco.tcl, xmpp/register.tcl, xmpp/search.tcl,
+	  xmpp/starttls.tcl: Fixed labels (capitalization) and error messages
+	  which are displayed to a user.
+
 2010-01-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/privacy.tcl: Fixed processing server replies in synchronous mode

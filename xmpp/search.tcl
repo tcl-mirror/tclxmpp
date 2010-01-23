@@ -20,8 +20,8 @@ namespace eval ::xmpp::search {
     # Search fields (see XEP-0055)
 
     array set labels [list jid   [::msgcat::mc "Jabber ID"] \
-                           first [::msgcat::mc "First Name"] \
-                           last  [::msgcat::mc "Last Name"] \
+                           first [::msgcat::mc "First name"] \
+                           last  [::msgcat::mc "Last name"] \
                            nick  [::msgcat::mc "Nickname"] \
                            email [::msgcat::mc "E-mail"]]
 }

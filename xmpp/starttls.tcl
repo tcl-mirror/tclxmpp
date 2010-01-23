@@ -245,7 +245,7 @@ proc ::xmpp::starttls::Continue {token featuresList} {
     if {!$starttlsFeature} {
         Finish $token error \
                [::xmpp::stanzaerror::error modify not-acceptable -text \
-                     [::msgcat::mc "Server haven't provided STARTTLS feature"]]
+                     [::msgcat::mc "Server hasn't provided STARTTLS feature"]]
         return
     }
 

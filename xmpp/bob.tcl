@@ -129,7 +129,7 @@ proc ::xmpp::bob::request {xlib jid cid args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -183,7 +183,7 @@ proc ::xmpp::bob::data {type data args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

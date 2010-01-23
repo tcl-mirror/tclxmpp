@@ -57,7 +57,7 @@ proc ::xmpp::disco::new {xlib args} {
             default {
                 unset state
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -109,13 +109,13 @@ proc ::xmpp::disco::requestInfo {token jid args} {
                     set cache 1
                 } elseif {![string is false -strict $val]} {
                     return -code error \
-                           -errorcode [::msgcat::mc "Illegal option \"%s\" value \"%s\",\
-                                                     boolean expected" $key $val]
+                           [::msgcat::mc "Illegal value \"%s\" for option\
+                                          \"%s\", boolean expected" $val $key]
                 }
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -257,13 +257,13 @@ proc ::xmpp::disco::requestItems {token jid args} {
                     set cache 1
                 } elseif {![string is false -strict $val]} {
                     return -code error \
-                           -errorcode [::msgcat::mc "Illegal option \"%s\" value \"%s\",\
-                                                     boolean expected" $key $val]
+                           [::msgcat::mc "Illegal value \"%s\" for option\
+                                          \"%s\", boolean expected" $val $key]
                 }
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -467,7 +467,7 @@ proc ::xmpp::disco::publishItems {token node items args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

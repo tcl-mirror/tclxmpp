@@ -1846,8 +1846,7 @@ proc ::xmpp::Set {xlib property args} {
         }
         default {
             return -code error \
-                   -errorcode [::msgcat::mc "Usage: ::xmpp::Set xlib\
-                                             property ?value?"]
+                   [::msgcat::mc "Usage: ::xmpp::Set xlib property ?value?"]
         }
     }
 }

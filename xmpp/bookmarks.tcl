@@ -32,7 +32,7 @@ proc ::xmpp::roster::bookmarks::retrieve {xlib args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }
@@ -152,7 +152,7 @@ proc ::xmpp::roster::bookmarks::store {xlib bookmarks args} {
             }
             default {
                 return -code error \
-                       -errorcode [::msgcat::mc "Illegal option \"%s\"" $key]
+                       [::msgcat::mc "Illegal option \"%s\"" $key]
             }
         }
     }

@@ -256,7 +256,7 @@ proc ::xmpp::auth::Continue {token featuresList} {
                                        -cdata $state(-username)]]
 
     ::xmpp::CallBack $xlib \
-                     status [::msgcat::mc "Waiting for non-SASL \
+                     status [::msgcat::mc "Waiting for non-SASL\
                                            authentication fields"]
 
     set state(id) \

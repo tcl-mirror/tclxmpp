@@ -22,9 +22,9 @@ namespace eval ::xmpp::register {
     array set labels [list username [::msgcat::mc "Username"] \
                            nick     [::msgcat::mc "Nickname"] \
                            password [::msgcat::mc "Password"] \
-                           name     [::msgcat::mc "Full Name"] \
-                           first    [::msgcat::mc "First Name"] \
-                           last     [::msgcat::mc "Last Name"] \
+                           name     [::msgcat::mc "Full name"] \
+                           first    [::msgcat::mc "First name"] \
+                           last     [::msgcat::mc "Last name"] \
                            email    [::msgcat::mc "E-mail"] \
                            address  [::msgcat::mc "Address"] \
                            city     [::msgcat::mc "City"] \
