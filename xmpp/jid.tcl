@@ -16,10 +16,31 @@ namespace eval ::xmpp::jid {
     namespace export jid split node server resource stripResource \
                      normalize equal
 
-    if {[catch {package require stringprep}]} {
-        variable Stringprep 0
-    } else {
+    if {![catch {package require stringprep 1.0.1}]} {
         variable Stringprep 1
+
+        ::stringprep::register nameprep \
+                -mapping {B.1 B.2} \
+                -normalization KC \
+                -prohibited {A.1 C.1.2 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9} \
+                -prohibitedBidi 1
+
+        ::stringprep::register nodeprep \
+                -mapping {B.1 B.2} \
+                -normalization KC \
+                -prohibited {A.1 C.1.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6
+                             C.7 C.8 C.9} \
+                -prohibitedList {0x22 0x26 0x27 0x2f 0x3a 0x3c 0x3e 0x40} \
+                -prohibitedBidi 1
+
+        ::stringprep::register resourceprep \
+                -mapping {B.1} \
+                -normalization KC \
+                -prohibited {A.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6 C.7
+                             C.8 C.9} \
+                -prohibitedBidi 1
+    } else {
+        variable Stringprep 0
     }
 }
 
@@ -197,21 +218,34 @@ proc ::xmpp::jid::stripResource {jid} {
 
 # ::xmpp::jid::normalize --
 #
-#       Normalize JID (convert node and server parts to lowercase).
+#       Normalize JID for comparison. In case if stringprep package is loaded
+#       it means applying the correspondent stringprep profiles to JID node,
+#       server and resource. If stringprep isn'r available then JID node and
+#       server parts are simply converted to lowercase.
 #
 # Arguments:
 #       jid         JID.
 #
 # Result:
-#       A JID with node and server parts converted to lowercase.
+#       A normalised JID with either all its parts stringprepped or with node
+#       and server parts converted to lowercase. If JID is malformed then the
+#       error is returned.
 #
 # Side effects:
 #       None.
 
 proc ::xmpp::jid::normalize {jid} {
-    set node     [string tolower [node $jid]]
-    set server   [string tolower [server $jid]]
-    set resource [resource $jid]
+    variable Stringprep
+
+    if {$Stringprep} {
+        set node     [::stringprep::stringprep nodeprep [node $jid]]
+        set server   [::stringprep::stringprep nameprep [server $jid]]
+        set resource [::stringprep::stringprep resourceprep [resource $jid]]
+    } else {
+        set node     [string tolower [node $jid]]
+        set server   [string tolower [server $jid]]
+        set resource [resource $jid]
+    }
 
     jid $node $server $resource
 }
@@ -225,7 +259,8 @@ proc ::xmpp::jid::normalize {jid} {
 #       jid1        JID to compare.
 #
 # Result:
-#       1 if normalized JIDs are equal, 0 otherwise.
+#       1 if normalized JIDs are equal, 0 otherwise. Error if some of the JIDs
+#       is malformed.
 #
 # Side effects:
 #       None.

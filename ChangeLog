@@ -1,3 +1,7 @@
+2010-01-24  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/jid.tcl: Added stringprep support in JID normalization.
+
 2010-01-23  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/negotiate.tcl, xmpp/register.tcl, xmpp/search.tcl: Reimplemented
