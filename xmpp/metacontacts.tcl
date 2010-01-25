@@ -3,7 +3,7 @@
 #       This file is a part of the XMPP library. It implements storing and
 #       retieving metacontacts information (XEP-0209).
 #
-# Copyright (c) 2009 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2009-2010 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.

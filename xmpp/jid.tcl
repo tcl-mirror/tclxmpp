@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It implements the routines to
 #       work with JIDs
 #
-# Copyright (c) 2008-2009 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -19,13 +19,13 @@ namespace eval ::xmpp::jid {
     if {![catch {package require stringprep 1.0.1}]} {
         variable Stringprep 1
 
-        ::stringprep::register nameprep \
+        ::stringprep::register Nameprep \
                 -mapping {B.1 B.2} \
                 -normalization KC \
                 -prohibited {A.1 C.1.2 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9} \
                 -prohibitedBidi 1
 
-        ::stringprep::register nodeprep \
+        ::stringprep::register Nodeprep \
                 -mapping {B.1 B.2} \
                 -normalization KC \
                 -prohibited {A.1 C.1.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6
@@ -33,7 +33,7 @@ namespace eval ::xmpp::jid {
                 -prohibitedList {0x22 0x26 0x27 0x2f 0x3a 0x3c 0x3e 0x40} \
                 -prohibitedBidi 1
 
-        ::stringprep::register resourceprep \
+        ::stringprep::register Resourceprep \
                 -mapping {B.1} \
                 -normalization KC \
                 -prohibited {A.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6 C.7
@@ -238,9 +238,9 @@ proc ::xmpp::jid::normalize {jid} {
     variable Stringprep
 
     if {$Stringprep} {
-        set node     [::stringprep::stringprep nodeprep [node $jid]]
-        set server   [::stringprep::stringprep nameprep [server $jid]]
-        set resource [::stringprep::stringprep resourceprep [resource $jid]]
+        set node     [::stringprep::stringprep Nodeprep [node $jid]]
+        set server   [::stringprep::stringprep Nameprep [server $jid]]
+        set resource [::stringprep::stringprep Resourceprep [resource $jid]]
     } else {
         set node     [string tolower [node $jid]]
         set server   [string tolower [server $jid]]

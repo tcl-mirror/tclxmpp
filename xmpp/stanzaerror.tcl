@@ -4,7 +4,7 @@
 #       parsing and generating XMPP stanza errors. For legacy errors XEP-0086
 #       rules are used.
 #
-# Copyright (c) 2008-2009 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.

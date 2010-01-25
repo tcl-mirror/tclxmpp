@@ -1,7 +1,7 @@
 [comment {-*- tcl -*- doctools manpage}]
 [comment {$Id$}]
 [manpage_begin xmpp::jid 3 0.1]
-[copyright {2008 Sergei Golovan <sgolovan@nes.ru>}]
+[copyright {2008-2010 Sergei Golovan <sgolovan@nes.ru>}]
 [moddesc {Tcl XMPP library}]
 [titledesc {Operations with JIDs}]
 [require Tcl 8.3]

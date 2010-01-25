@@ -4,7 +4,7 @@
 #       Client SRV DNS records (RFC 3920) and DNS TXT Resource Record Format
 #       (XEP-0156).
 #
-# Copyright (c) 2006-2009 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2006-2010 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.

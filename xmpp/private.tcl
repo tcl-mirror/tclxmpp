@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It provides support for the
 #       Private XML Storage (XEP-0049).
 #
-# Copyright (c) 2009 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2009-2010 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.

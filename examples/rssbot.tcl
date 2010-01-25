@@ -6,7 +6,7 @@
 #       RSS/XMPP gateway. It was initially developed by Marshall T. Rose and
 #       adapted to the XMPP library by Sergei Golovan.
 #
-# Copyright (c) 2009 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2009-2010 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.

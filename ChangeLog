@@ -1,3 +1,7 @@
+2010-01-25  Sergei Golovan  <sgolovan@nes.ru>
+
+	* *: Added 2010 to copyright statements.
+
 2010-01-24  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/jid.tcl: Added stringprep support in JID normalization.
