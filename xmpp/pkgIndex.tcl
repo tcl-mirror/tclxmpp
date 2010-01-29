@@ -25,9 +25,11 @@ package ifneeded xmpp::disco 0.1                [list source [file join $dir dis
 package ifneeded xmpp::dns 0.1                  [list source [file join $dir dns.tcl]]
 package ifneeded xmpp::iq 0.1                   [list source [file join $dir iq.tcl]]
 package ifneeded xmpp::jid 0.1                  [list source [file join $dir jid.tcl]]
+package ifneeded xmpp::muc 0.1                  [list source [file join $dir muc.tcl]]
 package ifneeded xmpp::negotiate 0.1            [list source [file join $dir negotiate.tcl]]
 package ifneeded xmpp::pep 0.1                  [list source [file join $dir pep.tcl]]
 package ifneeded xmpp::ping 0.1                 [list source [file join $dir ping.tcl]]
+package ifneeded xmpp::presence 0.1             [list source [file join $dir presence.tcl]]
 package ifneeded xmpp::privacy 0.1              [list source [file join $dir privacy.tcl]]
 package ifneeded xmpp::private 0.1              [list source [file join $dir private.tcl]]
 package ifneeded xmpp::pubsub 0.1               [list source [file join $dir pubsub.tcl]]
@@ -61,6 +63,7 @@ package ifneeded xmpp::full 0.1 {
     package require xmpp::delay 0.1
     package require xmpp::disco 0.1
     package require xmpp::dns 0.1
+    package require xmpp::muc 0.1
     package require xmpp::pep 0.1
     package require xmpp::ping 0.1
     package require xmpp::privacy 0.1

@@ -73,7 +73,7 @@ proc ::xmpp::roster::items {token args} {
     variable $token
     upvar 0 $token state
 
-    set normalized false
+    set normalized 0
 
     foreach {key val} $args {
         switch -- $key {

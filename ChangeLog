@@ -1,3 +1,28 @@
+2010-01-29  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/stanzaerror.tcl: Fixed numeric code processing for legacy
+	  (pre-XMPP) error stanzas.
+
+	* xmpp/jid.tcl: Cache stringprepped JID parts because stringprep is
+	  really slow.
+
+	* xmpp/data.tcl, xmpp/delay.tcl, xmpp/register.tcl, xmpp/roster.tcl,
+	  xmpp/search.tcl, xmpp/stanzaerror.tcl: Don't use true and false as
+	  boolean values because Tcl 8.3 doesn't understand them.
+
+	* xmpp/presence.tcl: Added a new package xmpp::presence which stores
+	  received presence information and allows to register presence
+	  callbacks inside TclXMPP library.
+
+	* xmpp/xmpp.tcl: Require xmpp::presence package and ignore illegal
+	  received presence priorities (non-integer) and presence statuses
+	  (not 'avay', 'chat', 'dnd', 'xa').
+
+	* xmpp/muc.tcl: Started to implement MUC (XEP-0045). Currently joining,
+	  leaving room, and changing nickname are implemented.
+
+	* xmpp/pkgIndex.tcl: Added xmpp::presence and xmpp::muc packages.
+
 2010-01-25  Sergei Golovan  <sgolovan@nes.ru>
 
 	* *: Added 2010 to copyright statements.

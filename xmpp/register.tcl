@@ -60,7 +60,7 @@ proc ::xmpp::register::request {xlib jid args} {
 # ::xmpp::register::submit --
 
 proc ::xmpp::register::submit {xlib jid fields args} {
-    set old false
+    set old 0
     set commands {}
     foreach {key val} $args {
         switch -- $key {
@@ -147,10 +147,10 @@ proc ::xmpp::register::ParseForm {commands status xml} {
 
     if {[string equal $type form]} {
         set fields [::xmpp::data::parseForm $form]
-        set old false
+        set old 0
     } else {
         set fields [ParseFields $subels]
-        set old true
+        set old 1
     }
 
     uplevel #0 [lindex $commands 0] [list $status $fields -old $old]
@@ -192,7 +192,7 @@ proc ::xmpp::register::ParseFields {xmlElements} {
                 }
 
                 lappend res field \
-                        [list $tag $type $label "" false {} [list $cdata] {}]
+                        [list $tag $type $label "" 0 {} [list $cdata] {}]
             }
         }
     }

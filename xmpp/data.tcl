@@ -60,7 +60,7 @@ proc ::xmpp::data::formField {tag args} {
             if {[info exists params(-required)]} {
                 lappend field $params(-required)
             } else {
-                lappend field false
+                lappend field 0
             }
 
             if {[lcontain {list-multi list-single} $type]} {
@@ -373,7 +373,7 @@ proc ::xmpp::data::parseResult {xmlElement} {
 proc ::xmpp::data::ParseField {xmlElement} {
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
-    set required false
+    set required 0
     set desc     {}
     set options  {}
     set values   {}
@@ -388,7 +388,7 @@ proc ::xmpp::data::ParseField {xmlElement} {
 
         switch -- $stag {
             required {
-                set required true
+                set required 1
             }
             value {
                 lappend values $scdata

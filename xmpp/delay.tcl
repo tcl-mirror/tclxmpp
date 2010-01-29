@@ -22,8 +22,8 @@ namespace eval ::xmpp::delay {}
 #       xmlElements         XML elements list.
 #
 # Result:
-#       If there's a delay elements in the given list then the result is true
-#       otherwise it's false.
+#       If there's a delay elements in the given list then the result is 1
+#       (true) otherwise it's 0 (false).
 #
 # Side effects:
 #       None.
@@ -35,11 +35,11 @@ proc ::xmpp::delay::exists {xmlElements} {
         switch -- $xmlns {
             urn:xmpp:delay -
             jabber:x:delay {
-                return true
+                return 1
             }
         }
     }
-    return false
+    return 0
 }
 
 # ::xmpp::delay::parse --
@@ -125,11 +125,11 @@ proc ::xmpp::delay::create {args} {
     switch -- [llength $args] {
         0 {
             set seconds [clock seconds]
-            set old false
+            set old 0
         }
         1 {
             set seconds [lindex $args 0]
-            set old false
+            set old 0
         }
         2 {
             switch -- [lindex $args 0] {

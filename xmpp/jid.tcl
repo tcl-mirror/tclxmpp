@@ -232,22 +232,44 @@ proc ::xmpp::jid::stripResource {jid} {
 #       error is returned.
 #
 # Side effects:
-#       None.
+#       If JID's node, server or resource is missing in the correspondent
+#       cache it is added.
 
 proc ::xmpp::jid::normalize {jid} {
     variable Stringprep
 
+    split $jid node server resource
+
     if {$Stringprep} {
-        set node     [::stringprep::stringprep Nodeprep [node $jid]]
-        set server   [::stringprep::stringprep Nameprep [server $jid]]
-        set resource [::stringprep::stringprep Resourceprep [resource $jid]]
+        variable NodesCache
+        variable ServersCache
+        variable ResourcesCache
+
+        if {[info exists NodesCache($node)]} {
+            set node1 $NodesCache($node)
+        } else {
+            set node1 [::stringprep::stringprep Nodeprep $node]
+            set NodesCache($node) $node1
+        }
+        if {[info exists ServersCache($server)]} {
+            set server1 $ServersCache($server)
+        } else {
+            set server1 [::stringprep::stringprep Nameprep $server]
+            set ServersCache($server) $server1
+        }
+        if {[info exists ResourcesCache($resource)]} {
+            set resource1 $ResourcesCache($resource)
+        } else {
+            set resource1 [::stringprep::stringprep Resourceprep $resource]
+            set ResourcesCache($resource) $resource1
+        }
     } else {
-        set node     [string tolower [node $jid]]
-        set server   [string tolower [server $jid]]
-        set resource [resource $jid]
+        set node1     [string tolower $node]
+        set server1   [string tolower $server]
+        set resource1 $resource
     }
 
-    jid $node $server $resource
+    jid $node1 $server1 $resource1
 }
 
 # ::xmpp::jid::equal --

@@ -267,8 +267,8 @@ proc ::xmpp::stanzaerror::ToList {xmlElement} {
     } elseif {[::xmpp::xml::isAttr $attrs code]} {
         # Legacy error. Description is in $cdata
 
-        set code [::xmpp::xml::isAttr $attrs code]
-        if {[string is integer $code]} {
+        set code [::xmpp::xml::getAttr $attrs code]
+        if {[string is integer -strict $code]} {
             if {[info exists TypeDescelem($code)]} {
                 set type [lindex $TypeDescelem($code) 0]
                 set desc [lindex $TypeDescelem($code) 1]
@@ -303,7 +303,7 @@ proc ::xmpp::stanzaerror::ToList {xmlElement} {
 #       None.
 
 proc ::xmpp::stanzaerror::error {type cond args} {
-    set old false
+    set old 0
     foreach {key val} $args {
         switch -- $key {
             -old {

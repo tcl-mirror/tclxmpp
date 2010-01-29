@@ -17,6 +17,7 @@ package require xmpp::transport::tcp
 package require xmpp::streamerror
 package require xmpp::stanzaerror
 package require xmpp::iq
+package require xmpp::presence
 
 package provide xmpp 0.1
 
@@ -92,7 +93,7 @@ proc ::xmpp::new {args} {
             -disconnectcommand -
             -statuscommand -
             -errorcommand -
-	    -logcommand {
+            -logcommand {
                 set attrs($key) $val
             }
             default {
@@ -522,12 +523,12 @@ proc ::xmpp::GotStream {xlib status attrs} {
 
     Debug $xlib 2 "$status $attrs"
     if {[string equal $status ok]} {
-	set msg "<stream:stream "
-	foreach {attr val} $attrs {
-	    append msg " $attr='[xml::Escape $val]'"
-	}
-	append msg ">"
-	CallBack $xlib log input text $msg
+        set msg "<stream:stream "
+        foreach {attr val} $attrs {
+            append msg " $attr='[xml::Escape $val]'"
+        }
+        append msg ">"
+        CallBack $xlib log input text $msg
     }
 
     if {[info exists state(openStreamCommand)]} {
@@ -1362,15 +1363,32 @@ proc ::xmpp::ParsePresence {xlib xmlElement} {
         xml::split $subel stag sxmlns sattrs scdata ssubels
 
         switch $stag {
-            priority {lappend params -priority $scdata}
-            show     {lappend params -show     $scdata}
-            status   {lappend params -status   $scdata}
-            error    {lappend params -error    $subel}
-            default  {lappend x $subel}
+            priority {
+                if {[string is integer -strict $scdata]} {
+                    lappend params -priority $scdata
+                }
+            }
+            show {
+                switch -- $scdata {
+                    away -
+                    chat -
+                    dnd  -
+                    xa   {
+                        lappend params -show $scdata
+                    }
+                }
+            }
+            status  {lappend params -status $scdata}
+            error   {lappend params -error  $subel}
+            default {lappend x $subel}
         }
     }
 
+    # Evaluate client callback
     eval [list CallBack $xlib presence $from $type $x -x $xparam] $params
+
+    # Evaluate internal (or otherwise registered) callbacks
+    eval [list presence::process $xlib $from $type $x -x $xparam] $params
     return
 }
 
