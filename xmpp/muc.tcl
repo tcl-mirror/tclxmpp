@@ -349,7 +349,8 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
         unavailable {
             foreach element $xmlElements {
                 ::xmpp::xml::split $element tag xmlns attrs cdata subels
-                if {[string equal $xmlns "http://jabber.org/protocol/muc#user"]} {
+                if {[string equal $xmlns \
+                                  "http://jabber.org/protocol/muc#user"]} {
                     ProcessMUCUser $token $nick $type $subels
                 }
             }
@@ -388,6 +389,11 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
             if {$idx >= 0} {
                 set state(users) [lreplace $state(users) $idx $idx]
             }
+
+            catch {unset state(jid,$nick)}
+            catch {unset state(affiliation,$nick)}
+            catch {unset state(role,$nick)}
+
             if {[info exists state(ignore_unavailable)] && \
                         [string equal $state(ignore_unavailable) $nick]} {
                 unset state(ignore_unavailable)
@@ -440,6 +446,15 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
             if {$idx < 0} {
                 lappend state(users) $nick
                 set action enter
+                if {[string equal [set RealJID [realJid $token $nick]] ""]} {
+                    lappend args -jid $RealJID
+                }
+                if {[string equal [set aff [affiliation $token $nick]] ""]} {
+                    lappend args -affiliation $aff
+                }
+                if {[string equal [set role [role $token $nick]] ""]} {
+                    lappend args -role $role
+                }
             } else {
                 set action presence
             }
@@ -505,12 +520,14 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                         set args {}
                         set callback 0
                         set jid [::xmpp::xml::getAttr $attrs jid]
-                        if {[AttrChanged $token $nick jid $jid]} {
+                        if {![string equal $jid ""]} {
                             lappend args -jid $jid
                             set state(jid,$nick) $jid
                         }
-                        set affiliation [::xmpp::xml::getAttr $attrs affiliation]
-                        if {[AttrChanged $token $nick affiliation $affiliation]} {
+                        set affiliation \
+                            [::xmpp::xml::getAttr $attrs affiliation]
+                        if {[AttrChanged $token $nick affiliation \
+                                                      $affiliation]} {
                             lappend args -affiliation $affiliation
                             set state(affiliation,$nick) $affiliation
                             set callback 1
@@ -521,20 +538,24 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                             set state(role,$nick) $role
                             set callback 1
                         }
-                        if {$callback} {
-                            uplevel #0 $state(-eventcommand) [list position $nick] $args
+                        if {$callback && \
+                                [lsearch -exact $state(users) $nick] >= 0} {
+                            uplevel #0 $state(-eventcommand) \
+                                       [list position $nick] $args
                         }
                     }
                     unavailable {
                         set new_nick [::xmpp::xml::getAttr $attrs nick]
-                        foreach ch $subels {
-                            ::xmpp::xml::split $ch stag sxmlns sattrs scdata ssubels
+                        foreach subel $subels {
+                            ::xmpp::xml::split $subel stag sxmlns sattrs \
+                                                      scdata ssubels
                             switch -- $stag {
                                 reason {
                                     set reason $scdata
                                 }
                                 actor {
-                                    set actor [::xmpp::xml::getAttr $sattrs jid]
+                                    set actor \
+                                        [::xmpp::xml::getAttr $sattrs jid]
                                 }
                             }
                         }
@@ -618,11 +639,13 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                             lappend args -actor $actor
                         }
 
-                        if {[info exists reason] && ![string equal $reason ""]} {
+                        if {[info exists reason] && \
+                                            ![string equal $reason ""]} {
                             lappend args -reason $reason
                         }
 
-                        uplevel #0 $state(-eventcommand) [list $action $nick] $args
+                        uplevel #0 $state(-eventcommand) \
+                                   [list $action $nick] $args
 
                         set state(ignore_unavailable) $nick
                     }
@@ -644,7 +667,8 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                                 lappend args -jid $RealJID
                             }
 
-                            uplevel #0 $state(-eventcommand) [list nick $nick] $args
+                            uplevel #0 $state(-eventcommand) \
+                                       [list nick $nick] $args
 
                             set state(ignore_available) $new_nick
                             set state(ignore_unavailable) $nick
@@ -665,37 +689,29 @@ proc ::xmpp::muc::Noop {args} {
 # ::xmpp::muc::realJid --
 
 proc ::xmpp::muc::realJid {token nick} {
-    variable $token
-    upvar 0 $token state
-
-    if {[info exists state(jid,$nick)]} {
-        return $state(jid,$nick)
-    } else {
-        return ""
-    }
+    UserAttr $token jid $nick
 }
 
 # ::xmpp::muc::affiliation --
 
 proc ::xmpp::muc::affiliation {token nick} {
-    variable $token
-    upvar 0 $token state
-
-    if {[info exists state(affiliation,$nick)]} {
-        return $state(affiliation,$nick)
-    } else {
-        return ""
-    }
+    UserAttr $token affiliation $nick
 }
 
 # ::xmpp::muc::role --
 
 proc ::xmpp::muc::role {token nick} {
+    UserAttr $token role $nick
+}
+
+# ::xmpp::muc::UserAttr --
+
+proc ::xmpp::muc::UserAttr {token attr nick} {
     variable $token
     upvar 0 $token state
 
-    if {[info exists state(role,$nick)]} {
-        return $state(role,$nick)
+    if {[info exists state($attr,$nick)]} {
+        return $state($attr,$nick)
     } else {
         return ""
     }
@@ -704,28 +720,323 @@ proc ::xmpp::muc::role {token nick} {
 # ::xmpp::muc::nick --
 
 proc ::xmpp::muc::nick {token} {
-    variable $token
-    upvar 0 $token state
-
-    return $state(nick)
+    Attr $token nick
 }
 
 # ::xmpp::muc::status --
 
 proc ::xmpp::muc::status {token} {
-    variable $token
-    upvar 0 $token state
-
-    return $state(status)
+    Attr $token status
 }
 
 # ::xmpp::muc::roster --
 
-proc ::xmpp::muc::roster {token args} {
+proc ::xmpp::muc::roster {token} {
+    Attr $token users
+}
+
+# ::xmpp::muc::Attr --
+
+proc ::xmpp::muc::Attr {token attr} {
     variable $token
     upvar 0 $token state
 
-    return $state(users)
+    return $state($attr)
+}
+
+# ::xmpp::muc::setAffiliation --
+
+proc ::xmpp::muc::setAffiliation {token nick affiliation args} {
+    eval [list SetAttr $token $nick affiliation $affiliation] $args
+}
+
+# ::xmpp::muc::setRole --
+
+proc ::xmpp::muc::setRole {token nick role args} {
+    eval [list SetAttr $token $nick role $role] $args
+}
+
+# ::xmpp::muc::SetAttr --
+
+proc ::xmpp::muc::SetAttr {token nick attr value args} {
+    variable $token
+    upvar 0 $token state
+
+    set commands {}
+    foreach {key val} $args {
+        switch -- $key {
+            -reason  { set reason $val }
+            -command { set commands [list $val] }
+        }
+    }
+
+    if {![info exists state(xlib)]} {
+        CallBack $commands error \
+                 [::xmpp::xml::create error \
+                            -cdata [::msgcat::mc "MUC token doesn't exist"]]
+        return
+    }
+
+    set xlib $state(xlib)
+    set room $state(room)
+
+    if {[info exists reason]} {
+        set subels [list [::xmpp::xml::create reason -cdata $reason]]
+    } else {
+        set subels {}
+    }
+
+    set attrs [list nick $nick $attr $value]
+
+    switch -- $attr/$value {
+        affiliation/outcast {
+            # Banning request MUST be based on user's bare JID (which though 
+            # may be not known by admin)
+            set RealJID [realJid $token $nick]
+            if {![string equal $RealJID ""]} {
+                set attrs [list jid [::xmpp::jid::bareJid $RealJID] \
+                                $attr $value]
+            }
+        }
+    }
+
+    set item [::xmpp::xml::create item \
+                        -attrs $attrs \
+                        -subelements $subels]
+
+    ::xmpp::sendIQ $xlib set \
+            -query [::xmpp::xml::create query \
+                            -xmlns "http://jabber.org/protocol/muc#admin" \
+                            -subelement $item] \
+            -to $room \
+            -command [namespace code [list CallBack $commands]]
+}
+
+# ::xmpp::muc::CompareAffiliations --
+
+proc ::xmpp::muc::CompareAffiliations {affiliation1 affiliation2} {
+    set affiliations {outcast none member admin owner}
+
+    set idx1 [lsearch -exact $affiliations $affiliation1]
+    set idx2 [lsearch -exact $affiliations $affiliation2]
+    expr {$idx1 - $idx2}
+}
+
+# ::xmpp::muc::CompareRoles --
+
+proc ::xmpp::muc::CompareRoles {role1 role2} {
+    set roles {none visitor participant moderator}
+
+    set idx1 [lsearch -exact $roles $role1]
+    set idx2 [lsearch -exact $roles $role2]
+    expr {$idx1 - $idx2}
+}
+
+# ::xmpp::muc::raiseAffiliation --
+
+proc ::xmpp::muc::raiseAffiliation {token nick value args} {
+    eval [list RaiseOrLowerAttr $token $nick affiliation $value 1] $args
+}
+
+# ::xmpp::muc::raiseRole --
+
+proc ::xmpp::muc::raiseRole {token nick value args} {
+    eval [list RaiseOrLowerAttr $token $nick role $value 1] $args
+}
+
+# ::xmpp::muc::lowerAffiliation --
+
+proc ::xmpp::muc::raiseAffiliation {token nick value args} {
+    eval [list RaiseOrLowerAttr $token $nick affiliation $value -1] $args
+}
+
+# ::xmpp::muc::lowerRole --
+
+proc ::xmpp::muc::raiseRole {token nick value args} {
+    eval [list RaiseOrLowerAttr $token $nick role $value -1] $args
+}
+
+# ::xmpp::muc::RaiseOrLowerAttr --
+
+proc ::xmpp::muc::RaiseOrLowerAttr {token nick attr value dir args} {
+    variable $token
+    upvar 0 $token state
+
+    set commands {}
+    foreach {key val} $args {
+        switch -- $key {
+            -reason  { set reason $val }
+            -command { set commands [list $val] }
+        }
+    }
+
+    if {![info exists state(xlib)]} {
+        CallBack $commands error \
+                 [::xmpp::xml::create error \
+                            -cdata [::msgcat::mc "MUC token doesn't exist"]]
+        return
+    }
+
+    set xlib $state(xlib)
+    set room $state(room)
+
+    switch -- $state(status) {
+        disconnected {
+            CallBack $commands error \
+                     [::xmpp::xml::create error \
+                            -cdata [::msgcat::mc "Must join room first"]]
+            return
+        }
+    }
+
+    switch -- $attr {
+        affiliation {
+            set value0 [affiliation $token $nick]
+            set diff [CompareAffiliations $value0 $value]
+        }
+        role {
+            set value0 [role $token $nick]
+            set diff [CompareRoles $value0 $value]
+        }
+    }
+
+    if {($dir > 0 && $diff >= 0) || ($dir < 0 && $diff <= 0)} {
+        CallBack $commands error \
+                 [::xmpp::xml::create error \
+                            -cdata [::msgcat::mc "User already %s" $value0]]
+        return
+    }
+
+    eval [list SetAttr $token $nick $attr $value] $args
+}
+
+# ::xmpp::muc::requestAffiliations --
+
+proc ::xmpp::muc::requestAffiliations {xlib room value args} {
+    eval [list RequestList $xlib $room affiliation $value] $args
+}
+
+# ::xmpp::muc::requestRoles --
+
+proc ::xmpp::muc::requestRoles {xlib room value args} {
+    eval [list RequestList $xlib $room role $value] $args
+}
+
+# ::xmpp::muc::RequestList --
+
+proc ::xmpp::muc::RequestList {xlib room attr value args} {
+    set commands {}
+    foreach {key val} $args {
+        switch -- $key {
+            -command { set commands [list $val] }
+        }
+    }
+
+    ::xmpp::sendIQ $xlib get \
+            -query [::xmpp::xml::create query \
+                            -xmlns "http://jabber.org/protocol/muc#admin" \
+                            -subelement [::xmpp::xml::create item \
+                                                -attrs [list $attr $value]]] \
+            -to $room \
+            -command [namespace code [list ParseRequestList $commands $attr]]
+}
+
+# ::xmpp::muc::ParseRequestList --
+
+proc ::xmpp::muc::ParseRequestList {commands attr status xml} {
+    if {![string equal $status ok]} {
+        CallBack $commands $status $xml
+        return
+    }
+
+    ::xmpp::xml::split $xml tag xmlns attrs cdata subels
+
+    set items {}
+    foreach subel $subels {
+        ::xmpp::xml::split $subel stag sxmlns sattrs scdata ssubels
+        switch -- $stag {
+            item {
+                set nick [::xmpp::xml::getAttr $sattrs nick]
+                set jid [::xmpp::xml::getAttr $sattrs jid]
+                switch -- $attr {
+                    affiliation {
+                        set attribute \
+                            [::xmpp::xml::getAttr $sattrs affiliation]
+                    }
+                    role {
+                        set attribute [::xmpp::xml::getAttr $sattrs role]
+                    }
+                }
+                set reason ""
+                foreach ssubel $ssubels {
+                    ::xmpp::xml::split $ssubel sstag ssxmlns ssattrs \
+                                               sscdata sssubels
+                    switch -- $sstag {
+                        reason {
+                            set reason $sscdata
+                        }
+                    }
+                }
+                lappend items [list $nick $jid $attribute $reason]
+            }
+        }
+    }
+
+    CallBack $commands ok $items
+    return
+}
+
+# ::xmpp::muc::sendAffiliations --
+
+proc ::xmpp::muc::sendAffiliations {xlib room items args} {
+    eval [list SendList $xlib $room affiliation $items] $args
+}
+
+# ::xmpp::muc::sendRoles --
+
+proc ::xmpp::muc::sendRoles {xlib room items args} {
+    eval [list SendList $xlib $room role $items] $args
+}
+
+# ::xmpp::muc::SendList --
+
+proc ::xmpp::muc::SendList {xlib room attr items args} {
+    set commands {}
+    foreach {key val} $args {
+        switch -- $key {
+            -command { set commands [list $val] }
+        }
+    }
+
+    set subels {}
+    foreach item $items {
+        foreach {nick jid attribute reason} $item break
+
+        if {[string equal $nick ""] && [string equal $jid ""]} continue
+
+        set attrs [list $attr $attribute]
+        if {![string equal $nick ""]} {
+            lappend attrs nick $nick
+        }
+        if {![string equal $jid ""]} {
+            lappend attrs jid $jid
+        }
+        if {![string equal $reason ""]} {
+            set ssubels [list [::xmpp::xml::create reason -cdata $reason]]
+        } else {
+            set ssubels {}
+        }
+        lappend subels [::xmpp::xml::create item \
+                                -attrs $attrs \
+                                -subelements $ssubels]
+    }
+
+    ::xmpp::sendIQ $xlib set \
+            -query [::xmpp::xml::create query \
+                            -xmlns "http://jabber.org/protocol/muc#admin" \
+                            -subelements $subels] \
+            -to $room \
+            -command [namespace code [list CallBack $commands]]
 }
 
 # vim:ft=tcl:ts=8:sw=4:sts=4:et

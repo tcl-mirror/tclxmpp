@@ -3,6 +3,10 @@
 	* xmpp/muc.tcl: Added a new reported MUC event (disconnect). Fixed
 	  race condition on leaving room and immediately entering.
 
+	* xmpp/muc.tcl: Fixed calling events command on affiliation and role
+	  changes. Implemented low and medium level commands for manipulating
+	  users affiliations and roles.
+
 2010-01-29  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/stanzaerror.tcl: Fixed numeric code processing for legacy
