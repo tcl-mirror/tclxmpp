@@ -168,12 +168,24 @@ proc ::xmpp::muc::join {token nickname args} {
 
     set nickname [::xmpp::jid::resource $jid]
 
+    if {[string equal $nickname ""]} {
+        after idle [namespace code \
+                        [list CallBack $commands error \
+                              [::xmpp::xml::create error \
+                                    -cdata [::msgcat::mc "Empty nickname"]]]]
+        return
+    }
+
     set id [::xmpp::packetID $xlib]
     set state(id) $id
     set state(commands) $commands
 
     set state(status) connecting
-    set state(nick) $nickname
+    set state(nick) ""
+    set state(users) {}
+    array unset state jid,*
+    array unset state affiliation,*
+    array unset state role,*
 
     eval [list ::xmpp::sendPresence $xlib \
                         -to $state(room)/$nickname \
@@ -380,10 +392,24 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
                         [string equal $state(ignore_unavailable) $nick]} {
                 unset state(ignore_unavailable)
             } else {
-                if {[string equal $nick $state(nick)]} {
-                    lappend args -own 1
-                }
                 uplevel #0 $state(-eventcommand) [list exit $nick] $args
+            }
+
+            if {[string equal $nick $state(nick)]} {
+                set state(nick)   ""
+                set state(status) disconnected
+                set state(args)   {}
+
+                if {[info exists state(id)]} {
+                    unset state(id)
+                    CallBack $state(commands) error \
+                        [::xmpp::xml::create error \
+                            -cdata [::msgcat::mc "Disconnected from the room"]]
+                }
+
+                set state(commands) {}
+
+                uplevel #0 $state(-eventcommand) [list disconnect $nick] $args
             }
         }
         available {
@@ -422,9 +448,6 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
                     [string equal $state(ignore_available) $nick]} {
                 unset state(ignore_available)
             } else {
-                if {[string equal $nick $state(nick)]} {
-                    lappend args -own 1
-                }
                 uplevel #0 $state(-eventcommand) [list $action $nick] $args
             }
         }
@@ -450,6 +473,21 @@ proc ::xmpp::muc::CallBack {commands status msg} {
     return
 }
 
+# ::xmpp::muc::AttrChanged --
+
+proc ::xmpp::muc::AttrChanged {token nick attr value} {
+    variable $token
+    upvar 0 $token state
+
+    if {![string equal $value ""] && \
+            (![info exists state($attr,$nick)] || \
+             ![string equal $value $state($attr,$nick)])} {
+        return 1
+    } else {
+        return 0
+    }
+}
+
 # ::xmpp::muc::ProcessMUCUser --
 
 proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
@@ -467,24 +505,18 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                         set args {}
                         set callback 0
                         set jid [::xmpp::xml::getAttr $attrs jid]
-                        if {![string equal $jid ""] && \
-                                (![info exists state(jid,$nick)] || \
-                                 ![string equal $jid $state(jid,$nick)])} {
+                        if {[AttrChanged $token $nick jid $jid]} {
                             lappend args -jid $jid
                             set state(jid,$nick) $jid
                         }
                         set affiliation [::xmpp::xml::getAttr $attrs affiliation]
-                        if {![string equal $affiliation ""] && \
-                                (![info exists state(affiliation,$nick)] || \
-                                 ![string equal $affiliation $state(affiliation,$nick)])} {
+                        if {[AttrChanged $token $nick affiliation $affiliation]} {
                             lappend args -affiliation $affiliation
                             set state(affiliation,$nick) $affiliation
                             set callback 1
                         }
                         set role [::xmpp::xml::getAttr $attrs role]
-                        if {![string equal $role ""] && \
-                                (![info exists state(role,$nick)] || \
-                                 ![string equal $role $state(role,$nick)])} {
+                        if {[AttrChanged $token $nick role $role]} {
                             lappend args -role $role
                             set state(role,$nick) $role
                             set callback 1
@@ -533,9 +565,9 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
         switch -- $tag {
             status {
                 set code [::xmpp::xml::getAttr $attrs code]
-                switch -- $code {
-                    110 -
-                    210 {
+                switch -- $code/$type {
+                    110/available -
+                    210/available {
                         # 110: This present packet is our own
                         # 210: The service has changed our nickname
                         set state(nick) $nick
