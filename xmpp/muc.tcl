@@ -158,7 +158,9 @@ proc ::xmpp::muc::join {token nickname args} {
     set xlib $state(xlib)
     set room $state(room)
 
-    if {[catch {set jid [::xmpp::jid::normalize $room/$nickname]}]} {
+    if {[catch {set jid [::xmpp::jid::normalize \
+                                [::xmpp::jid::replaceResource $room \
+                                                              $nickname]]}]} {
         after idle [namespace code \
                         [list CallBack $commands error \
                               [::xmpp::xml::create error \
@@ -188,7 +190,8 @@ proc ::xmpp::muc::join {token nickname args} {
     array unset state role,*
 
     eval [list ::xmpp::sendPresence $xlib \
-                        -to $state(room)/$nickname \
+                        -to [::xmpp::jid::replaceResource $state(room) \
+                                                          $nickname] \
                         -xlist $newXlist \
                         -id $id] $state(args)
     return
@@ -215,7 +218,7 @@ proc ::xmpp::muc::leave {token args} {
         }
     }
 
-    set state(nick)   ""
+    #set state(nick)   ""
     set state(status) disconnected
     set state(args)   {}
 
@@ -228,8 +231,10 @@ proc ::xmpp::muc::leave {token args} {
 
     set state(commands) {}
 
-    eval [list ::xmpp::sendPresence $xlib -type unavailable \
-                                          -to $room/$nick] $newArgs
+    eval [list ::xmpp::sendPresence $xlib \
+                        -type unavailable \
+                        -to [::xmpp::jid::replaceResource $room \
+                                                          $nick]] $newArgs
 }
 
 # ::xmpp::muc::setNick --
@@ -291,7 +296,9 @@ proc ::xmpp::muc::setNick {token nickname args} {
     set room $state(room)
     set nick $state(nick)
 
-    if {[catch {set jid [::xmpp::jid::normalize $room/$nickname]}]} {
+    if {[catch {set jid [::xmpp::jid::normalize \
+                                [::xmpp::jid::replaceResource $room \
+                                                              $nickname]]}]} {
         after idle [namespace code \
                         [list CallBack $commands error \
                               [::xmpp::xml::create error \
@@ -301,7 +308,8 @@ proc ::xmpp::muc::setNick {token nickname args} {
     set nickname [::xmpp::jid::resource $jid]
 
     # Changing nickname to the equivalent one does nothing useful
-    if {[::xmpp::jid::equal $room/$nick $room/$nickname]} {
+    if {[::xmpp::jid::equal [::xmpp::jid::replaceResource $room $nick] \
+                            [::xmpp::jid::replaceResource $room $nickname]]} {
         after idle [namespace code \
                         [list CallBack $commands error \
                               [::xmpp::xml::create error \
@@ -330,7 +338,8 @@ proc ::xmpp::muc::setNick {token nickname args} {
     set state(args) [array get Args]
 
     eval [list ::xmpp::sendPresence $xlib \
-                        -to $state(room)/$nickname \
+                        -to [::xmpp::jid::replaceResource $state(room) \
+                                                          $nickname] \
                         -id $id] $state(args)
 }
 
@@ -402,7 +411,7 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
             }
 
             if {[string equal $nick $state(nick)]} {
-                set state(nick)   ""
+                #set state(nick)   ""
                 set state(status) disconnected
                 set state(args)   {}
 
@@ -746,22 +755,19 @@ proc ::xmpp::muc::Attr {token attr} {
 
 # ::xmpp::muc::setAffiliation --
 
-proc ::xmpp::muc::setAffiliation {token nick affiliation args} {
-    eval [list SetAttr $token $nick affiliation $affiliation] $args
+proc ::xmpp::muc::setAffiliation {xlib room nick affiliation args} {
+    eval [list SetAttr $xlib $room $nick affiliation $affiliation] $args
 }
 
 # ::xmpp::muc::setRole --
 
-proc ::xmpp::muc::setRole {token nick role args} {
-    eval [list SetAttr $token $nick role $role] $args
+proc ::xmpp::muc::setRole {xlib room nick role args} {
+    eval [list SetAttr $xlib $room $nick role $role] $args
 }
 
 # ::xmpp::muc::SetAttr --
 
-proc ::xmpp::muc::SetAttr {token nick attr value args} {
-    variable $token
-    upvar 0 $token state
-
+proc ::xmpp::muc::SetAttr {xlib room nick attr value args} {
     set commands {}
     foreach {key val} $args {
         switch -- $key {
@@ -769,16 +775,6 @@ proc ::xmpp::muc::SetAttr {token nick attr value args} {
             -command { set commands [list $val] }
         }
     }
-
-    if {![info exists state(xlib)]} {
-        CallBack $commands error \
-                 [::xmpp::xml::create error \
-                            -cdata [::msgcat::mc "MUC token doesn't exist"]]
-        return
-    }
-
-    set xlib $state(xlib)
-    set room $state(room)
 
     if {[info exists reason]} {
         set subels [list [::xmpp::xml::create reason -cdata $reason]]
@@ -1035,6 +1031,92 @@ proc ::xmpp::muc::SendList {xlib room attr items args} {
             -query [::xmpp::xml::create query \
                             -xmlns "http://jabber.org/protocol/muc#admin" \
                             -subelements $subels] \
+            -to $room \
+            -command [namespace code [list CallBack $commands]]
+}
+
+# ::xmpp::muc::unsetOutcast --
+
+proc ::xmpp::muc::unsetOutcast {xlib room jid args} {
+    set commands {}
+    foreach {key val} $args {
+        switch -- $key {
+            -command { set commands [list $val] }
+        }
+    }
+
+    RequestList $xlib $room affiliation outcast \
+                -command [namespace code [list ParseOutcastList \
+                                               $xlib $room $jid $commands]]
+}
+
+# ::xmpp::muc::ParseOutcastList --
+
+proc ::xmpp::muc::ParseOutcastList {xlib room jid status items} {
+    if {![string equal $status ok]} {
+        CallBack $commands $status $items
+        return
+    }
+
+    set bjid [xmpp::jid::normalize [::xmpp::jid::bareJid $jid]]
+    set found 0
+    foreach item $items {
+        foreach {nick jid affiliation reason} $item break
+
+        if {[string equal $jid $bjid]} {
+            set found 1
+            break
+        }
+    }
+
+    if {!$found} {
+        CallBack $commands error \
+                 [::xmpp::xml::create error \
+                            -cdata [::msgcat::mc "User is not banned"]]
+        return
+    }
+
+    set item [::xmpp::xml::create item \
+                    -attrs [list jid $bjid affiliation none]]
+
+    ::xmpp::sendIQ $xlib set \
+            -query [::xmpp::xml::create query \
+                            -xmlns "http://jabber.org/protocol/muc#admin" \
+                            -subelement $item] \
+            -to $room \
+            -command [namespace code [list CallBack $commands]]
+}
+
+# ::xmpp::muc::destroy --
+
+proc ::xmpp::muc::destroy {xlib room args} {
+    set commands {}
+    foreach {key val} $args {
+        switch -- $key {
+            -jid     { set jid $val }
+            -reason  { set reason $val }
+            -command { set commands [list $val] }
+        }
+    }
+
+    if {[info exists jid]} {
+        set attrs [list jid $jid]
+    } else {
+        set attrs {}
+    }
+
+    if {[info exists reason]} {
+        set subels [list [::xmpp::xml::create reason -cdata $reason]]
+    } else {
+        set subels {}
+    }
+
+    ::xmpp::sendIQ $xlib set \
+            -query [::xmpp::xml::create query \
+                            -xmlns "http://jabber.org/protocol/muc#owner" \
+                            -subelement [::xmpp::xml::create destroy \
+                                                -attrs $attrs \
+                                                -subelements $subels]] \
             -to $room \
             -command [namespace code [list CallBack $commands]]
 }

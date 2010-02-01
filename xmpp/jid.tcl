@@ -13,8 +13,8 @@
 package provide xmpp::jid 0.1
 
 namespace eval ::xmpp::jid {
-    namespace export jid split node server resource stripResource \
-                     normalize equal
+    namespace export jid split node server resource replaceResource \
+                     removeResource normalize equal
 
     if {![catch {package require stringprep 1.0.1}]} {
         variable Stringprep 1
@@ -180,7 +180,27 @@ proc ::xmpp::jid::resource {jid} {
     }
 }
 
-# ::xmpp::jid::bareJid --
+# ::xmpp::jid::replaceResource --
+#
+#       Replace resource part for a given JID.
+#
+# Arguments:
+#       jid         JID.
+#       resource    A new JID resource.
+#
+# Result:
+#       A JID constructed from node and server parts from the given JID and
+#       the given resource part.
+#
+# Side effects:
+#       None.
+
+proc ::xmpp::jid::replaceResource {jid resource} {
+    split $jid node server res
+    jid $node $server $resource
+}
+
+# ::xmpp::jid::removeResource --
 #
 #       Remove resource part from JID.
 #
@@ -194,13 +214,13 @@ proc ::xmpp::jid::resource {jid} {
 # Side effects:
 #       None.
 
-proc ::xmpp::jid::bareJid {jid} {
-    jid [node $jid] [server $jid]
+proc ::xmpp::jid::removeResource {jid} {
+    replaceResource $jid ""
 }
 
 # ::xmpp::jid::stripResource --
 #
-#       The same as bareJid (for backward compatibility.
+#       The same as removeResource (for backward compatibility.
 #
 # Arguments:
 #       jid         JID.
@@ -213,7 +233,7 @@ proc ::xmpp::jid::bareJid {jid} {
 #       None.
 
 proc ::xmpp::jid::stripResource {jid} {
-    bareJid $jid
+    removeResource $jid
 }
 
 # ::xmpp::jid::normalize --

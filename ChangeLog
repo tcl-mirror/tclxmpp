@@ -1,3 +1,14 @@
+2010-02-01  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/jid.tcl, doc/xmpp_jid.man: Added a new command replaceResource
+	  which replaces the resource part of a JID by a given string. Renamed
+	  bareJid to removeResource for consistency.
+
+	* xmpp/muc.tcl: Added medium lebel commands to unban user and to
+	  destroy a room. Fixed malformed JIDs creation in case when their
+	  resource parts are empty. Don't reset own nickname on exit from a
+	  room.
+
 2010-01-30  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/muc.tcl: Added a new reported MUC event (disconnect). Fixed

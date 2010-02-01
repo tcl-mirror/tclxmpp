@@ -43,7 +43,11 @@ Return the server part of a specified JID.
 
 Return the resource part of a specified JID.
 
-[call [cmd "::xmpp::jid::bareJid"] [arg "jid"]]
+[call [cmd "::xmpp::jid::replaceResource"] [arg "jid"] [arg "resource"]]
+
+Replace the resource part of a JID by a given string.
+
+[call [cmd "::xmpp::jid::removeResource"] [arg "jid"]]
 
 Return the bare JID (a JID without resource part) corresponding
 to a specified JID.
