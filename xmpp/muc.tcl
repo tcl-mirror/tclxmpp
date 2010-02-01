@@ -790,7 +790,7 @@ proc ::xmpp::muc::SetAttr {xlib room nick attr value args} {
             # may be not known by admin)
             set RealJID [realJid $token $nick]
             if {![string equal $RealJID ""]} {
-                set attrs [list jid [::xmpp::jid::bareJid $RealJID] \
+                set attrs [list jid [::xmpp::jid::removeResource $RealJID] \
                                 $attr $value]
             }
         }
@@ -1058,7 +1058,7 @@ proc ::xmpp::muc::ParseOutcastList {xlib room jid status items} {
         return
     }
 
-    set bjid [xmpp::jid::normalize [::xmpp::jid::bareJid $jid]]
+    set bjid [xmpp::jid::normalize [::xmpp::jid::removeResource $jid]]
     set found 0
     foreach item $items {
         foreach {nick jid affiliation reason} $item break

@@ -183,7 +183,7 @@ proc ::xmpp::presence::process {xlib from type xmlElements args} {
     ::xmpp::Debug $xlib 2 "$from $type $xmlElements $args"
 
     set jid [::xmpp::jid::normalize $from]
-    set bjid [::xmpp::jid::bareJid $jid]
+    set bjid [::xmpp::jid::removeResource $jid]
     set commands {}
 
     foreach xidx [list $xlib *] {
