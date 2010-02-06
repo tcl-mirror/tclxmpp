@@ -40,15 +40,16 @@ proc ::xmpp::muc::new {xlib room args} {
     variable $token
     upvar 0 $token state
 
-    set state(xlib)   $xlib
-    set state(room)   $room
-    set state(nick)   ""
-    set state(users)  {}
-    set state(status) disconnected
-    set state(args)   {}
-    set state(-eventcommand) [namespace code Noop]
+    set state(xlib)           $xlib
+    set state(room)           $room
+    set state(nick)           ""
+    set state(requestedNick)  ""
+    set state(users)          {}
+    set state(status)         disconnected
+    set state(args)           {}
+    set state(-eventcommand)  [namespace code Noop]
     set state(-rostercommand) [namespace code Noop]
-    set state(commands) {}
+    set state(commands)       {}
     catch {unset state(id)}
 
     foreach {key val} $args {
@@ -147,11 +148,19 @@ proc ::xmpp::muc::join {token nickname args} {
                                 -xmlns "http://jabber.org/protocol/muc" \
                                 -subelements $xlist]
 
-    if {![string equal $state(status) disconnected]} {
+    if {[string equal $state(status) connected]} {
         after idle [namespace code \
                         [list CallBack $commands error \
                               [::xmpp::xml::create error \
                                     -cdata [::msgcat::mc "Already joined"]]]]
+        return
+    }
+
+    if {[string equal $state(status) connecting]} {
+        after idle [namespace code \
+                        [list CallBack $commands error \
+                              [::xmpp::xml::create error \
+                                    -cdata [::msgcat::mc "Already joining"]]]]
         return
     }
 
@@ -184,14 +193,14 @@ proc ::xmpp::muc::join {token nickname args} {
 
     set state(status) connecting
     set state(nick) ""
+    set state(requestedNick) $nickname
     set state(users) {}
     array unset state jid,*
     array unset state affiliation,*
     array unset state role,*
 
     eval [list ::xmpp::sendPresence $xlib \
-                        -to [::xmpp::jid::replaceResource $state(room) \
-                                                          $nickname] \
+                        -to [::xmpp::jid::replaceResource $room $nickname] \
                         -xlist $newXlist \
                         -id $id] $state(args)
     return
@@ -218,9 +227,8 @@ proc ::xmpp::muc::leave {token args} {
         }
     }
 
-    #set state(nick)   ""
     set state(status) disconnected
-    set state(args)   {}
+    set state(args) {}
 
     if {[info exists state(id)]} {
         unset state(id)
@@ -229,12 +237,28 @@ proc ::xmpp::muc::leave {token args} {
                         -cdata [::msgcat::mc "Leaving room"]]
     }
 
+    set id [::xmpp::packetID $xlib]
     set state(commands) {}
 
     eval [list ::xmpp::sendPresence $xlib \
                         -type unavailable \
-                        -to [::xmpp::jid::replaceResource $room \
-                                                          $nick]] $newArgs
+                        -to [::xmpp::jid::replaceResource $room $nick] \
+                        -id $id] $newArgs
+}
+
+# ::xmpp::muc::reset --
+
+proc ::xmpp::muc::reset {token} {
+    variable $token
+    upvar 0 $token state
+
+    if {![info exists state(xlib)]} return
+
+    set state(status) disconnected
+    set state(args) {}
+
+    catch {unset state(id)}
+    set state(commands) {}
 }
 
 # ::xmpp::muc::setNick --
@@ -338,8 +362,7 @@ proc ::xmpp::muc::setNick {token nickname args} {
     set state(args) [array get Args]
 
     eval [list ::xmpp::sendPresence $xlib \
-                        -to [::xmpp::jid::replaceResource $state(room) \
-                                                          $nickname] \
+                        -to [::xmpp::jid::replaceResource $room $nickname] \
                         -id $id] $state(args)
 }
 
@@ -372,18 +395,46 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
                     -error { set error $val }
                 }
             }
-            if {[info exists id] && [info exists state(id)] && \
-                    [string equal $state(id) $id]} {
-                unset state(id)
+            if {[info exists state(id)]} {
+                # We're waiting for some answer
 
-                switch -- $state(status) {
-                    connecting {
-                        set state(status) disconnected
+                set match 0
+                if {[info exists id] && [string equal $state(id) $id]} {
+                    # If id matches then it's definitely an answer
+
+                    set match 1
+                } elseif {![info exists id]} {
+                    # If there's no id then it may be an answer if the room
+                    # doesn't respect XMPP rules
+
+                    switch -- $state(status) {
+                        connecting {
+                            set nickname $state(requestedNick)
+                        }
+                        default {
+                            set nickname $state(nick)
+                        }
+                    }
+
+                    if {[string equal $nick $nickname]} {
+                        # TODO: Should we also check for empty $nick?
+
+                        set match 1
                     }
                 }
 
-                CallBack $state(commands) error $error
-                set state(commands) {}
+                if {$match} {
+                    unset state(id)
+
+                    switch -- $state(status) {
+                        connecting {
+                            set state(status) disconnected
+                        }
+                    }
+
+                    CallBack $state(commands) error $error
+                    set state(commands) {}
+                }
             }
         }
     }
@@ -411,7 +462,7 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
             }
 
             if {[string equal $nick $state(nick)]} {
-                #set state(nick)   ""
+                # TODO: Check for $state(requestedNick)?
                 set state(status) disconnected
                 set state(args)   {}
 
@@ -436,17 +487,32 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
                 }
             }
 
-            switch -- $state(status) {
-                connecting {
-                    if {[info exists id] && [info exists state(id)] && \
-                            [string equal $id $state(id)]} {
-                        unset state(id)
-                        set state(status) connected
-                        set state(nick) $nick
-
-                        CallBack $state(commands) ok $nick
-                        set state(commands) {}
+            if {[info exists state(id)]} {
+                set match 0
+                if {[info exists id] && [string equal $id $state(id)]} {
+                    set match 1
+                } elseif {![info exists id]} {
+                    switch -- $state(status) {
+                        connecting {
+                            set nickname $state(requestedNick)
+                        }
+                        default {
+                            set nickname $state(nick)
+                        }
                     }
+
+                    if {[string equal $nick $nickname]} {
+                        set match 1
+                    }
+                }
+
+                if {$match} {
+                    unset state(id)
+                    set state(status) connected
+                    set state(nick) $nick
+
+                    CallBack $state(commands) ok $nick
+                    set state(commands) {}
                 }
             }
 
@@ -470,6 +536,8 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
 
             if {[info exists state(ignore_available)] && \
                     [string equal $state(ignore_available) $nick]} {
+                uplevel #0 $state(-eventcommand) nick $state(nick_args)
+                unset state(nick_args)
                 unset state(ignore_available)
             } else {
                 uplevel #0 $state(-eventcommand) [list $action $nick] $args
@@ -676,10 +744,8 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                                 lappend args -jid $RealJID
                             }
 
-                            uplevel #0 $state(-eventcommand) \
-                                       [list nick $nick] $args
-
                             set state(ignore_available) $new_nick
+                            set state(nick_args) [linsert $args 0 $nick]
                             set state(ignore_unavailable) $nick
                         }
                     }

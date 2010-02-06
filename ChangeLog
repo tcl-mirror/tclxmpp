@@ -1,3 +1,10 @@
+2010-02-06  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/muc.tcl: Execute callback on nickname change after the new
+	  presence stanza with affiliation and role is arrived. Added an
+	  experimental workaround for services which don't mirror stanza id
+	  in error presences and don't add status code 110 to my own stanzas.
+
 2010-02-01  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/jid.tcl, doc/xmpp_jid.man, xmpp/muc.tcl, xmpp/presence.tcl:
