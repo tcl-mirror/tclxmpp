@@ -1,3 +1,7 @@
+2010-02-08  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/muc.tcl: Fixed typo.
+
 2010-02-06  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/muc.tcl: Execute callback on nickname change after the new

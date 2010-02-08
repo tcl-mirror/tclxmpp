@@ -908,13 +908,13 @@ proc ::xmpp::muc::raiseRole {token nick value args} {
 
 # ::xmpp::muc::lowerAffiliation --
 
-proc ::xmpp::muc::raiseAffiliation {token nick value args} {
+proc ::xmpp::muc::lowerAffiliation {token nick value args} {
     eval [list RaiseOrLowerAttr $token $nick affiliation $value -1] $args
 }
 
 # ::xmpp::muc::lowerRole --
 
-proc ::xmpp::muc::raiseRole {token nick value args} {
+proc ::xmpp::muc::lowerRole {token nick value args} {
     eval [list RaiseOrLowerAttr $token $nick role $value -1] $args
 }
 
