@@ -969,7 +969,7 @@ proc ::xmpp::muc::RaiseOrLowerAttr {token nick attr value dir args} {
         return
     }
 
-    eval [list SetAttr $token $nick $attr $value] $args
+    eval [list SetAttr $xlib $room $nick $attr $value] $args
 }
 
 # ::xmpp::muc::requestAffiliations --
@@ -1118,7 +1118,7 @@ proc ::xmpp::muc::unsetOutcast {xlib room jid args} {
 
 # ::xmpp::muc::ParseOutcastList --
 
-proc ::xmpp::muc::ParseOutcastList {xlib room jid status items} {
+proc ::xmpp::muc::ParseOutcastList {xlib room jid commands status items} {
     if {![string equal $status ok]} {
         CallBack $commands $status $items
         return
