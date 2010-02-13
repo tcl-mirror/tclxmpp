@@ -434,6 +434,7 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
 
                     CallBack $state(commands) error $error
                     set state(commands) {}
+                    return
                 }
             }
         }

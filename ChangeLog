@@ -1,3 +1,8 @@
+2010-02-13  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/muc.tcl: Fixed processing error answer to join or change
+	  nickname queries.
+
 2010-02-08  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/muc.tcl: Fixed typos.
