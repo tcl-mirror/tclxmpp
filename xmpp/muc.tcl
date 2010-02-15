@@ -822,22 +822,24 @@ proc ::xmpp::muc::Attr {token attr} {
 
 # ::xmpp::muc::setAffiliation --
 
-proc ::xmpp::muc::setAffiliation {xlib room nick affiliation args} {
-    eval [list SetAttr $xlib $room $nick affiliation $affiliation] $args
+proc ::xmpp::muc::setAffiliation {xlib room affiliation args} {
+    eval [list SetAttr $xlib $room affiliation $affiliation] $args
 }
 
 # ::xmpp::muc::setRole --
 
-proc ::xmpp::muc::setRole {xlib room nick role args} {
-    eval [list SetAttr $xlib $room $nick role $role] $args
+proc ::xmpp::muc::setRole {xlib room role args} {
+    eval [list SetAttr $xlib $room role $role] $args
 }
 
 # ::xmpp::muc::SetAttr --
 
-proc ::xmpp::muc::SetAttr {xlib room nick attr value args} {
+proc ::xmpp::muc::SetAttr {xlib room attr value args} {
     set commands {}
     foreach {key val} $args {
         switch -- $key {
+            -nick    { set nick $val }
+            -jid     { set jid $val }
             -reason  { set reason $val }
             -command { set commands [list $val] }
         }
@@ -849,18 +851,13 @@ proc ::xmpp::muc::SetAttr {xlib room nick attr value args} {
         set subels {}
     }
 
-    set attrs [list nick $nick $attr $value]
-
-    switch -- $attr/$value {
-        affiliation/outcast {
-            # Banning request MUST be based on user's bare JID (which though 
-            # may be not known by admin)
-            set RealJID [realJid $token $nick]
-            if {![string equal $RealJID ""]} {
-                set attrs [list jid [::xmpp::jid::removeResource $RealJID] \
-                                $attr $value]
-            }
-        }
+    if {[info exists nick]} {
+        set attrs [list nick $nick $attr $value]
+    } elseif {[info exists jid]} {
+        set attrs [list jid $jid $attr $value]
+    } else {
+        return -code error \
+               [::msgcat::mc "Option \"-nick\" or \"-jid\" must be specified"]
     }
 
     set item [::xmpp::xml::create item \
@@ -970,7 +967,20 @@ proc ::xmpp::muc::RaiseOrLowerAttr {token nick attr value dir args} {
         return
     }
 
-    eval [list SetAttr $xlib $room $nick $attr $value] $args
+    set attrs [list -nick $nick]
+
+    switch -- $attr/$value {
+        affiliation/outcast {
+            # Banning request MUST be based on user's bare JID (which though 
+            # may be not known by admin)
+            set RealJID [realJid $token $nick]
+            if {![string equal $RealJID ""]} {
+                set attrs [list -jid [::xmpp::jid::removeResource $RealJID]]
+            }
+        }
+    }
+
+    eval [list SetAttr $xlib $room $attr $value] $attrs $args
 }
 
 # ::xmpp::muc::requestAffiliations --

@@ -1,3 +1,7 @@
+2010-02-15  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/muc.tcl: Fixed lowering affiliation to outcast.
+
 2010-02-13  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/muc.tcl: Fixed processing error answer to join or change
