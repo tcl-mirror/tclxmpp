@@ -1,3 +1,7 @@
+2010-03-08  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/pubsub.tcl: Fixed a few typos (thanks to Jan Zachorowski).
+
 2010-02-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/muc.tcl: Fixed lowering affiliation to outcast.

@@ -515,7 +515,7 @@ proc ::xmpp::pubsub::retrieveItems {xlib service node args} {
             -max_items { set max_items $val }
             -items {
                 foreach id $val {
-                    lappend items [::xmpp::xml::create item
+                    lappend items [::xmpp::xml::create item \
                                        -attrs [list id $id]]
                 }
             }
@@ -543,13 +543,13 @@ proc ::xmpp::pubsub::retrieveItems {xlib service node args} {
                                     -attrs $attrs \
                                     -subelements $items]] \
         -to $service \
-        -command [namespace code [GetItemsResult $commands]]
+        -command [namespace code [list GetItemsResult $commands]]
 }
 
 proc ::xmpp::pubsub::GetItemsResult {commands status xml} {
     if {![string equal $status ok]} {
         if {[llength $commands] > 0} {
-            eval [lindex $commands 0 ][list $status $xml]
+            eval [lindex $commands 0] [list $status $xml]
         }
         return
     }
