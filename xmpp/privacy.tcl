@@ -723,7 +723,7 @@ proc ::xmpp::privacy::register {args} {
         }
     }
 
-    ::xmpp::iq::register get query jabber:iq:privacy \
+    ::xmpp::iq::register set query jabber:iq:privacy \
                          [namespace code [list ParseRequest $commands]]
     return
 }

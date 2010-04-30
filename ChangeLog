@@ -1,3 +1,8 @@
+2010-04-30  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/privacy.tcl: Fixed registering jabber:iq:privacy namespace
+	  for privacy lists pushes.
+
 2010-03-08  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/pubsub.tcl: Fixed a few typos (thanks to Jan Zachorowski).
