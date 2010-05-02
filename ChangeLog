@@ -1,3 +1,8 @@
+2010-05-02  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/muc.tcl: Fixed race condition when reporting MUC joininig
+	  result back to a caller.
+
 2010-04-30  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/privacy.tcl: Fixed registering jabber:iq:privacy namespace

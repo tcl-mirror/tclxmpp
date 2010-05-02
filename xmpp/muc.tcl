@@ -229,16 +229,17 @@ proc ::xmpp::muc::leave {token args} {
 
     set state(status) disconnected
     set state(args) {}
+    set commands $state(commands)
+    set state(commands) {}
 
     if {[info exists state(id)]} {
         unset state(id)
-        CallBack $state(commands) error \
+        CallBack $commands error \
                  [::xmpp::xml::create error \
                         -cdata [::msgcat::mc "Leaving room"]]
     }
 
     set id [::xmpp::packetID $xlib]
-    set state(commands) {}
 
     eval [list ::xmpp::sendPresence $xlib \
                         -type unavailable \
@@ -432,8 +433,9 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
                         }
                     }
 
-                    CallBack $state(commands) error $error
+                    set commands $state(commands)
                     set state(commands) {}
+                    CallBack $commands error $error
                     return
                 }
             }
@@ -466,15 +468,15 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
                 # TODO: Check for $state(requestedNick)?
                 set state(status) disconnected
                 set state(args)   {}
+                set commands $state(commands)
+                set state(commands) {}
 
                 if {[info exists state(id)]} {
                     unset state(id)
-                    CallBack $state(commands) error \
+                    CallBack $commands error \
                         [::xmpp::xml::create error \
                             -cdata [::msgcat::mc "Disconnected from the room"]]
                 }
-
-                set state(commands) {}
 
                 uplevel #0 $state(-eventcommand) [list disconnect $nick] $args
             }
@@ -511,9 +513,10 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
                     unset state(id)
                     set state(status) connected
                     set state(nick) $nick
-
-                    CallBack $state(commands) ok $nick
+                    set commands $state(commands)
                     set state(commands) {}
+
+                    CallBack $commands ok $nick
                 }
             }
 
@@ -675,9 +678,10 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                             connecting {
                                 catch {unset state(id)}
                                 set state(status) connected
-
-                                CallBack $state(commands) ok $nick
+                                set commands $state(commands)
                                 set state(commands) {}
+
+                                CallBack $commands ok $nick
                             }
                         }
                     }
@@ -734,9 +738,10 @@ proc ::xmpp::muc::ProcessMUCUser {token nick type xmlElements} {
                                 # It's our nickname change
                                 catch {unset state(id)}
                                 set state(nick) $new_nick
-
-                                CallBack $state(commands) ok $new_nick
+                                set commands $state(commands)
                                 set state(commands) {}
+
+                                CallBack $commands ok $new_nick
                             }
 
                             set args [list -nick $new_nick]
