@@ -20,6 +20,7 @@ if {[llength [info commands ::zlib]] == 0} {
     }
 
     rename ::zlib ::xmpp::transport::zlib::zlib
+    package forget zlib
 } else {
     rename ::zlib ::zlib:saved
 

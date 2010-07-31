@@ -1,3 +1,8 @@
+2009-07-31  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/zlib.tcl: Forget about zlib package from Ztcl to prevent
+	  another clash with http package.
+
 2010-05-02  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/muc.tcl: Fixed race condition when reporting MUC joininig
