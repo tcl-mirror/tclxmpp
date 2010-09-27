@@ -156,7 +156,7 @@ proc ::xmpp::free {xlib} {
 
     Debug $xlib 2 ""
 
-    if {![status $xlib disconnected]} {
+    if {![string equal $state(status) disconnected]} {
         return -code error [::msgcat::mc "Free without disconnect"]
     }
 
