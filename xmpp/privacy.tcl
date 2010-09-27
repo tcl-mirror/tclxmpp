@@ -310,7 +310,7 @@ proc ::xmpp::privacy::ParseItemsReply {rid commands status xml} {
                                 lappend item stanzas $subitems
                             }
 
-                            if {$order > 0} {
+                            if {$order >= 0} {
                                 lappend items [list $order $item]
                             }
                         }

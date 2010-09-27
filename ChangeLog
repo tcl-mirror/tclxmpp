@@ -1,3 +1,8 @@
+2009-09-27  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/privacy.tcl: Fixed processing zero order when parsing incoming
+	  privacy list (thanks to Vitaly Takmazov for bug triaging).
+
 2009-07-31  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/zlib.tcl: Forget about zlib package from Ztcl to prevent
