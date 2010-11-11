@@ -233,6 +233,7 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
     }
 
     set id [::xmpp::xml::getAttr $args -id]
+    set to [::xmpp::xml::getAttr $args -to]
 
     if {![info exists cmd]} {
         ::xmpp::Debug $xlib 2 "unsupported $from $id $xmlns"
@@ -241,6 +242,7 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
                        -error [::xmpp::stanzaerror::error \
                                        cancel service-unavailable] \
                        -to $from \
+                       -from $to \
                        -id $id
     } else {
         set status [uplevel #0 $cmd [list $xlib $from $xmlElement] $args]
@@ -251,6 +253,7 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
                 ::xmpp::sendIQ $xlib result \
                                -query [lindex $status 1] \
                                -to $from \
+                               -from $to \
                                -id $id
             }
             error {
@@ -260,6 +263,7 @@ proc ::xmpp::iq::process {xlib from type xmlElement args} {
                                -error [eval ::xmpp::stanzaerror::error \
                                                     [lrange $status 1 end]] \
                                -to $from \
+                               -from $to \
                                -id $id
             }
             "" {

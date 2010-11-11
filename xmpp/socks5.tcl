@@ -625,9 +625,9 @@ proc ::pconnect::socks5::Finish {token status {errormsg ""}} {
     variable $token
     upvar 0 $token state
 
-    Debug $token 2 "status=$status, errormsg=$errormsg"
-
     catch {after cancel $state(timeoutid)}
+
+    Debug $token 2 "status=$status, errormsg=$errormsg"
 
     if {$state(async)} {
         # In case of asynchronous connection we do the cleanup.

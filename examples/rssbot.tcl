@@ -29,12 +29,12 @@ package require xmpp::delay
 
 # Register IQ XMLNS
 ::xmpp::iq::register get * http://jabber.org/protocol/disco#info \
-                           xsend::iqDiscoInfo
+                           rssbot::iqDiscoInfo
 ::xmpp::iq::register get * http://jabber.org/protocol/disco#items \
-                           xsend::iqDiscoItems
-::xmpp::iq::register get * jabber:iq:last    xsend::iqLast
-::xmpp::iq::register get * jabber:iq:time    xsend::iqTime
-::xmpp::iq::register get * jabber:iq:version xsend::iqVersion
+                           rssbot::iqDiscoItems
+::xmpp::iq::register get * jabber:iq:last    rssbot::iqLast
+::xmpp::iq::register get * jabber:iq:time    rssbot::iqTime
+::xmpp::iq::register get * jabber:iq:version rssbot::iqVersion
 
 namespace eval rssbot {}
 

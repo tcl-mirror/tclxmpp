@@ -1,3 +1,13 @@
+2009-11-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/rssbot.tcl: Fixed typos in OQ registration.
+
+	* xmpp/iq.tcl: Explicitly add from attribute to the response stanzas
+	  to make IQ registering working in connections serving multiple JIDs.
+
+	* xmpp/https.tcl, xmpp/socks4.tcl, xmpp/socks5.tcl: Moved canceling
+	  timeout events up before debug output to prevent accidental firing.
+
 2009-09-27  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/privacy.tcl: Fixed processing zero order when parsing incoming
