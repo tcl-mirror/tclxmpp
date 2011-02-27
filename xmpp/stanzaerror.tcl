@@ -21,7 +21,7 @@ namespace eval ::xmpp::stanzaerror {
         cancel   [::msgcat::mc "Unrecoverable error"] \
         continue [::msgcat::mc "Warning"] \
         modify   [::msgcat::mc "Request error"] \
-        auth     [::msgcat::mc "Authentication error"] \
+        auth     [::msgcat::mc "Authorization error"] \
         wait     [::msgcat::mc "Temporary error"]]
 
     set DefinedConditions {}

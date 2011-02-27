@@ -203,7 +203,7 @@ proc ::xmpp::disco::ParseInfo {token jid node cache commands status xml} {
                 lappend features [::xmpp::xml::getAttr $sattrs var]
             }
             default {
-                lassign [::xmpp::data::findForm [list $subel]] type form
+                foreach {type form} [::xmpp::data::findForm [list $subel]] break
                 if {[string equal $type result]} {
                     lappend extras [::xmpp::data::parseResult $form]
                 }
