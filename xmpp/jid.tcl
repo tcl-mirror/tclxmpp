@@ -268,19 +268,25 @@ proc ::xmpp::jid::normalize {jid} {
         if {[info exists NodesCache($node)]} {
             set node1 $NodesCache($node)
         } else {
-            set node1 [::stringprep::stringprep Nodeprep $node]
+            if {[catch {::stringprep::stringprep Nodeprep $node} node1]} {
+                set node1 [string tolower $node]
+            }
             set NodesCache($node) $node1
         }
         if {[info exists ServersCache($server)]} {
             set server1 $ServersCache($server)
         } else {
-            set server1 [::stringprep::stringprep Nameprep $server]
+            if {[catch {::stringprep::stringprep Nameprep $server} server1]} {
+                set server1 [string tolower $server]
+            }
             set ServersCache($server) $server1
         }
         if {[info exists ResourcesCache($resource)]} {
             set resource1 $ResourcesCache($resource)
         } else {
-            set resource1 [::stringprep::stringprep Resourceprep $resource]
+            if {[catch {::stringprep::stringprep Resourceprep $resource} resource1]} {
+                set resource1 $resource
+            }
             set ResourcesCache($resource) $resource1
         }
     } else {

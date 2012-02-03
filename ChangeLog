@@ -1,3 +1,9 @@
+2012-02-02  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/jid.tcl: Don't crash if stringprepped JID contains prohibited
+	  characters in it as they might be outside BMP which Tcl/Tk don't
+	  support properly.
+
 2011-02-27  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/disco.tcl: Removed [lassign] because it requires Tcl 8.5.
