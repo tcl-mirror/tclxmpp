@@ -1,3 +1,9 @@
+2012-05-10  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/pconnect.tcl, xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Removed
+	  use of ceptcl because IPv6 support is now transparently provided by
+	  Tcl/Tk 8.6. Also, removed -domain from the listed socket options.
+
 2012-02-02  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/jid.tcl: Don't crash if stringprepped JID contains prohibited

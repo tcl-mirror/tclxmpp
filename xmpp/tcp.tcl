@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It provides support for the
 #       XMPP stream over TCP sockets.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2012 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -55,7 +55,6 @@ namespace eval ::xmpp::transport::tcp {
 #                                   received.
 #       -eofcommand           cmd4  End-of-file callback.
 #       (other arguments are passed to [::pconnect::socket])
-#       -domain string              "inet" (default) or "inet6"
 #       -proxy string               Proxy type "" (default), "socks4",
 #                                   "socks5", or "https"
 #       -host string                Proxy hostname (required if -proxy

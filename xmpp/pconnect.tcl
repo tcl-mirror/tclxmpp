@@ -4,14 +4,13 @@
 #       Can also be used as a wrapper for the 'socket' command without any
 #       proxy configured.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2012 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
 #
 # $Id$
 
-catch {package require ceptcl}
 package require msgcat
 
 package provide pconnect 0.1
@@ -75,7 +74,6 @@ proc ::pconnect::proxies {} {
 #       host             the peer address, not SOCKS server
 #       port             the peer's port number
 #       args
-#           -domain      inet (default) | inet6
 #           -proxyfilter A callback which takes host and port as its arguments
 #                        and returns a proxy to connect in form of a list
 #                        {type host port username password}. This option takes
@@ -96,8 +94,7 @@ proc ::pconnect::proxies {} {
 proc ::pconnect::socket {host port args} {
     variable packs
 
-    array set Args {-domain      inet
-                    -proxyfilter ""
+    array set Args {-proxyfilter ""
                     -proxy       ""
                     -host        ""
                     -port        ""
@@ -140,15 +137,7 @@ proc ::pconnect::socket {host port args} {
         set aport $port
     }
 
-    if {[string equal $Args(-domain) inet6]} {
-        if {[llength [package provide ceptcl]] == 0} {
-            return -code error [::msgcat::mc "IPv6 support is not available"]
-        } else {
-            set sock [cep -domain inet6 -async $ahost $aport]
-        }
-    } else {
-        set sock [::socket -async $ahost $aport]
-    }
+    set sock [::socket -async $ahost $aport]
 
     set token [namespace current]::$sock
     fconfigure $sock -blocking 0
