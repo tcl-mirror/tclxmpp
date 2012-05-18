@@ -10,30 +10,46 @@
 #
 # $Id$
 
-namespace eval ::xmpp::transport::zlib {}
+namespace eval ::xmpp::transport::zlib {
+    variable zlibpack
 
-if {[llength [info commands ::zlib]] == 0} {
-    package require zlib 1.0
+    if {[llength [info commands ::zlib]] == 0} {
+        # No zlib at all at the moment
+        package require zlib 1.0
 
-    if {[catch {::zlib info version}]} {
-        return -code error "Package zlib from Ztcl cannot be found"
-    }
+        if {[catch {::zlib info version}]} {
+            return -code error "Package zlib from Ztcl cannot be found"
+        }
 
-    rename ::zlib ::xmpp::transport::zlib::zlib
-    package forget zlib
-} else {
-    rename ::zlib ::zlib:saved
+        set zlibpack ztcl
+        rename ::zlib [namespace current]::zlib
+        package forget zlib
+    } elseif {![catch {::zlib info version}]} {
+        # zlib from Ztcl package is loaded already
+        set zlibpack ztcl
+        proc zlib {args} {
+            eval ::zlib $args
+        }
+    } elseif {[catch {zlib push} msg] && \
+              [string first "wrong # args" $msg] >= 0} {
+        # Tcl 8.6
+        set zlibpack tcl
+    } else {
+        # zlib package
+        rename ::zlib ::zlib:saved
 
-    if {[catch {package require zlib 1.0} msg]} {
+        if {[catch {package require zlib 1.0} msg]} {
+            rename ::zlib:saved ::zlib
+            return -code error $msg
+        } elseif {[catch {::zlib info version}]} {
+            rename ::zlib:saved ::zlib
+            return -code error "Package zlib from Ztcl cannot be found"
+        }
+
+        set zlibpack ztcl
+        rename ::zlib [namespace current]::zlib
         rename ::zlib:saved ::zlib
-        return -code error $msg
-    } elseif {[catch {::zlib info version}]} {
-        rename ::zlib:saved ::zlib
-        return -code error "Package zlib from Ztcl cannot be found"
     }
-
-    rename ::zlib ::xmpp::transport::zlib::zlib
-    rename ::zlib:saved ::zlib
 }
 
 package require pconnect
@@ -245,6 +261,7 @@ proc ::xmpp::transport::zlib::Configure {token zlibArgs} {
 #       TCP socket which corresponds to the given token becomes compressed.
 
 proc ::xmpp::transport::zlib::import {token args} {
+    variable zlibpack
     variable $token
     upvar 0 $token state
 
@@ -253,9 +270,20 @@ proc ::xmpp::transport::zlib::import {token args} {
                             -translation auto \
                             -encoding    utf-8
 
-    eval [list zlib stream $state(sock) RDWR \
-                           -output compress  \
-                           -input decompress] $args
+    switch -- $zlibpack {
+        ztcl {
+            eval [list zlib stream $state(sock) RDWR \
+                                   -output compress  \
+                                   -input decompress] $args
+        }
+        tcl {
+            zlib push decompress $state(sock)
+            eval [list zlib push compress $state(sock)] $args
+        }
+        default {
+            return -code error "Unsupported zlib package"
+        }
+    }
 
     fileevent $state(sock) readable [namespace code [list InText $token]]
 
@@ -309,6 +337,7 @@ proc ::xmpp::transport::zlib::abort {token} {
 #       Text is sent to the server.
 
 proc ::xmpp::transport::zlib::outText {token text} {
+    variable zlibpack
     variable $token
     upvar 0 $token state
 
@@ -316,7 +345,14 @@ proc ::xmpp::transport::zlib::outText {token text} {
         return -1
     } else {
         ::flush $state(sock)
-        fconfigure $state(sock) -flush output
+        switch -- $zlibpack {
+            ztcl {
+                fconfigure $state(sock) -flush output
+            }
+            tcl {
+                fconfigure $state(sock) -flush sync
+            }
+        }
 
         # TODO
         return [string bytelength $text]
@@ -376,6 +412,7 @@ proc ::xmpp::transport::zlib::openStream {token server args} {
 #       Text is sent to the server.
 
 proc ::xmpp::transport::zlib::closeStream {token} {
+    variable zlibpack
     variable $token
     upvar 0 $token state
 
@@ -384,11 +421,25 @@ proc ::xmpp::transport::zlib::closeStream {token} {
     # TODO
     if {1} {
         ::flush $state(sock)
-        fconfigure $state(sock) -finish output
+        switch -- $zlibpack {
+            ztcl {
+                fconfigure $state(sock) -finish output
+            }
+            tcl {
+                fconfigure $state(sock) -flush full
+            }
+        }
     } else {
         fconfigure $state(sock) -blocking 1
         ::flush $state(sock)
-        fconfigure $state(sock) -finish output
+        switch -- $zlibpack {
+            ztcl {
+                fconfigure $state(sock) -finish output
+            }
+            tcl {
+                fconfigure $state(sock) -flush full
+            }
+        }
         vwait $token\(sock)
     }
 
@@ -409,11 +460,19 @@ proc ::xmpp::transport::zlib::closeStream {token} {
 #       Pending data is sent to the server.
 
 proc ::xmpp::transport::zlib::flush {token} {
+    variable zlibpack
     variable $token
     upvar 0 $token state
 
     ::flush $state(sock)
-    fconfigure $state(sock) -flush output
+    switch -- $zlibpack {
+        ztcl {
+            fconfigure $state(sock) -flush output
+        }
+        tcl {
+            fconfigure $state(sock) -flush sync
+        }
+    }
 }
 
 # ::xmpp::transport::zlib::ip --
@@ -501,10 +560,15 @@ proc ::xmpp::transport::zlib::reset {token} {
 #       appropriate callback is invoked.
 
 proc ::xmpp::transport::zlib::InText {token} {
+    variable zlibpack
     variable $token
     upvar 0 $token state
 
-    catch {fconfigure $state(sock) -flush input}
+    switch -- $zlibpack {
+        ztcl {
+            catch {fconfigure $state(sock) -flush input}
+        }
+    }
     if {[catch {read $state(sock)} msg]} {
         fileevent $state(sock) readable {}
         ::close $state(sock)

@@ -72,6 +72,7 @@ package ifneeded xmpp::full 0.1 {
     package require xmpp::roster::bookmarks 0.1
     package require xmpp::roster::delimiter 0.1
     package require xmpp::roster::metacontacts 0.1
+    package require xmpp::sasl 0.1
     package require xmpp::starttls 0.1
     package require xmpp::transport::poll 0.1
     package require xmpp::transport::tls 0.1

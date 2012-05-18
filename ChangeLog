@@ -1,3 +1,11 @@
+2012-05-18  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/zlib.tcl: Added support for the native zlib coming with Tcl 8.6.
+	  It takes precedense over the Ztcl package.
+
+	* xmpp/pkgIndex.tcl: Added the xmpp::sasl package requirement into
+	  xmpp::full loading code.
+
 2012-05-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/pconnect.tcl, xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Removed
