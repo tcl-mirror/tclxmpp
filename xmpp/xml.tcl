@@ -4,7 +4,7 @@
 #       wrap XML parser. These procedures are called by functions in XMPP
 #       library, and they in turn call the TclXML or tDOM library functions.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -586,6 +586,7 @@ proc ::xmpp::xml::getNextCdata {xmldata} {
 #       to                  A peer's (server's) JID.
 #       -xmlns:stream uri   xmlns:stream attribute
 #       -xmlns uri          xmlns attribute
+#       -from jid           from attribute (optional)
 #       -xml:lang lang      xml:lang attribute (optional)
 #       -version ver        XMPP version attribute (optional)
 #
@@ -613,6 +614,9 @@ proc ::xmpp::xml::streamHeader {to args} {
 
     foreach {key val} $args {
         switch -- $key {
+            -from {
+                append retext " from='[Escape $val]'"
+            }
             -xml:lang {
                 append retext " xml:lang='[Escape $val]'"
             }

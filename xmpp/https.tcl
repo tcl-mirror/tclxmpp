@@ -4,7 +4,7 @@
 #       tunnelling HTTPS traffic, so the name is https) method for
 #       connecting TCP sockets. Only client side.
 #
-# Copyright (c) 2007-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2007-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -335,7 +335,8 @@ proc ::pconnect::https::AuthorizeNtlmStep1 {token} {
 
     set message1 \
         [string map {\n {}} \
-                [base64::encode [::SASL::NTLM::CreateGreeting "" ""]]]
+                [base64::encode [::SASL::NTLM::CreateGreeting "" "" \
+                                    {unicode oem ntlm req_target server}]]]
 
     Debug $token 2 "NTLM $message1"
 
@@ -409,15 +410,18 @@ proc ::pconnect::https::AuthorizeNtlmStep2 {token} {
     # then set domain and username
     set username $state(-username)
     regexp {(\w+)[\\/](.*)} $username -> domain username
+    if {![info exists domain]} {
+        set domain $challenge(domain)
+    }
 
     set message3 \
         [string map {\n {}} \
                 [base64::encode \
-                        [::SASL::NTLM::CreateResponse $challenge(domain) \
-                                                      [info hostname]    \
-                                                      $username          \
-                                                      $state(-password)  \
-                                                      $challenge(nonce)  \
+                        [::SASL::NTLM::CreateResponse $domain           \
+                                                      [info hostname]   \
+                                                      $username         \
+                                                      $state(-password) \
+                                                      $challenge(nonce) \
                                                       $challenge(flags)]]]
     Debug $token 2 "NTLM $message3"
 

@@ -1,3 +1,13 @@
+2013-04-21  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/https.tcl: Removed domain flag from the NTLM greeting message.
+	  This fixes authentication on ISA 2006 proxy.
+
+	* xmpp/sasl.tcl: Added EXTERNAL mechanism.
+
+	* xmpp/xml.tcl: Added -from option to the stream header, which is useful
+	  for components.
+
 2012-05-18  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/zlib.tcl: Added support for the native zlib coming with Tcl 8.6.

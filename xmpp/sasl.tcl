@@ -4,7 +4,7 @@
 #       SASL authentication layer via the tclsasl or tcllib SASL package.
 #       Also, it binds resource and opens XMPP session.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -444,12 +444,13 @@ proc ::xmpp::sasl::ChooseMech {token mechanisms} {
     set forbiddenMechs $state(-disable)
 
     if {$state(-digest) == 1} {
-        lappend forbiddenMechs PLAIN LOGIN
+        lappend forbiddenMechs PLAIN LOGIN EXTERNAL
     } elseif {$state(-digest) == 0} {
         foreach m [SASL::mechanisms] {
             switch -- $m {
                 PLAIN -
-                LOGIN {}
+                LOGIN -
+                EXTERNAL {}
                 default {lappend forbiddenMechs $m}
             }
         }
