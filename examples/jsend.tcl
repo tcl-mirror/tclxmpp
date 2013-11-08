@@ -56,11 +56,16 @@ proc jsend::sendit {stayP to args} {
                             -url         ""    \
                             -tls         false \
                             -starttls    true  \
-                            -sasl        true]
+                            -sasl        true  \
+                            -digest      true]
     array set options $args
 
     if {[string equal $options(-host) ""]} {
-        set options(-host) [info hostname]
+        if {[string first @ $options(-from)] < 0} {
+            set options(-host) [info hostname]
+        } else {
+            set options(-host) [::xmpp::jid::server $options(-from)]
+        }
     }
 
     set params [list from]
@@ -173,7 +178,7 @@ proc jsend::sendit {stayP to args} {
         }
 
         # Connect to a server
-        ::xmpp::connect $xlib $domain $port -transport $transport
+        ::xmpp::connect $xlib $options(-host) $port -transport $transport
 
         if {!$options(-tls) && $options(-starttls)} {
             # Open XMPP stream
@@ -184,7 +189,8 @@ proc jsend::sendit {stayP to args} {
 
             ::xmpp::sasl::auth $xlib -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $resource
+                                     -resource  $resource \
+                                     -digest    $options(-digest)
         } elseif {$options(-sasl)} {
             # Open XMPP stream
             set sessionID [::xmpp::openStream $xlib $domain \
@@ -192,7 +198,8 @@ proc jsend::sendit {stayP to args} {
 
             ::xmpp::sasl::auth $xlib -username  $node \
                                      -password  $options(-password) \
-                                     -resource  $resource
+                                     -resource  $resource \
+                                     -digest    $options(-digest)
         } else {
             # Open XMPP stream
             set sessionID [::xmpp::openStream $xlib $domain]

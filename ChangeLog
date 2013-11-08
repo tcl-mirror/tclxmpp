@@ -1,3 +1,14 @@
+2013-11-08  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/sasl.tcl: Added preliminary SCRAM mechanism support (it
+	  requires not included into Tcllib yet SASL::SCRAM package, see
+	  http://core.tcl.tk/tcllib/tktview?name=b8f35b9883). Use empty
+	  authzid instead of user's bare JID.
+
+	* examples/jsend.tcl: Use -host option for a server to connect to.
+	  Added -digest option to allow jsend to use plaintext-based SASL
+	  protocols.
+
 2013-04-21  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/https.tcl: Removed domain flag from the NTLM greeting message.

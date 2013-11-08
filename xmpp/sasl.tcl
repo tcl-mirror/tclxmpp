@@ -27,6 +27,7 @@ namespace eval ::xmpp::sasl {
     } elseif {![catch {package require SASL 1.0} v]} {
         catch {package require SASL::NTLM}
         catch {package require SASL::XGoogleToken}
+        catch {package require SASL::SCRAM}
         set saslpack tcllib
 
         if {[package vcompare $v 1.3.2] >= 0} {
@@ -367,7 +368,8 @@ proc ::xmpp::sasl::AuthContinue {token featuresList} {
             if {!$code} {
                 set state(mech) $result
                 SASL::configure $state(token) -mech $state(mech)
-                switch -- $state(mech) {
+                switch -glob -- $state(mech) {
+                    SCRAM-* -
                     PLAIN -
                     X-GOOGLE-TOKEN {
                         # Initial responce
@@ -485,6 +487,8 @@ proc ::xmpp::sasl::Step {token serverin64} {
 
     set serverin [base64::decode $serverin64]
 
+    ::xmpp::Debug $xlib 2 "$token SASL challenge: $serverin"
+
     switch -- $saslpack {
         tclsasl {
             set code [catch {
@@ -536,9 +540,7 @@ proc ::xmpp::sasl::TclsaslCallbackUser {token data} {
     switch -- $params(id) {
         user {
             # authzid
-            return [encoding convertto utf-8 \
-                             [::xmpp::jid::jid $state(-username) \
-                                               $state(-server)]]
+            return ""
         }
         authname {
             #username
@@ -570,7 +572,7 @@ proc ::xmpp::sasl::TclsaslCallbackComponent {token data} {
     switch -- $params(id) {
         user {
             # authzid
-            return [encoding convertto utf-8 $state(-domain)]
+            return ""
         }
         authname {
             #username
@@ -603,12 +605,11 @@ proc ::xmpp::sasl::TcllibCallbackUser {token stoken command args} {
     switch -- $command {
         login {
             # authzid
-            return [encoding convertto utf-8 \
-                             [::xmpp::jid::jid $state(-username) \
-                                               $state(-server)]]
+            return ""
         }
         username {
-            switch -- $state(mech)/$encodeToUTF8 {
+            switch -glob -- $state(mech)/$encodeToUTF8 {
+                SCRAM-*/* -
                 DIGEST-MD5/0 {
                     return $state(-username)
                 }
@@ -618,7 +619,8 @@ proc ::xmpp::sasl::TcllibCallbackUser {token stoken command args} {
             }
         }
         password {
-            switch -- $state(mech)/$encodeToUTF8 {
+            switch -glob -- $state(mech)/$encodeToUTF8 {
+                SCRAM-*/* -
                 DIGEST-MD5/0 {
                     return $state(-password)
                 }
@@ -652,10 +654,11 @@ proc ::xmpp::sasl::TcllibCallbackComponent {token stoken command args} {
     switch -- $command {
         login {
             # authzid
-            return [encoding convertto utf-8 $state(-domain)]
+            return ""
         }
         username {
-            switch -- $state(mech)/$encodeToUTF8 {
+            switch -glob -- $state(mech)/$encodeToUTF8 {
+                SCRAM-*/* -
                 DIGEST-MD5/0 {
                     return $state(-domain)
                 }
@@ -665,7 +668,8 @@ proc ::xmpp::sasl::TcllibCallbackComponent {token stoken command args} {
             }
         }
         password {
-            switch -- $state(mech)/$encodeToUTF8 {
+            switch -glob -- $state(mech)/$encodeToUTF8 {
+                SCRAM-*/* -
                 DIGEST-MD5/0 {
                     return $state(-secret)
                 }
