@@ -1,3 +1,7 @@
+2013-11-10  Sergei Golovan  <sgolovan@nes.ru>
+
+	* license.terms: Fixed copyright years.
+
 2013-11-08  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl: Added preliminary SCRAM mechanism support (it
