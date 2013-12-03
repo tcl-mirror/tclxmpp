@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It implements the XMPP
 #       transports infrastructure.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -12,7 +12,7 @@
 
 package require msgcat
 
-package provide xmpp::transport 0.1
+package provide xmpp::transport 0.2
 
 namespace eval ::xmpp::transport {
     namespace export list register unregister use switch
@@ -45,26 +45,28 @@ proc ::xmpp::transport::list {} {
 #
 # Arguments:
 #       transport                   Transport name.
-#       -opencommand        cmd0    Command to call when opening connection
+#       -opencommand         cmd0   Command to call when opening connection
 #                                   (e.g. TCP socket).
-#       -abortcommand       cmd1    Command to call when aborting connection if
+#       -abortcommand        cmd1   Command to call when aborting connection if
 #                                   opening is asynchronous.
-#       -closecommand       cmd2    Command to call when closing an opened
+#       -closecommand        cmd2   Command to call when closing an opened
 #                                   connection.
-#       -resetcommand       cmd3    Command to call when resetting an opened
+#       -resetcommand        cmd3   Command to call when resetting an opened
 #                                   connection (usually it resets XML parser).
-#       -flushcommand       cmd4    Command to flush buffer (if any) to a
+#       -flushcommand        cmd4   Command to flush buffer (if any) to a
 #                                   connection.
-#       -outxmlcommand      cmd5    Command which converts XML (e.g. returned
+#       -outxmlcommand       cmd5   Command which converts XML (e.g. returned
 #                                   by ::xmpp::xml::create) to text and sends
 #                                   it to a connection.
-#       -outtextcommand     cmd6    Command which sends raw text to a
+#       -outtextcommand      cmd6   Command which sends raw text to a
 #                                   connection.
-#       -openstreamcommand  cmd7    Command which opens XMPP stream over a
+#       -openstreamcommand   cmd7   Command which opens XMPP stream over a
 #                                   connection.
-#       -closestreamcommand cmd8    Command which closes XMPP stream over a
+#       -reopenstreamcommand cmd8   Command which reopens XMPP stream over a
 #                                   connection.
-#       -importcommand      icmd    (optional) Import command
+#       -closestreamcommand  cmd9   Command which closes XMPP stream over a
+#                                   connection.
+#       -importcommand       icmd   (optional) Import command
 #
 # Result:
 #       Transport name in case of success or error if the specified transport
@@ -84,16 +86,17 @@ proc ::xmpp::transport::register {transport args} {
 
     foreach {key val} $args {
         ::switch -- $key {
-            -opencommand        -
-            -abortcommand       -
-            -closecommand       -
-            -resetcommand       -
-            -flushcommand       -
-            -ipcommand          -
-            -outxmlcommand      -
-            -outtextcommand     -
-            -openstreamcommand  -
-            -closestreamcommand -
+            -opencommand         -
+            -abortcommand        -
+            -closecommand        -
+            -resetcommand        -
+            -flushcommand        -
+            -ipcommand           -
+            -outxmlcommand       -
+            -outtextcommand      -
+            -openstreamcommand   -
+            -reopenstreamcommand -
+            -closestreamcommand  -
             -importcommand {
                 set attrs($key) $val
             }
@@ -113,6 +116,7 @@ proc ::xmpp::transport::register {transport args} {
                  -outxmlcommand
                  -outtextcommand
                  -openstreamcommand
+                 -reopenstreamcommand
                  -closestreamcommand} {
         if {![info exists attrs($key)]} {
             unset Transports($transport)
@@ -180,8 +184,9 @@ proc ::xmpp::transport::open {transport args} {
 # Arguments:
 #       token               XMPP transport token.
 #       command             One of open, abort, close, flush, outXML,
-#                           outText, openStream, closeStream (corresponding
-#                           to ::xmpp::transport::register options).
+#                           outText, openStream, reopenStream closeStream
+#                           (corresponding to ::xmpp::transport::register
+#                           options).
 #       args                Arguments depending on command.
 #
 # Result:
@@ -204,15 +209,16 @@ proc ::xmpp::transport::use {token command args} {
     }
 
     ::switch -- $command {
-        abort       {set key -abortcommand}
-        close       {set key -closecommand}
-        reset       {set key -resetcommand}
-        flush       {set key -flushcommand}
-        ip          {set key -ipcommand}
-        outXML      {set key -outxmlcommand}
-        outText     {set key -outtextcommand}
-        openStream  {set key -openstreamcommand}
-        closeStream {set key -closestreamcommand}
+        abort        {set key -abortcommand}
+        close        {set key -closecommand}
+        reset        {set key -resetcommand}
+        flush        {set key -flushcommand}
+        ip           {set key -ipcommand}
+        outXML       {set key -outxmlcommand}
+        outText      {set key -outtextcommand}
+        openStream   {set key -openstreamcommand}
+        reopenStream {set key -reopenstreamcommand}
+        closeStream  {set key -closestreamcommand}
         default {
             return -code error [::msgcat::mc "Illegal command \"%s\"" $command]
         }

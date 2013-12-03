@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It provides support for the
 #       XMPP stream over TCP sockets.
 #
-# Copyright (c) 2008-2012 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -11,26 +11,27 @@
 # $Id$
 
 package require pconnect
-package require xmpp::transport
+package require xmpp::transport 0.2
 package require xmpp::xml
 
-package provide xmpp::transport::tcp 0.1
+package provide xmpp::transport::tcp 0.2
 
 namespace eval ::xmpp::transport::tcp {
     namespace export open abort close reset flush ip outXML outText \
                      openStream closeStream
 
     ::xmpp::transport::register tcp \
-            -opencommand        [namespace code open]       \
-            -abortcommand       [namespace code abort]      \
-            -closecommand       [namespace code close]      \
-            -resetcommand       [namespace code reset]      \
-            -flushcommand       [namespace code flush]      \
-            -ipcommand          [namespace code ip]         \
-            -outxmlcommand      [namespace code outXML]     \
-            -outtextcommand     [namespace code outText]    \
-            -openstreamcommand  [namespace code openStream] \
-            -closestreamcommand [namespace code closeStream]
+            -opencommand         [namespace code open]       \
+            -abortcommand        [namespace code abort]      \
+            -closecommand        [namespace code close]      \
+            -resetcommand        [namespace code reset]      \
+            -flushcommand        [namespace code flush]      \
+            -ipcommand           [namespace code ip]         \
+            -outxmlcommand       [namespace code outXML]     \
+            -outtextcommand      [namespace code outText]    \
+            -openstreamcommand   [namespace code openStream] \
+            -reopenstreamcommand [namespace code openStream] \
+            -closestreamcommand  [namespace code closeStream]
 }
 
 # ::xmpp::transport::tcp::open --
@@ -299,6 +300,8 @@ proc ::xmpp::transport::tcp::openStream {token server args} {
 #
 # Arguments:
 #       token           Transport token.
+#       -wait bool      (optional, default 0) Wait for the server side to
+#                       close stream.
 #
 # Result:
 #       Bytelength of a textual representation of a sent header.
@@ -306,19 +309,28 @@ proc ::xmpp::transport::tcp::openStream {token server args} {
 # Side effects:
 #       Text is sent to the server.
 
-proc ::xmpp::transport::tcp::closeStream {token} {
+proc ::xmpp::transport::tcp::closeStream {token args} {
     variable $token
     upvar 0 $token state
 
     set len [outText $token [::xmpp::xml::streamTrailer]]
 
-    # TODO
-    if {1} {
+    set wait 0
+    foreach {key val} $args {
+        switch -- $key {
+            -wait {
+                set wait $val
+            }
+        }
+    }
+
+    if {!$wait} {
         ::flush $state(sock)
     } else {
         fconfigure $state(sock) -blocking 1
         ::flush $state(sock)
-        vwait $token\(sock)
+        # TODO
+        #vwait $token\(sock)
     }
 
     return $len
@@ -463,7 +475,7 @@ proc ::xmpp::transport::tcp::InText {token} {
 #       Empty string.
 #
 # Side effects:
-#       After entering event loop the spaecified command is called.
+#       After entering event loop the specified command is called.
 
 proc ::xmpp::transport::tcp::InXML {cmd xml} {
     after idle $cmd [list $xml]
@@ -481,7 +493,7 @@ proc ::xmpp::transport::tcp::InXML {cmd xml} {
 #       Empty string.
 #
 # Side effects:
-#       After entering event loop the spaecified command is called.
+#       After entering event loop the specified command is called.
 
 proc ::xmpp::transport::tcp::InEmpty {cmd} {
     after idle $cmd

@@ -2,7 +2,7 @@
 #
 #       This file is a part of the XMPP library. It implements HTTP-polling.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -12,26 +12,27 @@
 package require sha1
 package require http 2
 
-package require xmpp::transport
+package require xmpp::transport 0.2
 package require xmpp::xml
 
-package provide xmpp::transport::poll 0.1
+package provide xmpp::transport::poll 0.2
 
 namespace eval ::xmpp::transport::poll {
     namespace export open abort close reset flush ip outXML outText \
                      openStream closeStream
 
     ::xmpp::transport::register poll \
-            -opencommand        [namespace code open]       \
-            -abortcommand       [namespace code abort]      \
-            -closecommand       [namespace code close]      \
-            -resetcommand       [namespace code reset]      \
-            -flushcommand       [namespace code flush]      \
-            -ipcommand          [namespace code ip]         \
-            -outxmlcommand      [namespace code outXML]     \
-            -outtextcommand     [namespace code outText]    \
-            -openstreamcommand  [namespace code openStream] \
-            -closestreamcommand [namespace code closeStream]
+            -opencommand         [namespace code open]       \
+            -abortcommand        [namespace code abort]      \
+            -closecommand        [namespace code close]      \
+            -resetcommand        [namespace code reset]      \
+            -flushcommand        [namespace code flush]      \
+            -ipcommand           [namespace code ip]         \
+            -outxmlcommand       [namespace code outXML]     \
+            -outtextcommand      [namespace code outText]    \
+            -openstreamcommand   [namespace code openStream] \
+            -reopenstreamcommand [namespace code openStream] \
+            -closestreamcommand  [namespace code closeStream]
 
     if {![catch { package require tls 1.4 }]} {
         ::http::register https 443 ::tls::socket
@@ -289,6 +290,8 @@ proc ::xmpp::transport::poll::openStream {token server args} {
 #
 # Arguments:
 #       token           Transport token.
+#       -wait bool      (optional, default 0) Wait for the server side to
+#                       close stream.
 #
 # Result:
 #       Empty string.
@@ -296,7 +299,7 @@ proc ::xmpp::transport::poll::openStream {token server args} {
 # Side effects:
 #       Sending stream trailer to the server is scheduled.
 
-proc ::xmpp::transport::poll::closeStream {token} {
+proc ::xmpp::transport::poll::closeStream {token args} {
     variable $token
     upvar 0 $token state
 
@@ -313,8 +316,16 @@ proc ::xmpp::transport::poll::closeStream {token} {
         }
     }
 
-    # TODO
-    if {0} {
+    set wait 0
+    foreach {key val} $args {
+        switch -- $key {
+            -wait {
+                set wait $val
+            }
+        }       
+    }
+
+    if {$wait} {
         while {[info exists state(wait)] && \
                             ![string equal $state(wait) disconnected]} {
             vwait $token\(wait)
@@ -452,7 +463,7 @@ proc ::xmpp::transport::poll::InText {token text} {
 #       Empty string.
 #
 # Side effects:
-#       After entering event loop the spaecified command is called.
+#       After entering event loop the specified command is called.
 
 proc ::xmpp::transport::poll::InXML {cmd xml} {
     after idle $cmd [list $xml]
@@ -471,7 +482,7 @@ proc ::xmpp::transport::poll::InXML {cmd xml} {
 #       Empty string.
 #
 # Side effects:
-#       After entering event loop the spaecified command is called.
+#       After entering event loop the specified command is called.
 
 proc ::xmpp::transport::poll::InEmpty {cmd} {
     after idle $cmd
@@ -544,7 +555,7 @@ proc ::xmpp::transport::poll::Poll {token text} {
             set secondkey [lindex $state(keys) end]
         }
         set l [llength $state(keys)]
-        set state(keys) [lrange $state(keys) 0 [expr {$l - 2}]]
+        set state(keys) [lrange $state(keys) 0 end-1]
 
         if {[string length $firstkey]} {
             set firstkey ";$firstkey"
@@ -699,8 +710,14 @@ proc ::xmpp::transport::poll::GetURL {token try query} {
 
     Debug $token 2 $try
 
+    # Option -keepalive 1 (which reuse open sockets - a good thing) doesn't
+    # work well if we do multiple requests in parallel (it's required for
+    # multiuser support), so do open a separate socket for every request
+    # (which creates a lot of overhead, but...)
+
     ::http::geturl $state(-url) \
                    -binary  1 \
+                   -keepalive 0 \
                    -headers $state(proxyAuth) \
                    -query   $query \
                    -timeout $state(-timeout) \

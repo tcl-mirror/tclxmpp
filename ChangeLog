@@ -1,3 +1,31 @@
+2013-12-03  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/bosh.tcl: Initially implemented BOSH (XEP-0124 and XEP-0206)
+	  transport support.
+
+	* xmpp/poll.tcl, xmpp/tcp.tcl, xmpp/tls.tcl, xmpp/zlib.tcl: Added
+	  reopenStream command, enabled synchronous closing of XMPP stream.
+	  Bumped package versions to 0.2.
+
+	* xmpp/xmpp.tcl: Added synchronous closing of XMPP stream. Use
+	  reopenStream transport command were appropriate. Bumped package
+	  version to 0.1.1.
+
+	* xmpp/pkgIndex.tcl: Bumped transport package versions to 0.2 because
+	  their user interface has been changed and the XMPP package version
+	  to 0.1.1.
+
+	* xmpp/poll.tcl: Code cleanup with using security keys.
+
+	* xmpp/transport.tcl: Added support for reopenStream command. Bumped
+	  package version to 0.2.
+
+	* xmpp/sasl.tcl: Added another call to Debug proc.
+
+	* examples/jsend.tcl: Removed cdata payload from jabber:iq:last
+	  response. Use synchronous stream closing before exit. Added BOSH
+	  transport support.
+
 2013-11-10  Sergei Golovan  <sgolovan@nes.ru>
 
 	* license.terms: Fixed copyright years.

@@ -772,6 +772,8 @@ proc ::xmpp::sasl::ResourceBind {token featuresList} {
     upvar 0 $token state
     set xlib $state(xlib)
 
+    ::xmpp::Debug $xlib 2 "$token $featuresList"
+
     if {[info exists state(-username)]} {
         foreach feature $featuresList {
             ::xmpp::xml::split $feature tag xmlns attrs cdata subels

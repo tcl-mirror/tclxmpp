@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It implements the main library
 #       routines.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -13,13 +13,13 @@
 package require msgcat
 package require xmpp::jid
 package require xmpp::xml
-package require xmpp::transport::tcp
+package require xmpp::transport::tcp 0.2
 package require xmpp::streamerror
 package require xmpp::stanzaerror
 package require xmpp::iq
 package require xmpp::presence
 
-package provide xmpp 0.1
+package provide xmpp 0.1.1
 
 namespace eval ::xmpp {
 
@@ -357,7 +357,7 @@ proc ::xmpp::openStream {xlib server args} {
 
     set state(server) $server
 
-    eval [list OpenStreamAux $xlib] $args
+    eval [list OpenStreamAux $xlib open] $args
 }
 
 # ::xmpp::ReopenStream --
@@ -397,7 +397,7 @@ proc ::xmpp::ReopenStream {xlib args} {
         set vargs {}
     }
 
-    eval [list OpenStreamAux $xlib \
+    eval [list OpenStreamAux $xlib reopen \
                              -xmlns:stream $state(-xmlns:stream) \
                              -xmlns $state(-xmlns) \
                              -xml:lang $state(-xml:lang)] $vargs $args
@@ -409,8 +409,9 @@ proc ::xmpp::ReopenStream {xlib args} {
 #       reopening XMPP streams.
 #
 # Arguments:
-#       The same as for openStream (except server which is taken from state
-#       variable).
+#       mode    'open' or 'reopen'.
+#       The others are the same as for openStream (except server which is
+#       taken from state variable).
 #
 # Result:
 #       Empty string in asynchronous mode, session id or error in synchronous
@@ -424,7 +425,7 @@ proc ::xmpp::ReopenStream {xlib args} {
 #       Only stream XMLNS http://etherx.jabber.org/streams is supported.
 #       On the other hand there's no other defined stream XMLNS currently.
 
-proc ::xmpp::OpenStreamAux {xlib args} {
+proc ::xmpp::OpenStreamAux {xlib mode args} {
     variable $xlib
     upvar 0 $xlib state
 
@@ -475,7 +476,7 @@ proc ::xmpp::OpenStreamAux {xlib args} {
             [namespace code [list GotStream $xlib abort {}]]
     }
 
-    eval [list transport::use $state(transport) openStream $state(server)] \
+    eval [list transport::use $state(transport) ${mode}Stream $state(server)] \
          [array get params]
 
     if {[info exists state(openStreamCommand)]} {
@@ -849,6 +850,7 @@ proc ::xmpp::outText {xlib text} {
 #
 # Arguments:
 #       xlib            XMPP token.
+#       -wait bool      (optional, default 0) Wait for the server side.
 #
 # Result:
 #       Length of the sent stream trailer.
@@ -856,7 +858,7 @@ proc ::xmpp::outText {xlib text} {
 # Side effects:
 #       XMPP stream trailer is sent to the server.
 
-proc ::xmpp::closeStream {xlib} {
+proc ::xmpp::closeStream {xlib args} {
     variable $xlib
     upvar 0 $xlib state
 
@@ -864,7 +866,7 @@ proc ::xmpp::closeStream {xlib} {
     Debug $xlib 2 "$msg"
     CallBack $xlib log output text $msg
 
-    transport::use $state(transport) closeStream
+    eval [list transport::use $state(transport) closeStream] $args
 }
 
 # ::xmpp::EndOfParse --
@@ -987,6 +989,8 @@ proc ::xmpp::ForcedDisconnect {xlib} {
 #
 # Arguments:
 #       xlib            XMPP token.
+#       -wait bool      (optional, default 0) Wait for the server side when
+#                       closing XMPP stream.
 #
 # Result:
 #       Empty string.
@@ -996,7 +1000,7 @@ proc ::xmpp::ForcedDisconnect {xlib} {
 #       aborts any pending operation, closes the XMPP stream and channel, and
 #       clears the token state.
 
-proc ::xmpp::disconnect {xlib} {
+proc ::xmpp::disconnect {xlib args} {
     variable $xlib
     upvar 0 $xlib state
 
@@ -1013,7 +1017,7 @@ proc ::xmpp::disconnect {xlib} {
                 catch {unset state(abortCommand)}
             }
 
-            if {[catch {closeStream $xlib} msg]} {
+            if {[catch {eval [list closeStream $xlib] $args} msg]} {
                 Debug $xlib 1 "Closing stream failed: $msg"
             }
             if {[catch {transport::use $state(transport) close} msg]} {

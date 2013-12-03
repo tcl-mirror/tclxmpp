@@ -17,6 +17,7 @@ package require sha1
 package require tls
 
 package require xmpp
+package require xmpp::transport::bosh
 package require xmpp::auth
 package require xmpp::sasl
 package require xmpp::starttls
@@ -54,6 +55,7 @@ proc jsend::sendit {stayP to args} {
                             -date        ""    \
                             -description ""    \
                             -url         ""    \
+                            -bosh        ""    \
                             -tls         false \
                             -starttls    true  \
                             -sasl        true  \
@@ -161,7 +163,10 @@ proc jsend::sendit {stayP to args} {
         # Create an XMPP library instance
         set xlib [::xmpp::new]
 
-        if {$options(-tls)} {
+        if (![string equal $options(-bosh) ""]) {
+            set transport bosh
+            set port 0
+        } elseif {$options(-tls)} {
             set transport tls
             if {![string equal $options(-port) ""]} {
                 set port $options(-port)
@@ -178,9 +183,11 @@ proc jsend::sendit {stayP to args} {
         }
 
         # Connect to a server
-        ::xmpp::connect $xlib $options(-host) $port -transport $transport
+        ::xmpp::connect $xlib $options(-host) $port \
+                              -transport $transport \
+                              -url $options(-bosh)
 
-        if {!$options(-tls) && $options(-starttls)} {
+        if {[string equal $options(-bosh) ""] && !$options(-tls) && $options(-starttls)} {
             # Open XMPP stream
             set sessionID [::xmpp::openStream $xlib $domain \
                                                     -version 1.0]
@@ -250,7 +257,7 @@ proc jsend::sendit {stayP to args} {
     }
     if {!$stayP} {
         set jsend::stayP 0
-        ::xmpp::disconnect $xlib
+        ::xmpp::disconnect $xlib -wait 1
     }
 
     return 1
@@ -308,8 +315,7 @@ proc jsend::iqLast {xlib from xmlElement args} {
     set xmldata \
         [::xmpp::xml::create query -xmlns jabber:iq:last \
                                    -attrs [list seconds \
-                                                [expr {$now - $lib(lastwhen)}]] \
-                                   -cdata $lib(lastwhat)]
+                                                [expr {$now - $lib(lastwhen)}]]]
     return [list result $xmldata]
 }
 
@@ -515,6 +521,7 @@ if {(([set x [lsearch -exact $argv -help]] >= 0) \
             -xhtml       string
             -description string
             -url         string
+            -bosh        string (BOSH URL)
             -tls         boolean (e.g., 'false')
             -starttls    boolean (e.g., 'true')
             -sasl        boolean (e.g., 'true')

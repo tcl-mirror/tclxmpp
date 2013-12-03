@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It registeres XMPP packages
 #       for Tcl.
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -14,7 +14,7 @@ package ifneeded pconnect 0.1                   [list source [file join $dir pco
 package ifneeded pconnect::https 0.1            [list source [file join $dir https.tcl]]
 package ifneeded pconnect::socks4 0.1           [list source [file join $dir socks4.tcl]]
 package ifneeded pconnect::socks5 0.1           [list source [file join $dir socks5.tcl]]
-package ifneeded xmpp 0.1                       [list source [file join $dir xmpp.tcl]]
+package ifneeded xmpp 0.1.1                     [list source [file join $dir xmpp.tcl]]
 package ifneeded xmpp::auth 0.1                 [list source [file join $dir auth.tcl]]
 package ifneeded xmpp::bob 0.1                  [list source [file join $dir bob.tcl]]
 package ifneeded xmpp::component 0.1            [list source [file join $dir component.tcl]]
@@ -44,18 +44,19 @@ package ifneeded xmpp::search 0.1               [list source [file join $dir sea
 package ifneeded xmpp::stanzaerror 0.1          [list source [file join $dir stanzaerror.tcl]]
 package ifneeded xmpp::starttls 0.1             [list source [file join $dir starttls.tcl]]
 package ifneeded xmpp::streamerror 0.1          [list source [file join $dir streamerror.tcl]]
-package ifneeded xmpp::transport 0.1            [list source [file join $dir transport.tcl]]
-package ifneeded xmpp::transport::poll 0.1      [list source [file join $dir poll.tcl]]
-package ifneeded xmpp::transport::tcp 0.1       [list source [file join $dir tcp.tcl]]
-package ifneeded xmpp::transport::tls 0.1       [list source [file join $dir tls.tcl]]
-package ifneeded xmpp::transport::zlib 0.1      [list source [file join $dir zlib.tcl]]
+package ifneeded xmpp::transport 0.2            [list source [file join $dir transport.tcl]]
+package ifneeded xmpp::transport::bosh 0.2      [list source [file join $dir bosh.tcl]]
+package ifneeded xmpp::transport::poll 0.2      [list source [file join $dir poll.tcl]]
+package ifneeded xmpp::transport::tcp 0.2       [list source [file join $dir tcp.tcl]]
+package ifneeded xmpp::transport::tls 0.2       [list source [file join $dir tls.tcl]]
+package ifneeded xmpp::transport::zlib 0.2      [list source [file join $dir zlib.tcl]]
 package ifneeded xmpp::xml 0.1                  [list source [file join $dir xml.tcl]]
 
-package ifneeded xmpp::full 0.1 {
+package ifneeded xmpp::full 0.1.1 {
     package require pconnect::https 0.1
     package require pconnect::socks4 0.1
     package require pconnect::socks5 0.1
-    package require xmpp 0.1
+    package require xmpp 0.1.1
     package require xmpp::auth 0.1
     package require xmpp::bob 0.1
     package require xmpp::component 0.1
@@ -74,11 +75,12 @@ package ifneeded xmpp::full 0.1 {
     package require xmpp::roster::metacontacts 0.1
     package require xmpp::sasl 0.1
     package require xmpp::starttls 0.1
-    package require xmpp::transport::poll 0.1
-    package require xmpp::transport::tls 0.1
-    package require xmpp::transport::zlib 0.1
+    package require xmpp::transport::bosh 0.2
+    package require xmpp::transport::poll 0.2
+    package require xmpp::transport::tls 0.2
+    package require xmpp::transport::zlib 0.2
 
-    package provide xmpp::full 0.1
+    package provide xmpp::full 0.1.1
 }
 
 # vim:ts=8:sw=4:sts=4:et
