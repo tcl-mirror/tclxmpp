@@ -854,9 +854,9 @@ proc ::xmpp::transport::bosh::Request {token text attrs} {
             return
         }
         default {
-            if {($state(queries) >= $state(requests) && \
-                    ![string equal [::xmpp::xml::getAttr $attrs type] terminate]) || \
-                ($state(queries) > 0 && [string equal $state(outdata) ""])} {
+            if {![string equal [::xmpp::xml::getAttr $attrs type] terminate] && \
+                ($state(queries) >= $state(requests) || \
+                ($state(queries) > 0 && [string equal $state(outdata) ""]))} {
                 Debug $token 2 RESCHEDULING
 
                 after cancel $state(id)

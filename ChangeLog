@@ -3,6 +3,8 @@
 	* xmpp/bosh.tcl: Reduced empty packets polling frequency. Fixed
 	  attributes list on rescheduling.
 
+	* xmpp/bosh.tcl: Fixed sending of the terminate stream request.
+
 2013-12-03  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/bosh.tcl: Initially implemented BOSH (XEP-0124 and XEP-0206)
