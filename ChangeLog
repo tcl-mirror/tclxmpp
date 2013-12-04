@@ -1,3 +1,8 @@
+2013-12-04  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/bosh.tcl: Reduced empty packets polling frequency. Fixed
+	  attributes list on rescheduling.
+
 2013-12-03  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/bosh.tcl: Initially implemented BOSH (XEP-0124 and XEP-0206)

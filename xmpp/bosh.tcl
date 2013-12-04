@@ -152,7 +152,7 @@ proc ::xmpp::transport::bosh::open {server port args} {
     set state(sid)       ""
     set state(requests)  [expr {$state(-hold)+1}]
     set state(queries)   0
-    set state(polling)   10000
+    set state(polling)   2000
     set state(id)        ""
 
     if {[info exists proxyUseragent]} {
@@ -854,14 +854,15 @@ proc ::xmpp::transport::bosh::Request {token text attrs} {
             return
         }
         default {
-            if {$state(queries) >= $state(requests) && \
-                    ![string equal [::xmpp::xml::getAttr $attrs type] terminate]} {
+            if {($state(queries) >= $state(requests) && \
+                    ![string equal [::xmpp::xml::getAttr $attrs type] terminate]) || \
+                ($state(queries) > 0 && [string equal $state(outdata) ""])} {
                 Debug $token 2 RESCHEDULING
 
                 after cancel $state(id)
                 set state(id) \
                     [after $state(polling) \
-                           [namespace code [list Request $token "" $attrs]]]
+                           [namespace code [list Request $token "" {}]]]
                 return
             }
         }
@@ -910,7 +911,7 @@ proc ::xmpp::transport::bosh::Request {token text attrs} {
 
     after cancel $state(id)
     set state(id) \
-        [after $state(polling) [namespace code [list Request $token "" $attrs]]]
+        [after $state(polling) [namespace code [list Request $token "" {}]]]
 
     GetURL $token 0 [encoding convertto utf-8 $query]
     return
