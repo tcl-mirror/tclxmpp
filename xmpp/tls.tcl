@@ -142,6 +142,14 @@ proc ::xmpp::transport::tls::open {host port args} {
         }
     }
 
+    # Append default TLS options which differ from the tls::import defaults
+    if {![::xmpp::xml::isAttr $tlsArgs -ssl2]} {
+        lappend tlsArgs -ssl2 0
+    }
+    if {![::xmpp::xml::isAttr $tlsArgs -tls1]} {
+        lappend tlsArgs -tls1 1
+    }
+
     if {![info exists cmd]} {
         # Synchronous mode
         set state(sock) [eval [list ::pconnect::socket $host $port] $newArgs]

@@ -113,6 +113,14 @@ proc ::xmpp::starttls::starttls {xlib args} {
         }
     }
 
+    # Append default TLS options which differ from the tls::import defaults
+    if {![::xmpp::xml::isAttr $state(tlsArgs) -ssl2]} {
+        lappend state(tlsArgs) -ssl2 0
+    }
+    if {![::xmpp::xml::isAttr $state(tlsArgs) -tls1]} {
+        lappend state(tlsArgs) -tls1 1
+    }
+
     ::xmpp::RegisterElement $xlib * urn:ietf:params:xml:ns:xmpp-tls \
                             [namespace code [list Parse $token]]
 

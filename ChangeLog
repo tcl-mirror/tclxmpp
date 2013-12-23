@@ -1,3 +1,8 @@
+2013-12-23  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/bosh.tcl, xmpp/poll.tcl, xmpp/starttls.tcl, xmpp/tls.tcl:
+	  Explicitly disabled SSLv2 and enabled TLSv1 protocols.
+
 2013-12-04  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/bosh.tcl: Reduced empty packets polling frequency. Fixed

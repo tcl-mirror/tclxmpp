@@ -36,7 +36,7 @@ namespace eval ::xmpp::transport::bosh {
             -closestreamcommand  [namespace code closeStream]
 
     if {![catch { package require tls 1.4 }]} {
-        ::http::register https 443 ::tls::socket
+        ::http::register https 443 [namespace code sock]
     }
 
     # Supported BOSH version
@@ -49,6 +49,25 @@ namespace eval ::xmpp::transport::bosh {
 
     # Set this to 1 or 2 to get debug messages on standard output
     variable debug 0
+}
+
+# ::xmpp::transport::bosh::sock --
+#
+#       Wrapper over the tls::socket command which provides sane defaults.
+#
+# Arguments:
+#       options         Options for tls::socket
+#       host            Host to connect to.
+#       port            Port to connect to.
+#
+# Result:
+#       A channel with performed TLS handshake.
+#
+# Side effects:
+#       A new socket is created.
+
+proc ::xmpp::transport::bosh::sock {args} {
+    eval [linsert $args 0 ::tls::socket -ssl2 0 -tls1 1]
 }
 
 # ::xmpp::transport::bosh::open --
