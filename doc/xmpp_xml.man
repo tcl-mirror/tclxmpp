@@ -3,7 +3,7 @@
 [manpage_begin xmpp::man 3 0.1]
 [copyright {2008-2010 Sergei Golovan <sgolovan@nes.ru>}]
 [moddesc {Tcl XMPP library}]
-[titledesc {Operations with JIDs}]
+[titledesc {XML parser wrapper}]
 [require Tcl 8.3]
 [require msgcat]
 [require tdom 0.8]

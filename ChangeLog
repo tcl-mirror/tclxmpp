@@ -1,3 +1,7 @@
+2014-01-28  Sergei Golovan  <sgolovan@nes.ru>
+
+	* doc/xmpp_xml.man: Fixed header (Fixes issue 3).
+
 2013-12-23  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/bosh.tcl, xmpp/poll.tcl, xmpp/starttls.tcl, xmpp/tls.tcl:
