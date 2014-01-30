@@ -794,7 +794,9 @@ proc ::xmpp::sasl::ResourceBind {token featuresList} {
                 set state(id) \
                     [::xmpp::sendIQ $xlib set \
                             -query $data \
-                            -command [namespace code [list SendSession $token]]]
+                            -command [namespace code [list SendSession \
+                                                           $token \
+                                                           $featuresList]]]
                 return
             }
         }
@@ -829,7 +831,7 @@ proc ::xmpp::sasl::ResourceBind {token featuresList} {
 
 ##########################################################################
 
-proc ::xmpp::sasl::SendSession {token status xmlData} {
+proc ::xmpp::sasl::SendSession {token featuresList status xmlData} {
     variable $token
     upvar 0 $token state
     set xlib $state(xlib)
@@ -849,14 +851,23 @@ proc ::xmpp::sasl::SendSession {token status xmlData} {
                     }
                 }
             }
-            # Establish the session.
-            set data [::xmpp::xml::create session \
-                              -xmlns urn:ietf:params:xml:ns:xmpp-session]
+            foreach feature $featuresList {
+                ::xmpp::xml::split $feature tag xmlns attrs cdata subels
 
-            set state(id) \
-                [::xmpp::sendIQ $xlib set \
-                        -query $data \
-                        -command [namespace code [list Finish $token]]]
+                if {[string equal $xmlns urn:ietf:params:xml:ns:xmpp-session] &&
+                        [string equal $tag session]} {
+                    # Establish the session.
+                    set data [::xmpp::xml::create session \
+                                    -xmlns urn:ietf:params:xml:ns:xmpp-session]
+
+                    set state(id) \
+                        [::xmpp::sendIQ $xlib set \
+                                -query $data \
+                                -command [namespace code [list Finish $token]]]
+                    return
+                }
+            }
+            Finish $token ok $xmlData
         }
         default {
             Finish $token $status $xmlData

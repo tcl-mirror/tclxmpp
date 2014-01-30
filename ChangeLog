@@ -1,3 +1,8 @@
+2014-01-30  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/sasl.tcl: Send XMPP session IQ only if it's present in the
+	  stream features list.
+
 2014-01-28  Sergei Golovan  <sgolovan@nes.ru>
 
 	* doc/xmpp_xml.man: Fixed header (Fixes issue 3).
