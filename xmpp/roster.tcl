@@ -1,9 +1,9 @@
 # roster.tcl --
 #
 #       This file is a part of the XMPP library. It implements basic
-#       roster routines (RFC-3291).
+#       roster routines (RFC-3921 and RFC-6121).
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2014 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -15,6 +15,25 @@ package require xmpp
 package provide xmpp::roster 0.1
 
 namespace eval ::xmpp::roster {}
+
+# ::xmpp::roster::features --
+#
+#       Return roster features list it can be empty or include 'ver' string
+#       which means that roster versioning is supported (XEP-0237 and later
+#       RFC-6121, section 2.6)
+
+proc ::xmpp::roster::features {xlib} {
+    set features {}
+    foreach f [::xmpp::streamFeatures $xlib] {
+        ::xmpp::xml::split $f tag xmlns attrs cdata subels
+
+        if {[string equal $tag var] &&
+                [string equal $xmlns urn:xmpp:features:rosterver]} {
+            lappend features ver
+        }
+    }
+    set features
+}
 
 # ::xmpp::roster::new --
 
@@ -32,9 +51,13 @@ proc ::xmpp::roster::new {xlib args} {
     set state(xlib) $xlib
     set state(rid) 0
     set state(items) {}
+    set state(-version) ""
+    set state(-cache) {}
 
     foreach {key val} $args {
         switch -- $key {
+            -version -
+            -cache -
             -itemcommand {
                 set state($key) $val
             }
@@ -48,7 +71,7 @@ proc ::xmpp::roster::new {xlib args} {
 
     ::xmpp::iq::RegisterIQ $xlib set * jabber:iq:roster \
                            [namespace code [list ParsePush $token]]
-    return $token
+    set token
 }
 
 # ::xmpp::roster::free --
@@ -60,11 +83,13 @@ proc ::xmpp::roster::free {token} {
     if {![info exists state(xlib)]} return
 
     set xlib $state(xlib)
+    set version $state(-version)
+    set cache $state(-cache)
 
     ::xmpp::iq::UnregisterIQ $xlib set * jabber:iq:roster
 
     unset state
-    return
+    list $version $cache
 }
 
 # ::xmpp::roster::items --
@@ -199,6 +224,7 @@ proc ::xmpp::roster::get {token args} {
     set xlib $state(xlib)
 
     set timeout 0
+    set attrs {}
     set cmd {}
 
     foreach {key val} $args {
@@ -216,11 +242,18 @@ proc ::xmpp::roster::get {token args} {
         }
     }
 
+    if {[lsearch -exact [features $xlib] ver] >= 0} {
+        lappend attrs ver $state(-version)
+    }
+
     set rid [incr state(rid)]
+    set state(items) {}
+    array unset state roster,*
 
     ::xmpp::sendIQ $xlib get \
                    -query [::xmpp::xml::create query \
-                                               -xmlns jabber:iq:roster] \
+                                               -xmlns jabber:iq:roster \
+                                               -attrs $attrs] \
                    -command [namespace code [list ParseAnswer $token \
                                                               $rid \
                                                               $cmd]] \
@@ -268,9 +301,9 @@ proc ::xmpp::roster::ParsePush {token xlib from xmlElement args} {
         return [list error cancel service-unavailable]
     }
 
-    ParseItems $token $xmlElement
+    ParseItems $token push $xmlElement
 
-    return [list result [::xmpp::xml::create query -xmlns jabber:iq:roster]]
+    return [list result {}]
 }
 
 # ::xmpp::roster::ParseAnswer --
@@ -286,7 +319,7 @@ proc ::xmpp::roster::ParseAnswer {token rid cmd status xmlElement} {
     ::xmpp::Debug $xlib 2 "$token $rid '$cmd' $status"
 
     if {[string equal $status ok]} {
-        ParseItems $token $xmlElement
+        ParseItems $token fetch $xmlElement
         set xmlElement ""
     }
 
@@ -301,11 +334,48 @@ proc ::xmpp::roster::ParseAnswer {token rid cmd status xmlElement} {
 
 # ::xmpp::roster::ParseItems --
 
-proc ::xmpp::roster::ParseItems {token xmlElement} {
+proc ::xmpp::roster::ParseItems {token mode xmlElement} {
     variable $token
     upvar 0 $token state
 
+    if {$xmlElement == {}} {
+        # Empty result, so use the cached roster
+
+        set items {}
+        foreach item $state(cache) {
+            lassign $item njid jid name subsc ask groups
+
+            lappend items $njid
+
+            set state(roster,$njid) [list jid          $jid \
+                                          name         $name \
+                                          subscription $subsc \
+                                          ask          $ask \
+                                          groups       $groups]
+
+            if {[info exists state(-itemcommand)]} {
+                uplevel #0 $state(-itemcommand) [list $njid \
+                                                      -jid          $jid \
+                                                      -name         $name \
+                                                      -subscription $subsc \
+                                                      -ask          $ask \
+                                                      -groups       $groups]
+            }
+        }
+
+        set state(items) [lsort -unique $items]
+        return
+    }
+
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
+
+    # Get the new roster version
+    set state(-version) [::xmpp::xml::getAttr $attrs ver ""]
+
+    # Empty cache but not while roster push
+    if {[string equal $mode fetch]} {
+        set state(-cache) {}
+    }
 
     foreach subel $subels {
         ::xmpp::xml::split $subel stag sxmlns sattrs scdata ssubels
@@ -337,6 +407,11 @@ proc ::xmpp::roster::ParseItems {token xmlElement} {
                     set state(items) [lreplace $state(items) $idx $idx]
                 }
 
+                set idx [lsearch -exact -index 0 $state(-cache) $njid]
+                if {$idx >= 0} {
+                    set state(-cache) [lreplace $state(-cache) $idx $idx]
+                }
+
                 catch {unset state(roster,$njid)}
             }
             default {
@@ -350,6 +425,9 @@ proc ::xmpp::roster::ParseItems {token xmlElement} {
                                               subscription $subsc \
                                               ask          $ask \
                                               groups       $groups]
+
+                lappend state(-cache) \
+                        [list $njid $jid $name $subsc $ask $groups]
             }
         }
 

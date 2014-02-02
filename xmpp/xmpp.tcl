@@ -625,6 +625,30 @@ proc ::xmpp::GotStream {xlib status attrs} {
     return
 }
 
+# ::xmpp::streamFeatures --
+#
+#       Return the current stream features list.
+#
+# Arguments:
+#       xlib            XMPP token.
+#
+# Result:
+#       Features list.
+#
+# Side effects:
+#       Features list is taken from the state variable.
+
+proc ::xmpp::streamFeatures {xlib} {
+    variable $xlib
+    upvar 0 $xlib state
+
+    if {[info exists state(features)]} {
+        return $state(features)
+    } else {
+        return {}
+    }
+}
+
 # ::xmpp::ParseStreamFeatures --
 #
 #       A helper procedure which is called when stream features are received.

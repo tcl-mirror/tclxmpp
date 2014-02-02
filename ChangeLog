@@ -1,3 +1,11 @@
+2014-02-02  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xmpp.tcl: Added function which returns the current XMPP stream
+	  features.
+
+	* xmpp/roster.tcl: Implemented roster versioning as in XEP-0237
+	  and later in RFC-6121 (thanks to Jan Zachorowski).
+
 2014-01-30  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl: Send XMPP session IQ only if it's present in the
