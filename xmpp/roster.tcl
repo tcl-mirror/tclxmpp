@@ -27,7 +27,7 @@ proc ::xmpp::roster::features {xlib} {
     foreach f [::xmpp::streamFeatures $xlib] {
         ::xmpp::xml::split $f tag xmlns attrs cdata subels
 
-        if {[string equal $tag var] &&
+        if {[string equal $tag ver] &&
                 [string equal $xmlns urn:xmpp:features:rosterver]} {
             lappend features ver
         }
