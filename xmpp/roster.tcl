@@ -342,7 +342,7 @@ proc ::xmpp::roster::ParseItems {token mode xmlElement} {
         # Empty result, so use the cached roster
 
         set items {}
-        foreach item $state(cache) {
+        foreach item $state(-cache) {
             lassign $item njid jid name subsc ask groups
 
             lappend items $njid
