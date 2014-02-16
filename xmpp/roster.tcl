@@ -407,7 +407,15 @@ proc ::xmpp::roster::ParseItems {token mode xmlElement} {
                     set state(items) [lreplace $state(items) $idx $idx]
                 }
 
-                set idx [lsearch -exact -index 0 $state(-cache) $njid]
+                set idx -1
+                set i -1
+                foreach item $state(-cache) {
+                    incr i
+                    if {[string equal [lindex $item 0] $njid]} {
+                        set idx $i
+                        break
+                    }
+                }
                 if {$idx >= 0} {
                     set state(-cache) [lreplace $state(-cache) $idx $idx]
                 }

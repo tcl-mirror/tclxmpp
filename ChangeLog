@@ -1,3 +1,8 @@
+2014-02-16  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/roster.tcl: Removed usage of -index lsearch option because it
+	  doesn't work with Tcl 8.4.
+
 2014-02-02  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xmpp.tcl: Added function which returns the current XMPP stream
