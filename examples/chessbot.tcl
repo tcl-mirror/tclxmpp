@@ -100,7 +100,7 @@ proc ReadFromChessEngine {xlib jid gid fd} {
         catch {unset games([list $jid $gid])}
     }
 
-    if {[regexp {^My move is: (\S+)} $text -> move]} {
+    if {[regexp {^My move is\s*:\s*(\S+)} $text -> move]} {
         SendTurnIQ $xlib $jid $gid [Move $move]
     } elseif {[regexp {^offer draw} $text]} {
         SendTurnIQ $xlib $jid $gid [::xmpp::xml::create accept]
@@ -418,7 +418,7 @@ array set options [list -host     "" \
                         -port     5222 \
                         -server   localhost \
                         -username user \
-                        -resource "GNU Chess"
+                        -resource "GNU Chess" \
                         -password secret \
                         -compress false \
                         -tls      false \

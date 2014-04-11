@@ -1,3 +1,8 @@
+2014-04-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/chessbot.tcl: Fixed typo and made it work with the newer
+	  GNUChess.
+
 2014-02-16  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/roster.tcl: Removed usage of -index lsearch option because it
