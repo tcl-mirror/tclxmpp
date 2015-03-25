@@ -1,3 +1,8 @@
+2015-03-25  Sergei Golovan  <sgolovan@nes.ru>
+
+	* doc/xmpp_xml.man, examples/chessbot.tcl, license.terms,
+	  xmpp/sasl.tcl, xmpp/starttls.tcl: Fixed copyright years.
+
 2014-04-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/chessbot.tcl: Fixed typo and made it work with the newer
