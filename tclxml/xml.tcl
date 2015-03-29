@@ -28,8 +28,6 @@
 # that it is error free or fit for any purpose.  ANU disclaims any
 # liability for all claims, expenses, losses, damages and costs any user may
 # incur as a result of using, copying or modifying the Software.
-#
-# $Id$
 
 package require Tcl 8.1
 

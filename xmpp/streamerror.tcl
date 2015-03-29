@@ -7,8 +7,6 @@
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
-#
-# $Id$
 
 package provide xmpp::streamerror 0.1
 

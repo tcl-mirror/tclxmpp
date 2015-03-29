@@ -7,8 +7,6 @@
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
-#
-# $Id$
 
 package ifneeded pconnect 0.1                   [list source [file join $dir pconnect.tcl]]
 package ifneeded pconnect::https 0.1            [list source [file join $dir https.tcl]]

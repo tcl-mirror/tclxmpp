@@ -7,8 +7,6 @@
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
-#
-# $Id$
 
 namespace eval ::xmpp::transport::zlib {
     variable zlibpack

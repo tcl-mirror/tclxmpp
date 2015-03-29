@@ -1,8 +1,6 @@
 # plkIndex.tcl --
 #
 #       Tcl package index file for TclXML
-#
-# $Id$
 
 package ifneeded xml 2.0 {
     package require -exact xml::tcl 2.0

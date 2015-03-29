@@ -1,3 +1,7 @@
+2015-03-29  Sergei Golovan  <sgolovan@nes.ru>
+
+	* *: Removed no longer used SVN keyword placeholders.
+
 2015-03-25  Sergei Golovan  <sgolovan@nes.ru>
 
 	* doc/xmpp_xml.man, examples/chessbot.tcl, license.terms,

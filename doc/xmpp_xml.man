@@ -1,5 +1,4 @@
 [comment {-*- tcl -*- doctools manpage}]
-[comment {$Id$}]
 [manpage_begin xmpp::man 3 0.1]
 [copyright {2008-2014 Sergei Golovan <sgolovan@nes.ru>}]
 [moddesc {Tcl XMPP library}]

@@ -8,8 +8,6 @@
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
-#
-# $Id$
 
 package require base64
 package require SASL::NTLM 1.0
