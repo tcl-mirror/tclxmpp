@@ -61,7 +61,7 @@ proc ::xmpp::data::formField {tag args} {
                 lappend field 0
             }
 
-            if {[lcontain {list-multi list-single} $type]} {
+            if {[lsearch -exact {list-multi list-single} $type] >= 0} {
                 if {[info exists params(-options)]} {
                     lappend field $params(-options)
                 } else {
@@ -71,10 +71,10 @@ proc ::xmpp::data::formField {tag args} {
                 lappend field {}
             }
 
-            if {[lcontain {jid-multi text-multi list-multi} $type]} {
+            if {[lsearch -exact {jid-multi text-multi list-multi} $type] >= 0} {
                 if {[info exists params(-values)]} {
                     lappend field $params(-values)
-                } elseif {[lcontain {jid-multi} $type]} {
+                } elseif {[lsearch -exact {jid-multi} $type] >= 0} {
                     return -code error "You must define -values"
                 } else {
                     lappend field {}
@@ -82,7 +82,7 @@ proc ::xmpp::data::formField {tag args} {
             } else {
                 if {[info exists params(-value)]} {
                     lappend field [list $params(-value)]
-                } elseif {[lcontain {hidden fixed} $type]} {
+                } elseif {[lsearch -exact {hidden fixed} $type] >= 0} {
                     return -code error "You must define -value"
                 } else {
                     lappend field {}
