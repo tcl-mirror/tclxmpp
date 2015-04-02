@@ -63,7 +63,48 @@ namespace eval ::xmpp::sasl {
     }
 }
 
-##########################################################################
+# ::xmpp::sasl::auth --
+#
+#       Authenticate an existing XMPP stream using SASL method described
+#       either in RFC-6120 (for clients) or in XEP-0225 (for components).
+#
+# Arguments:
+#       xlib                    XMPP token. It must be connected and XMPP
+#                               stream must be opened.
+#       -username   username    Username to authenticate (clients only).
+#       -password   password    Password to use in authentication (clients
+#                               only).
+#       -resource   resource    XMPP resource to bind to the stream after
+#                               successful authentication (clients only).
+#       -domain     domain      Domain name to bind to (components only).
+#       -secret     secret      Secret to use in authentication (components
+#                               only).
+#       -disable    mechlist    List of SASL mechanisms which are explicitly
+#                               forbidden to use.
+#       -digest     digest      (optional, defaults to "yes") Boolean value
+#                               which specifies if a digest authentication
+#                               method should be used. A special value "auto"
+#                               allows to select digest authentication if it's
+#                               available and fallback to plaintext if the
+#                               digest method isn't provided by server. Note
+#                               that Tclsasl doesn't allow one to disable
+#                               digest authentication mechanisms.
+#       -timeout    timeout     (optional, defaults to 0 which means infinity)
+#                               Timeout (in milliseconds) for authentication
+#                               queries.
+#       -command    callback    (optional) If present, it turns on asynchronous
+#                               mode. After successful or failed authentication
+#                               "callback" is invoked with two appended
+#                               arguments: status ("ok", "error", "abort" or
+#                               "timeout") and either authenticated JID if
+#                               status is "ok", or error stanza otherwise.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       In state of waiting for reply from server terminates waiting process.
+
 
 proc ::xmpp::sasl::auth {xlib args} {
     variable saslpack
