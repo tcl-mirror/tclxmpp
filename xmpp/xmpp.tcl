@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It implements the main library
 #       routines.
 #
-# Copyright (c) 2008-2014 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -16,8 +16,9 @@ package require xmpp::streamerror
 package require xmpp::stanzaerror
 package require xmpp::iq
 package require xmpp::presence
+package require xmpp::sm
 
-package provide xmpp 0.1.1
+package provide xmpp 0.2
 
 namespace eval ::xmpp {
 
@@ -38,9 +39,9 @@ namespace eval ::xmpp {
 #       -packetcommand     cmd  (optional) Command to call on every incoming
 #                               XMPP packet except stream errors.
 #       -messagecommand    cmd  (optional) Command to call on every XMPP
-#                               message packet (overrides -packetCommand).
+#                               message packet (overrides -packetcommand).
 #       -presencecommand   cmd  (optional) Command to call on every XMPP
-#                               presence packet (overrides -packetCommand).
+#                               presence packet (overrides -packetcommand).
 #       -disconnectcommand cmd  (optional) Command to call on forced disconnect
 #                               from XMPP server.
 #       -statuscommand     cmd  (optional) Command to call when XMPP connection
@@ -48,6 +49,11 @@ namespace eval ::xmpp {
 #                               authentication).
 #       -errorcommand      cmd  (optional) Command to call on XMPP stream error
 #                               packet.
+#       -logcommand        cmd  (optional) Command to call when text or XML has
+#                               come or about to be sent. Its purpose is to
+#                               log outgoing or incoming traffic.
+#       -smcommand         cmd  (optional) Command to call on Stream Management
+#                               (XEP-0198) stanza acknowledgement events.
 #
 # Result:
 #       XMPP token name or error if the supplied variable exists or illegal
@@ -91,7 +97,8 @@ proc ::xmpp::new {args} {
             -disconnectcommand -
             -statuscommand -
             -errorcommand -
-            -logcommand {
+            -logcommand -
+            -smcommand {
                 set attrs($key) $val
             }
             default {
@@ -130,6 +137,8 @@ proc ::xmpp::new {args} {
     RegisterElement $xlib features http://etherx.jabber.org/streams \
                     [namespace code [list ParseStreamFeatures $xlib]]
 
+    set state(sm) [::xmpp::sm::new $xlib]
+
     Debug $xlib 2 ""
 
     return $xlib
@@ -157,6 +166,8 @@ proc ::xmpp::free {xlib} {
     if {![string equal $state(status) disconnected]} {
         return -code error [::msgcat::mc "Free without disconnect"]
     }
+
+    ::xmpp::sm::free $state(sm)
 
     if {[info exists state(-messagecommand)]} {
         UnregisterElement $xlib message *
@@ -838,6 +849,7 @@ proc ::xmpp::outXML {xlib xmlElement} {
     Debug $xlib 2 "[xml::toText $xmlElement]"
     CallBack $xlib log output xml $xmlElement
 
+    after idle [list ::xmpp::sm::count $state(sm) out $xmlElement]
     transport::use $state(transport) outXML $xmlElement
 }
 
@@ -1234,6 +1246,8 @@ proc ::xmpp::Parse {xlib xmlElement} {
         Debug $xlib 1 "Connection doesn't exist"
         return -1
     }
+
+    ::xmpp::sm::count $state(sm) in $xmlElement
 
     xml::split $xmlElement tag xmlns attrs cdata subels
 

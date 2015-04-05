@@ -1,3 +1,11 @@
+2015-04-05  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/pkgIndex.tcl, xmpp/sasl.tcl,
+	  xmpp/sm.tcl, xmpp/xmpp.tcl: Started implementing the stream
+	  management (XEP-0198) protocol. Currently only enabling stream
+	  management and requesting/sending acknowledgements is impemented.
+	  Stream resumption and calling back the client are to follow.
+
 2015-04-02  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl: Added a description header to the ::xmpp::sasl::auth

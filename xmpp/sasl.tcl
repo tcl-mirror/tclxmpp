@@ -4,7 +4,7 @@
 #       SASL authentication layer via the tclsasl or tcllib SASL package.
 #       Also, it binds resource and opens XMPP session.
 #
-# Copyright (c) 2008-2014 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -12,7 +12,7 @@
 package require base64
 package require xmpp::stanzaerror
 
-package provide xmpp::sasl 0.1
+package provide xmpp::sasl 0.2
 
 namespace eval ::xmpp::sasl {
     namespace export auth abort
@@ -126,6 +126,7 @@ proc ::xmpp::sasl::auth {xlib args} {
     set state(-server)  [::xmpp::Set $xlib server]
     set state(-digest)  1
     set state(-disable) {}
+    set state(-sm) disable
     set timeout 0
     catch {unset state(mechanisms)}
 
@@ -137,6 +138,7 @@ proc ::xmpp::sasl::auth {xlib args} {
             -resource -
             -password -
             -disable  -
+            -sm -
             -command {
                 set state($key) $val
             }
@@ -833,7 +835,7 @@ proc ::xmpp::sasl::ResourceBind {token featuresList} {
                 set state(id) \
                     [::xmpp::sendIQ $xlib set \
                             -query $data \
-                            -command [namespace code [list SendSession \
+                            -command [namespace code [list EnableSMClient \
                                                            $token \
                                                            $featuresList]]]
                 return
@@ -858,7 +860,9 @@ proc ::xmpp::sasl::ResourceBind {token featuresList} {
                 set state(id) \
                     [::xmpp::sendIQ $xlib set \
                             -query $data \
-                            -command [namespace code [list Finish $token]]]
+                            -command [namespace code [list EnableSMComponent \
+                                                           $token \
+                                                           $featuresList]]]
                 return
             }
         }
@@ -868,7 +872,39 @@ proc ::xmpp::sasl::ResourceBind {token featuresList} {
     }
 }
 
-##########################################################################
+proc ::xmpp::sasl::EnableSMClient {token featuresList status xmlData} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$xmlData"
+
+    if {![string equal $state(-sm) enable]} {
+        SendSession $token $featuresList $status $xmlData
+    } else {
+        ::xmpp::sm::enable [::xmpp::Set $xlib sm] \
+                           -resume 0 \
+                           -command [namespace code [list SendSession \
+                                                          $token \
+                                                          $featuresList]]
+    }
+}
+
+proc ::xmpp::sasl::EnableSMComponent {token featuresList status xmlData} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$xmlData"
+
+    if {![string equal $state(-sm) enable]} {
+        Finish $token $status $xmlData
+    } else {
+        ::xmpp::sm::enable [::xmpp::Set $xlib sm] \
+                           -resume 0 \
+                           -command [namespace code [list Finish $token]]
+    }
+}
 
 proc ::xmpp::sasl::SendSession {token featuresList status xmlData} {
     variable $token

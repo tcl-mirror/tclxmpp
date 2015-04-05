@@ -3,7 +3,7 @@
 #      This file is part of the XMPP library. It provides support for the
 #      Jabber Component Protocol (XEP-0114).
 #
-# Copyright (c) 2008-2010 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -11,7 +11,7 @@
 package require sha1
 package require xmpp
 
-package provide xmpp::component 0.1
+package provide xmpp::component 0.2
 
 namespace eval ::xmpp::component {
     namespace export auth abort
@@ -71,6 +71,7 @@ proc ::xmpp::component::auth {xlib args} {
         switch -- $key {
             -sessionid -
             -secret    -
+            -sm        -
             -command {
                 set state($key) $val
             }
@@ -220,13 +221,49 @@ proc ::xmpp::component::Parse {token xmlElement} {
 
     switch -- $tag {
         handshake {
-            Finish $token ok {}
+            EnableSM $token ok {}
         }
         error {
             Finish $token error [::xmpp::streamerror::message $xmlElement]
         }
     }
     return
+}
+
+# ::xmpp::component::EnableSM --
+#
+#       A helper procedure which requests enabling the stream management
+#       (XEP-1098) over the given connection.
+#
+# Arguments:
+#       token           Authentication control token which is returned by
+#                       ::xmpp::component::auth procedure.
+#       status          Status of the authentication (ok means success). It's
+#                       passed (along with the next xmlData argument) to the
+#                       Finish procedure if SM hasn't been required.
+#       xmlData         Either a result (usually empty) if status is ok or
+#                       error message.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       If SM was requested then XEP-0198 request is transmitted to the server.
+
+proc ::xmpp::component::EnableSM {token status xmlData} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$xmlData"
+
+    if {![string equal $state(-sm) enable]} {
+        Finish $token $status $xmlData
+    } else {
+        ::xmpp::sm::enable [::xmpp::Set $xlib sm] \
+                           -resume 0 \
+                           -command [namespace code [list Finish $token]]
+    }
 }
 
 # ::xmpp::component::Finish --
