@@ -341,7 +341,7 @@ proc ::xmpp::roster::ParseItems {token mode xmlElement} {
 
         set items {}
         foreach item $state(-cache) {
-            lassign $item njid jid name subsc ask groups
+            foreach {njid jid name subsc ask groups} $item break
 
             lappend items $njid
 

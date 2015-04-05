@@ -1,5 +1,7 @@
 2015-04-05  Sergei Golovan  <sgolovan@nes.ru>
 
+	* xmpp/roster.tcl: Removed too modern [lassign] call.
+
 	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/pkgIndex.tcl, xmpp/sasl.tcl,
 	  xmpp/sm.tcl, xmpp/xmpp.tcl: Started implementing the stream
 	  management (XEP-0198) protocol. Currently only enabling stream
