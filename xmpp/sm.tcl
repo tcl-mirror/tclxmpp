@@ -41,13 +41,14 @@ proc ::xmpp::sm::new {xlib} {
     ::xmpp::Debug $xlib 2 "$token"
 
     set state(xlib) $xlib
-    set state(count-in) 0
-    set state(count-out) 0
-    set state(queue) {}
-    set state(resume) 0
-    set state(enable) 0
-    set state(location) ""
-    set state(id) ""
+    set state(count-in) 0   ; # Number of received stanzas
+    set state(count-out) 0  ; # Number of acknowledged sent stanzas
+    set state(queue) {}     ; # Queue of unacknowledged yet sent stanzas
+    set state(location) ""  ; # Preferred resume location
+    set state(id) ""        ; # Stream ID for resumption
+    set state(resume) 0     ; # Whether the server agree to resume the stream
+    set state(max) 0        ; # Maximum resumption time (0 for infinity)
+    set state(enabled) 0    ; # Whether the SM is enabled
 
     ::xmpp::RegisterElement $xlib * urn:xmpp:sm:3 \
                             [namespace code [list Parse $token]]
@@ -90,6 +91,63 @@ proc ::xmpp::sm::free {token} {
 #       A continuation procedure is scheduled.
 
 proc ::xmpp::sm::enable {token args} {
+    eval [list EnableResume $token enable] $args
+}
+
+# ::xmpp::sm::resume --
+#
+#       Resume XMPP stream using the stream management protocol for the
+#       specified connection.
+#
+# Arguments:
+#       token                   SM token. The associated with it XMPP
+#                               stream must be opened and authenticated.
+#       -command    callback    After successful or failed authentication
+#                               "callback" is invoked with two appended
+#                               arguments: status ("ok", "error", "abort" or
+#                               "timeout") and empty string if
+#                               status is "ok", or error stanza otherwise.
+#       -timeout    timeout     (optional, defaults to 0 which means infinity)
+#                               Timeout (in milliseconds) for stream management
+#                               negotiation.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A continuation procedure is scheduled.
+
+proc ::xmpp::sm::resume {token args} {
+    eval [list EnableResume $token resume] $args
+}
+
+# ::xmpp::sm::EnableResume --
+#
+#       Enable or resume stream management for the specified connection.
+#
+# Arguments:
+#       token                   SM token. The associated with it XMPP
+#                               stream must be opened and authenticated.
+#       -command    callback    After successful or failed authentication
+#                               "callback" is invoked with two appended
+#                               arguments: status ("ok", "error", "abort" or
+#                               "timeout") and empty string if
+#                               status is "ok", or error stanza otherwise.
+#       -resume     boolean     (optional, makes sense for enabling only,
+#                               defaults to false) Whether to enable
+#                               stream resumption.
+#       -timeout    timeout     (optional, defaults to 0 which means infinity)
+#                               Timeout (in milliseconds) for stream management
+#                               negotiation.
+#
+# Result:
+#       Empty string.
+#
+# Side effects:
+#       A continuation procedure is scheduled.
+
+
+proc ::xmpp::sm::EnableResume {token mode args} {
     variable $token
     upvar 0 $token state
     set xlib $state(xlib)
@@ -98,13 +156,20 @@ proc ::xmpp::sm::enable {token args} {
 
     ::xmpp::Set $xlib abortCommand [namespace code [list abort $token]]
 
+    set state(mode) $mode
     catch {unset state(-command)}
-    set state(-resume) 0
+    if {[string equal $mode enable]} {
+        set state(-resume) 0
+    }
     set timeout 0
 
     foreach {key val} $args {
         switch -- $key {
-            -resume -
+            -resume {
+                if {[string equal $mode enable]} {
+                    set state(-resume) [string is true $val]
+                }
+            }
             -command {
                 set state($key) $val
             }
@@ -233,12 +298,37 @@ proc ::xmpp::sm::Continue {token featuresList} {
         return
     }
 
-    set state(count-in) 0
-    set state(count-out) 0
-    set state(queue) {}
-    set state(enable) 0
-    ::xmpp::outXML $xlib [::xmpp::xml::create enable \
-                                    -xmlns urn:xmpp:sm:3]
+    if {[string equal $state(mode) enable]} {
+        set state(count-in) 0
+        set state(count-out) 0
+        set state(queue) {}
+        set state(location) ""
+        set state(id) ""
+        set state(max) 0
+        set state(resume) 0
+        set state(enabled) 0
+
+        set attrs {}
+        if {$state(-resume)} {
+            lappend attrs resume true
+        }
+        ::xmpp::outXML $xlib [::xmpp::xml::create enable \
+                                        -xmlns urn:xmpp:sm:3 \
+                                        -attrs $attrs]
+    } else {
+        set state(enabled) 0
+
+        if {!$state(resume)} {
+            Finish $token error \
+                   [::xmpp::stanzaerror::error cancel item-not-found]
+            return
+        }
+
+        ::xmpp::outXML $xlib [::xmpp::xml::create resume \
+                                        -xmlns urn:xmpp:sm:3 \
+                                        -attrs [list h      $state(count-in) \
+                                                     previd $state(id)]]
+    }
 }
 
 # ::xmpp::sm::Parse --
@@ -268,20 +358,50 @@ proc ::xmpp::sm::Parse {token xmlElement} {
 
     switch -- $tag {
         enabled {
+            set state(enabled) 1
+            foreach {attr val} $attrs {
+                switch -- $attr {
+                    id -
+                    max -
+                    location {
+                        set state($attr) $val
+                    }
+                    resume {
+                        set state(resume) [string is true $val]
+                    }
+                }
+            }
             Finish $token ok $xmlElement
         }
         resumed {
+            set state(enabled) 1
+            foreach {attr val} $attrs {
+                switch -- $attr {
+                    h {
+                        set qc [PullFromQueue $state(queue) \
+                                              $state(count-out) \
+                                              $val]
+                        set state(queue) [lindex $qc 0]
+                        set state(count-out) [lindex $qc 1]
+                    }
+                    previd {
+                        # TODO: Check if IDs match
+                        set state(id) $val
+                    }
+                }
+            }
             Finish $token ok $xmlElement
         }
         failed {
+            set state(enabled) 0
             Failed $token $subels
         }
         a {
-            set h [::xmpp::xml::getAttr $attrs h]
-            for {set i $state(count-out)} {$i < $h} {incr i} {
-                set state(queue) [lreplace $state(queue) 0 0]
-            }
-            set state(count-out) $h
+            set qc [PullFromQueue $state(queue) \
+                                  $state(count-out) \
+                                  [::xmpp::xml::getAttr $attrs h]]
+            set state(queue) [lindex $qc 0]
+            set state(count-out) [lindex $qc 1]
         }
         r {
             ::xmpp::outXML $xlib \
@@ -292,6 +412,17 @@ proc ::xmpp::sm::Parse {token xmlElement} {
     }
 }
 
+proc ::xmpp::sm::PullFromQueue {queue countold countnew} {
+    set countnew [expr {$countnew % (1<<32)}]
+    if {$countnew < $countold} {
+        set countold [expr {$countold - (1<<32)}]
+    }
+    for {set i $countold} {$i < $countnew} {incr i} {
+        set queue [lreplace $queue 0 0]
+    }
+    list $queue $countnew
+}
+
 proc ::xmpp::sm::count {token mode xmlElement} {
     variable $token
     upvar 0 $token state
@@ -299,7 +430,7 @@ proc ::xmpp::sm::count {token mode xmlElement} {
 
     ::xmpp::Debug $xlib 2 "$token"
 
-    if {!$state(enable)} return
+    if {!$state(enabled)} return
 
     ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
 
@@ -308,7 +439,7 @@ proc ::xmpp::sm::count {token mode xmlElement} {
         presence -
         message {
             if {[string equal $mode in]} {
-                incr state(count-in)
+                set state(count-in) [expr {($state(count-in) + 1) % (1<<32)}]
             } else {
                 lappend state(queue) $xmlElement
                 ::xmpp::outXML $xlib [::xmpp::xml::create r \
@@ -385,13 +516,15 @@ proc ::xmpp::sm::Finish {token status xmlData} {
     ::xmpp::Debug $xlib 2 "$token $status"
 
     if {[string equal $status ok]} {
-        set state(enable) 1
         ::xmpp::CallBack $xlib status [::msgcat::mc "Stream management negotiation successful"]
     } else {
         ::xmpp::CallBack $xlib status [::msgcat::mc "Stream management negotiation failed"]
     }
 
-    uplevel #0 $state(-command) [list $status $xmlData]
+    if {[info exists state(-command)]} {
+        uplevel #0 $state(-command) [list $status $xmlData]
+        unset state(-command)
+    }
 }
 
 # vim:ts=8:sw=4:sts=4:et

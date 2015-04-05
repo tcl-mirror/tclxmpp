@@ -1,5 +1,8 @@
 2015-04-05  Sergei Golovan  <sgolovan@nes.ru>
 
+	* xmpp/sm.tcl: Implemented stream resumption support (it's still never
+	  used yet).
+
 	* xmpp/roster.tcl: Removed too modern [lassign] call.
 
 	* xmpp/auth.tcl, xmpp/component.tcl, xmpp/pkgIndex.tcl, xmpp/sasl.tcl,
