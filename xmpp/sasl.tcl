@@ -802,11 +802,27 @@ proc ::xmpp::sasl::Reopened {token status sessionid} {
     }
 
     ::xmpp::TraceStreamFeatures $xlib \
-                    [namespace code [list ResourceBind $token]]
+                    [namespace code [list ResumeSM $token]]
     return
 }
 
-##########################################################################
+proc ::xmpp::sasl::ResumeSM {token featuresList} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$token $featuresList"
+
+    if {![string equal $state(-sm) resume]} {
+        ::xmpp::sm::reset [::xmpp::Set $xlib sm]
+        ResourceBind $token $featuresList
+    } else {
+        ::xmpp::sm::resume [::xmpp::Set $xlib sm] \
+                           -command [namespace code [list Finish \
+                                                          $token]]
+    }
+}
+
 
 proc ::xmpp::sasl::ResourceBind {token featuresList} {
     variable $token

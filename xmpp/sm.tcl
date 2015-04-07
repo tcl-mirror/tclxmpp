@@ -41,6 +41,20 @@ proc ::xmpp::sm::new {xlib} {
     ::xmpp::Debug $xlib 2 "$token"
 
     set state(xlib) $xlib
+    reset $token
+
+    ::xmpp::RegisterElement $xlib * urn:xmpp:sm:3 \
+                            [namespace code [list Parse $token]]
+    return $token
+}
+
+proc ::xmpp::sm::reset {token} {
+    variable $token
+    upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$token"
+
     set state(count-in) 0   ; # Number of received stanzas
     set state(count-out) 0  ; # Number of acknowledged sent stanzas
     set state(queue) {}     ; # Queue of unacknowledged yet sent stanzas
@@ -50,15 +64,15 @@ proc ::xmpp::sm::new {xlib} {
     set state(max) 0        ; # Maximum resumption time (0 for infinity)
     set state(enabled) 0    ; # Whether the SM is enabled
 
-    ::xmpp::RegisterElement $xlib * urn:xmpp:sm:3 \
-                            [namespace code [list Parse $token]]
-
-    return $token
+    return
 }
 
 proc ::xmpp::sm::free {token} {
     variable $token
     upvar 0 $token state
+    set xlib $state(xlib)
+
+    ::xmpp::Debug $xlib 2 "$token"
 
     ::xmpp::UnregisterElement $xlib * urn:xmpp:sm:3
 
@@ -418,6 +432,13 @@ proc ::xmpp::sm::PullFromQueue {queue countold countnew} {
         set countold [expr {$countold - (1<<32)}]
     }
     for {set i $countold} {$i < $countnew} {incr i} {
+        set xmlElement [lindex $queue 0]
+        ::xmpp::xml::split $xmlElement tag xmlns attrs cdata subels
+        set id [::xmpp::xml::getAttr $attrs id]
+        if {[string equal $tag message] && ![string equal $id ""]} {
+            # TODO: Should we call back for presence and IQ as well?
+            ::xmpp::CallBack $xlib sm ack $id
+        }
         set queue [lreplace $queue 0 0]
     }
     list $queue $countnew
@@ -441,6 +462,7 @@ proc ::xmpp::sm::count {token mode xmlElement} {
             if {[string equal $mode in]} {
                 set state(count-in) [expr {($state(count-in) + 1) % (1<<32)}]
             } else {
+                # TODO: Add a delay subelement
                 lappend state(queue) $xmlElement
                 ::xmpp::outXML $xlib [::xmpp::xml::create r \
                                               -xmlns urn:xmpp:sm:3]
