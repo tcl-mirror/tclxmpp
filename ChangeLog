@@ -1,3 +1,7 @@
+2015-04-08  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/sm.tcl: Fixed error with undefined $xlib.
+
 2015-04-07  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl, xmpp/sm.tcl: Reset the stream management state on new

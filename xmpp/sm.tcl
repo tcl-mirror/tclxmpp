@@ -392,7 +392,8 @@ proc ::xmpp::sm::Parse {token xmlElement} {
             foreach {attr val} $attrs {
                 switch -- $attr {
                     h {
-                        set qc [PullFromQueue $state(queue) \
+                        set qc [PullFromQueue $xlib \
+                                              $state(queue) \
                                               $state(count-out) \
                                               $val]
                         set state(queue) [lindex $qc 0]
@@ -411,7 +412,8 @@ proc ::xmpp::sm::Parse {token xmlElement} {
             Failed $token $subels
         }
         a {
-            set qc [PullFromQueue $state(queue) \
+            set qc [PullFromQueue $xlib \
+                                  $state(queue) \
                                   $state(count-out) \
                                   [::xmpp::xml::getAttr $attrs h]]
             set state(queue) [lindex $qc 0]
@@ -426,7 +428,7 @@ proc ::xmpp::sm::Parse {token xmlElement} {
     }
 }
 
-proc ::xmpp::sm::PullFromQueue {queue countold countnew} {
+proc ::xmpp::sm::PullFromQueue {xlib queue countold countnew} {
     set countnew [expr {$countnew % (1<<32)}]
     if {$countnew < $countold} {
         set countold [expr {$countold - (1<<32)}]
