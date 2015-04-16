@@ -1,3 +1,7 @@
+2015-04-16  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/search.tcl: Fixed returning the parsed search items list.
+
 2015-04-08  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sm.tcl: Fixed error with undefined $xlib.
