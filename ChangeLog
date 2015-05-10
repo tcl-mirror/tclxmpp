@@ -1,5 +1,7 @@
 2015-05-10  Sergei Golovan  <sgolovan@nes.ru>
 
+	* xmpp/search.tcl: Fixed returning the parsed search items list.
+
 	* xmpp/roster.tcl: Removed too modern [lassign] call.
 
 	* xmpp/data.tcl: Removed Tclx's [lcontain] calls.

@@ -199,7 +199,7 @@ proc ::xmpp::search::ParseLegacyItems {items} {
         lappend res item $fields
     }
 
-    return [linsert $res 0 reported [array get $reported]]
+    return [linsert $res 0 reported [array get reported]]
 }
 
 # vim:ft=tcl:ts=8:sw=4:sts=4:et
