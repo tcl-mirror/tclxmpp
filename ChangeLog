@@ -1,3 +1,9 @@
+2015-05-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/blocking.tcl, xmpp/bosh.tcl, xmpp/muc.tcl, xmpp/ping.tcl,
+	  xmpp/poll.tcl: Removed tabulation characters and trailing
+	  whitespaces.
+
 2015-04-16  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/search.tcl: Fixed returning the parsed search items list.

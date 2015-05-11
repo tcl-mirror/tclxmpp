@@ -516,7 +516,7 @@ proc ::xmpp::transport::bosh::closeStream {token args} {
             -wait {
                 set wait $val
             }
-        }       
+        }
     }
 
     if {$wait} {

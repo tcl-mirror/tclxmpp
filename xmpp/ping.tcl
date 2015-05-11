@@ -55,8 +55,8 @@ proc ::xmpp::ping::ping {xlib args} {
     }
 
     eval [list ::xmpp::sendIQ $xlib get \
-	            -query [::xmpp::xml::create ping -xmlns urn:xmpp:ping] \
-	            -command [namespace code [list ParseAnswer $commands]]] \
+                    -query [::xmpp::xml::create ping -xmlns urn:xmpp:ping] \
+                    -command [namespace code [list ParseAnswer $commands]]] \
                $newArgs
 }
 

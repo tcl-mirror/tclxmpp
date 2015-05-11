@@ -51,8 +51,8 @@ proc ::xmpp::blocking::blocklist {xlib args} {
     }
 
     ::xmpp::sendIQ $xlib get \
-	    -query [::xmpp::xml::create blocklist -xmlns urn:xmpp:blocking] \
-	    -command [namespace code [list ParseBlocklistAnswer $commands]] \
+            -query [::xmpp::xml::create blocklist -xmlns urn:xmpp:blocking] \
+            -command [namespace code [list ParseBlocklistAnswer $commands]] \
             -timeout $timeout
 }
 
@@ -155,10 +155,10 @@ proc ::xmpp::blocking::block {xlib args} {
     }
 
     ::xmpp::sendIQ $xlib set \
-	    -query [::xmpp::xml::create block \
+            -query [::xmpp::xml::create block \
                             -xmlns urn:xmpp:blocking \
                             -subelements $items] \
-	    -command [namespace code [list ParseBlockAnswer $commands]] \
+            -command [namespace code [list ParseBlockAnswer $commands]] \
             -timeout $timeout
 }
 
@@ -240,10 +240,10 @@ proc ::xmpp::blocking::unblock {xlib args} {
     }
 
     ::xmpp::sendIQ $xlib set \
-	    -query [::xmpp::xml::create unblock \
+            -query [::xmpp::xml::create unblock \
                             -xmlns urn:xmpp:blocking \
                             -subelements $items] \
-	    -command [namespace code [list ParseUnblockAnswer $commands]] \
+            -command [namespace code [list ParseUnblockAnswer $commands]] \
             -timeout $timeout
 }
 

@@ -974,7 +974,7 @@ proc ::xmpp::muc::RaiseOrLowerAttr {token nick attr value dir args} {
 
     switch -- $attr/$value {
         affiliation/outcast {
-            # Banning request MUST be based on user's bare JID (which though 
+            # Banning request MUST be based on user's bare JID (which though
             # may be not known by admin)
             set RealJID [realJid $token $nick]
             if {![string equal $RealJID ""]} {

@@ -339,7 +339,7 @@ proc ::xmpp::transport::poll::closeStream {token args} {
             -wait {
                 set wait $val
             }
-        }       
+        }
     }
 
     if {$wait} {
