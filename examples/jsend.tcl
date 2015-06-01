@@ -497,7 +497,7 @@ set status 1
 
 array set jsend::lib [list lastwhen [clock seconds] lastwhat ""]
 
-if {[string equal [file tail [lindex $argv 0]] "jsend.tcl"]} {
+if {[string equal [file rootname [file tail [lindex $argv 0]]] jsend]} {
     incr argc -1
     set argv [lrange $argv 1 end]
 }
@@ -506,7 +506,7 @@ if {(([set x [lsearch -exact $argv -help]] >= 0) \
             || ([set x [lsearch -exact $argv --help]] >= 0)) \
         && (($x == 0) || ([expr {$x % 2}]))} {
     puts stdout \
-"usage: jsend.tcl recipient ?options...?
+"usage: $argv0 recipient ?options...?
             -follow      file
             -pidfile     file
             -from        jid
@@ -537,7 +537,7 @@ for default values."
 
     set status 0
 } elseif {($argc < 1) || (![expr {$argc % 2}])} {
-    puts stderr "usage: jsend.tcl recipent ?-key value?..."
+    puts stderr "usage: $argv0 recipent ?-key value?..."
 } elseif {[catch {
     if {([file exists [set file .jsendrc.tcl]]) \
             || ([file exists [set file ~/.jsendrc.tcl]])} {

@@ -1,5 +1,8 @@
 2015-06-01  Sergei Golovan  <sgolovan@nes.ru>
 
+	* examples/jsend.tcl: Allow one to rename the jsend.tcl to jsend when
+	  installing the examples.
+
 	* examples/jsend.man: Added a short manual page for the jsend
 	  command line client example.
 
