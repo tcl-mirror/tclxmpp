@@ -1,3 +1,8 @@
+2015-06-01  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/jsend.man: Added a short manual page for the jsend
+	  command line client example.
+
 2015-05-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/blocking.tcl, xmpp/bosh.tcl, xmpp/muc.tcl, xmpp/ping.tcl,
