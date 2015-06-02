@@ -1,5 +1,9 @@
 2015-06-02  Sergei Golovan  <sgolovan@nes.ru>
 
+	* Makefile: Added a simple makefile which installs the TclXMPP and
+	  bundled TclXML into /usr/lib and jsend.tcl and rssbot.tcl into
+	  /usr/local/bin (by default).
+
 	* examples/rssbot.tcl: Replaced the literal rssbot.tcl string by
 	  $argv0 in short help notice.
 
