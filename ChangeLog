@@ -1,5 +1,8 @@
 2015-06-02  Sergei Golovan  <sgolovan@nes.ru>
 
+	* examples/rssbot.tcl: Replaced the literal rssbot.tcl string by
+	  $argv0 in short help notice.
+
 	* examples/rssbot.man: Added a short manpage for the rssbot RSS/XMPP
 	  gateway example.
 

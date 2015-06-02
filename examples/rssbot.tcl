@@ -1511,7 +1511,7 @@ array set rssbot::lib [list lastwhen [clock seconds] lastwhat ""]
 if {(([set x [lsearch -exact $argv -help]] >= 0) \
             || ([set x [lsearch -exact $argv --help]] >= 0)) \
         && (![expr {$x % 2}])} {
-    puts stdout "usage: rssbot.tcl ?options...?
+    puts stdout "usage: $argv0 ?options...?
             -pidfile     file
             -from        jid
             -password    string
@@ -1525,7 +1525,7 @@ for default values."
 
     set status 0
 } elseif {[expr {$argc % 2}]} {
-    puts stderr "usage: rssbot.tcl ?-key value?..."
+    puts stderr "usage: $argv0 ?-key value?..."
 } elseif {[catch {
     if {([file exists [set file .jsendrc.tcl]]) \
             || ([file exists [set file ~/.jsendrc.tcl]])} {
