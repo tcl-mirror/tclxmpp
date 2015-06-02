@@ -1,3 +1,8 @@
+2015-06-02  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/rssbot.man: Added a short manpage for the rssbot RSS/XMPP
+	  gateway example.
+
 2015-06-01  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/jsend.tcl: Allow one to rename the jsend.tcl to jsend when

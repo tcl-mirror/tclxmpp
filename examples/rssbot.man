@@ -1,0 +1,126 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin rssbot 1 0.1]
+[copyright {2015 Sergei Golovan <sgolovan@nes.ru>}]
+[moddesc {Tcl XMPP library}]
+[titledesc {Tcl command line RSS/XMPP gateway}]
+[description]
+[para]
+
+This gateway is a part of the Tcl XMPP library. It implements a command
+line bot which perodically polls a set of RSS feeds and resend the new
+messages to its roster items via XMPP network. To do that it connects
+to an XMPP server using specified login and password.
+
+[list_begin definitions]
+[call [cmd rssbot] [opt "[option -option] [arg value] ..."]]
+
+[para]
+
+The required Tcl packages for the [cmd rssbot] utility are [arg tls]
+and quite a few modules from the [arg Tcllib] collection.
+
+[para]
+
+After the [cmd rssbot] is connected to the XMPP server, it parses chat
+messages from its roster contacts. These messages may contain the following
+commands:
+
+[list_begin definitions]
+[def "[cmd subscribe] [arg URL] [opt [arg URL]\ ...]"]
+[para]
+Subscribe to the specified RSS feeds and send its messages to the subscriber's
+JID. Only members of the rssbot roster can subscribe to RSS feeds, though
+the bot doesn't manage the roster itself. Note that all the subscription
+data is stored server-side using the mechanism described in XEP-0049
+(Private XML Storage).
+
+[def "[cmd unsubscribe] [opt [arg URL]\ ...]"]
+[para]
+Unsubscribe from the specified RSS feeds (or from all the feeds).
+
+[def "[cmd list]"]
+[para]
+List all subscribed feeds.
+
+[def "[cmd reset] [opt [arg TIME]]"]
+[para]
+Reset the RSS history to the specified time (or to zero).
+
+[def "[cmd flush]"]
+[para]
+Drop all unsent RSS articles.
+
+[def "[cmd dump]"]
+[para]
+Dump all the current subscriptions to XML.
+
+[list_end]
+
+[para]
+
+The client takes a few option-value pairs as its command line arguments.
+The full list of the command line options follows below:
+
+[list_begin definitions]
+[def "[option -from] [arg jid]"]
+[para]
+The sender JID. If there's no [option -host] option then the server part
+of the specified JID is used to connect to.
+
+[def "[option -password] [arg string]"]
+[para]
+The sender password.
+
+[def "[option -type] [arg headline|normal|chat]"]
+[para]
+The message type. Must be one of [const headline], [const normal]
+or [const chat]. Defaults to [const headline].
+
+[def "[option -pidfile] [arg file]"]
+[para]
+Create the specified file with the PID of the running process. This
+option is useful together with [option -follow] option.
+
+[def "[option -host] [arg hostname]"]
+[para]
+Explicit hostname to connect to.
+
+[def "[option -port] [arg number]"]
+[para]
+Explicit port to connect to.
+
+[def "[option -tls] [arg boolean]"]
+[para]
+Whether the old legacy SSL encryption is to be used (defaults to [const false]).
+
+[def "[option -starttls] [arg boolean]"]
+[para]
+Whether the STARTTLS and therefore the TLS encryption is to be used (defaults
+to [const true]).
+
+[def "[option -sasl] [arg boolean]"]
+[para]
+Whether the SASL authentication is to be used (defaults to [const true]).
+
+[list_end]
+[list_end]
+
+[section "FILES"]
+
+The file .jsendrc.tcl in the current directory or in the current user's home
+directory is sourced if it's available and is not world readable. It can contain
+any Tcl code and modify the [cmd rssbot] behavior in any way but its primary
+goal is to define [var args] list of option-value pairs, e.g.
+
+[example {
+set args {-from fred@example.com/bedrock -password wilma}
+}]
+
+[section "AUTHORS"]
+
+Marshall T. Rose,
+Sergei Golovan
+
+[keywords Tcl XMPP]
+[comment { vim: set ft=tcl ts=8 sw=4 sts=4 et: }]
+[manpage_end]
