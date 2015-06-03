@@ -1,3 +1,7 @@
+2015-06-03  Sergei Golovan  <sgolovan@nes.ru>
+
+	* Makefile: Added clean target.
+
 2015-06-02  Sergei Golovan  <sgolovan@nes.ru>
 
 	* Makefile: Added a simple makefile which installs the TclXMPP and

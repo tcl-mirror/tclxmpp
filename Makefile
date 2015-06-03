@@ -22,6 +22,9 @@ MANPAGES1 = examples/jsend.1 \
 
 all: doc
 
+clean:
+	rm -f $(MANPAGES3) $(MANPAGES1)
+
 doc: $(MANPAGES3) $(MANPAGES1)
 
 %.3: %.man
@@ -57,4 +60,4 @@ install-examples:
 up:
 	test -f .fslckout -o -f _FOSSIL_ && fossil update
 
-.PHONY: all doc install install-lib install-bin install-doc install-examples up
+.PHONY: all clean doc install install-lib install-bin install-doc install-examples up
