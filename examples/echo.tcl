@@ -12,6 +12,11 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
 
+# HACK: adding the following directory to auto_path to make this script
+# working in-place
+
+lappend auto_path [file join [file dirname [info script]] ..]
+
 package require xmpp
 package require xmpp::sasl
 package require xmpp::component

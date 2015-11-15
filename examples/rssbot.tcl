@@ -17,6 +17,11 @@ package require tls
 package require uri
 package require htmlparse
 
+# HACK: adding the following directory to auto_path to make this script
+# working in-place
+
+lappend auto_path [file join [file dirname [info script]] ..]
+
 package require xmpp
 package require xmpp::auth
 package require xmpp::sasl

@@ -14,6 +14,11 @@
 package require sha1
 package require tls
 
+# HACK: adding the following directory to auto_path to make this script
+# working in-place
+
+lappend auto_path [file join [file dirname [info script]] ..]
+
 package require xmpp
 package require xmpp::transport::bosh
 package require xmpp::auth
