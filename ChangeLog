@@ -1,3 +1,10 @@
+2015-12-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/hints.tcl, xmpp/pkgIndex.tcl: Implemented creating and parsing
+	  message processing hints (XEP-0334).
+
+	* license.terms: Updated copyright years.
+
 2015-11-15  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/chessbot.tcl, examples/echo.tcl, examples/jsend.tcl,

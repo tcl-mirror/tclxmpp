@@ -21,6 +21,7 @@ package ifneeded xmpp::data 0.1                 [list source [file join $dir dat
 package ifneeded xmpp::delay 0.1                [list source [file join $dir delay.tcl]]
 package ifneeded xmpp::disco 0.1                [list source [file join $dir disco.tcl]]
 package ifneeded xmpp::dns 0.1                  [list source [file join $dir dns.tcl]]
+package ifneeded xmpp::hints 0.1                [list source [file join $dir hints.tcl]]
 package ifneeded xmpp::iq 0.1                   [list source [file join $dir iq.tcl]]
 package ifneeded xmpp::jid 0.1                  [list source [file join $dir jid.tcl]]
 package ifneeded xmpp::muc 0.1                  [list source [file join $dir muc.tcl]]
@@ -63,6 +64,7 @@ package ifneeded xmpp::full 0.2 {
     package require xmpp::delay 0.1
     package require xmpp::disco 0.1
     package require xmpp::dns 0.1
+    package require xmpp::hints 0.1
     package require xmpp::muc 0.1
     package require xmpp::pep 0.1
     package require xmpp::ping 0.1
