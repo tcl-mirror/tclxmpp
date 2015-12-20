@@ -1,3 +1,8 @@
+2015-12-20  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xmpp.tcl: Always add the id attribute to outgoing IQ get or set
+	  stanzas.
+
 2015-12-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/hints.tcl, xmpp/pkgIndex.tcl: Implemented creating and parsing

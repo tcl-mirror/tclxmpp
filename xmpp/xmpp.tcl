@@ -1768,6 +1768,11 @@ proc ::xmpp::sendIQ {xlib type args} {
         }
     }
 
+    if {$getset && ![info exists attrs(id)]} {
+        # The id attribute is mandatory
+        set attrs(id) [packetID $xlib]
+    }
+
     set data [xml::create iq -attrs [array get attrs] \
                              -subelements $subelements]
 
