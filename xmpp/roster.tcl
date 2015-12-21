@@ -3,14 +3,14 @@
 #       This file is a part of the XMPP library. It implements basic
 #       roster routines (RFC-3921 and RFC-6121).
 #
-# Copyright (c) 2008-2014 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
 
 package require xmpp
 
-package provide xmpp::roster 0.1
+package provide xmpp::roster 0.2
 
 namespace eval ::xmpp::roster {}
 
@@ -166,8 +166,8 @@ proc ::xmpp::roster::send {token args} {
 
     set timeout 0
     set cmd {}
-    set item {}
-    set subels {}
+    set attrs {}
+    set groups {}
 
     foreach {key val} $args {
         switch -- $key {
@@ -178,26 +178,21 @@ proc ::xmpp::roster::send {token args} {
                 set cmd [list -command $val]
             }
             -jid {
-                if {[llength $item] > 0} {
-                    lappend subels [eval $item]
-                }
-                set item [list ::xmpp::xml::create item -attrs [list jid $val]]
+                lappend attrs jid $val
             }
             -name {
-                lappend item -attrs [list name $val]
+                lappend attrs name $val
             }
             -subscription {
-                lappend item -attrs [list subscription $val]
+                lappend attrs subscription $val
             }
             -ask {
-                lappend item -attrs [list ask $val]
+                lappend attrs ask $val
             }
             -groups {
-                set groups {}
                 foreach group $val {
                     lappend groups [::xmpp::xml::create group -cdata $group]
                 }
-                lappend item -subelements $groups
             }
             default {
                 return -code error \
@@ -206,9 +201,11 @@ proc ::xmpp::roster::send {token args} {
         }
     }
 
-    set query [::xmpp::xml::create query -xmlns jabber:iq:roster \
-                                         -subelements $subels]
-
+    set query [::xmpp::xml::create query \
+                    -xmlns jabber:iq:roster \
+                    -subelements [list [::xmpp::xml::create item \
+                                                -attrs $attrs \
+                                                -subelements $groups]]]
     eval [list ::xmpp::sendIQ $xlib set \
                               -query $query \
                               -timeout $timeout] $cmd
