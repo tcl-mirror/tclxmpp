@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It provides support for the
 #       tls network socket security layer.
 #
-# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -47,6 +47,8 @@ namespace eval ::xmpp::starttls {}
 #       -ssl2
 #       -ssl3
 #       -tls1
+#       -tls1.1                 (supported by tls 1.6 and newer)
+#       -tls1.2                 (supported by tls 1.6 and newer)
 #       -request
 #       -require
 #       -password
@@ -91,6 +93,8 @@ proc ::xmpp::starttls::starttls {xlib args} {
             -ssl2          -
             -ssl3          -
             -tls1          -
+            -tls1.1        -
+            -tls1.2        -
             -request       -
             -require       -
             -password      -
@@ -111,12 +115,23 @@ proc ::xmpp::starttls::starttls {xlib args} {
         }
     }
 
-    # Append default TLS options which differ from the tls::import defaults
+    # Append default TLS options which may differ from the tls::import defaults
     if {![::xmpp::xml::isAttr $state(tlsArgs) -ssl2]} {
         lappend state(tlsArgs) -ssl2 0
     }
+    if {![::xmpp::xml::isAttr $state(tlsArgs) -ssl3]} {
+        lappend state(tlsArgs) -ssl3 0
+    }
     if {![::xmpp::xml::isAttr $state(tlsArgs) -tls1]} {
         lappend state(tlsArgs) -tls1 1
+    }
+    if {![::xmpp::xml::isAttr $state(tlsArgs) -tls1.1] && \
+            ![catch ::tls::ciphers tls1.1]} {
+        lappend state(tlsArgs) -tls1.1 1
+    }
+    if {![::xmpp::xml::isAttr $state(tlsArgs) -tls1.2] && \
+            ![catch ::tls::ciphers tls1.2]} {
+        lappend state(tlsArgs) -tls1.2 1
     }
 
     ::xmpp::RegisterElement $xlib * urn:ietf:params:xml:ns:xmpp-tls \

@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It provides support for the
 #       XMPP stream over TLS encrypted TCP sockets.
 #
-# Copyright (c) 2008-2013 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -74,6 +74,8 @@ namespace eval ::xmpp::transport::tls {
 #       -ssl2
 #       -ssl3
 #       -tls1
+#       -tls1.1                     (supported for tls 1.6 and newer)
+#       -tls1.2                     (supported for tls 1.6 and newer)
 #       -request
 #       -require
 #       (other arguments are passed to [::pconnect::socket])
@@ -131,6 +133,8 @@ proc ::xmpp::transport::tls::open {host port args} {
             -ssl2                 -
             -ssl3                 -
             -tls1                 -
+            -tls1.1               -
+            -tls1.2               -
             -request              -
             -require              -
             -passwordcommand      -
@@ -140,12 +144,23 @@ proc ::xmpp::transport::tls::open {host port args} {
         }
     }
 
-    # Append default TLS options which differ from the tls::import defaults
+    # Append default TLS options which may differ from the tls::import defaults
     if {![::xmpp::xml::isAttr $tlsArgs -ssl2]} {
         lappend tlsArgs -ssl2 0
     }
+    if {![::xmpp::xml::isAttr $tlsArgs -ssl3]} {
+        lappend tlsArgs -ssl3 0
+    }
     if {![::xmpp::xml::isAttr $tlsArgs -tls1]} {
         lappend tlsArgs -tls1 1
+    }
+    if {![::xmpp::xml::isAttr $tlsArgs -tls1.1] && \
+            ![catch ::tls::ciphers tls1.1]} {
+        lappend tlsArgs -tls1.1 1
+    }
+    if {![::xmpp::xml::isAttr $tlsArgs -tls1.2] && \
+            ![catch ::tls::ciphers tls1.2]} {
+        lappend tlsArgs -tls1.2 1
     }
 
     if {![info exists cmd]} {
@@ -267,6 +282,8 @@ proc ::xmpp::transport::tls::Configure {token tlsArgs} {
 #       -ssl2
 #       -ssl3
 #       -tls1
+#       -tls1.1                 (supported for tls 1.6 and newer)
+#       -tls1.2                 (supported for tls 1.6 and newer)
 #       -request
 #       -require
 #

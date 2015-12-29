@@ -55,7 +55,13 @@ namespace eval ::xmpp::transport::poll {
 #       A new socket is created.
 
 proc ::xmpp::transport::poll::sock {args} {
-    eval [linsert $args 0 ::tls::socket -ssl2 0 -tls1 1]
+    if {![catch ::tls::ciphers tls1.1]} {
+        set args [linsert $args 0 -tls1.1 1]
+    }
+    if {![catch ::tls::ciphers tls1.2]} {
+        set args [linsert $args 0 -tls1.2 1]
+    }
+    eval [linsert $args 0 ::tls::socket -ssl2 0 -ssl3 0 -tls1 1]
 }
 
 # ::xmpp::transport::poll::open --
