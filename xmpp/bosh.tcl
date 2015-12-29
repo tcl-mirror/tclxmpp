@@ -3,7 +3,7 @@
 #       This file is a part of the XMPP library. It implements XMPP over BOSH
 #       (XEP-0124 and XEP-0206).
 #
-# Copyright (c) 2013 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2013-2015 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
