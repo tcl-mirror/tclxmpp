@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It implements the main library
 #       routines.
 #
-# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2016 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -18,7 +18,7 @@ package require xmpp::iq
 package require xmpp::presence
 package require xmpp::sm
 
-package provide xmpp 0.2
+package provide xmpp 0.3
 
 namespace eval ::xmpp {
 
@@ -456,6 +456,7 @@ proc ::xmpp::OpenStreamAux {xlib mode args} {
             }
             -xmlns -
             -xml:lang -
+            -from -
             -version {
                 set state($key) $val
                 set params($key) $val

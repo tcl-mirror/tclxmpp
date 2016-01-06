@@ -1,3 +1,10 @@
+2016-01-06  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/pkgIndex.tcl, xmpp/sasl.tcl, xmpp/xmpp.tcl: Added preliminary
+	  support for the EXTERNAL SASL authentication mechanism. Since it
+	  results in adding -from attribute to the ::xmpp::openStream command,
+	  the xmpp package version is bumped to 0.3.
+
 2015-12-29  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/starttls.tcl, xmpp/tls.tcl: Added -tls1.1 and -tls1.2 options

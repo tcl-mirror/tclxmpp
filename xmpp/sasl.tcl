@@ -4,7 +4,7 @@
 #       SASL authentication layer via the tclsasl or tcllib SASL package.
 #       Also, it binds resource and opens XMPP session.
 #
-# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2016 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -40,6 +40,30 @@ namespace eval ::xmpp::sasl {
     switch -- $saslpack {
         tclsasl {
             sasl::client_init -callbacks {}
+        }
+        tcllib {
+            if {[lsearch -exact [::SASL::mechanisms] EXTERNAL] < 0} {
+                # Register the EXTERNAL SASL authentication mechanism
+
+                namespace eval ::SASL::EXTERNAL {
+                    proc client {context challenge args} {
+                        upvar #0 $context ctx
+                        incr ctx(step)
+                        set authzid [eval $ctx(callback) [list $context login]]
+                        set ctx(response) $authzid
+                        return 0
+                    }
+
+                    proc server {context clientrsp args} {
+                        # We don't need a server part
+
+                        return -code error "authentication failed"
+                    }
+
+                    ::SASL::register EXTERNAL 100 [namespace current]::client \
+                                                  [namespace current]::server
+                }
+            }
         }
         default {
             # empty
@@ -487,13 +511,12 @@ proc ::xmpp::sasl::ChooseMech {token mechanisms} {
     set forbiddenMechs $state(-disable)
 
     if {$state(-digest) == 1} {
-        lappend forbiddenMechs PLAIN LOGIN EXTERNAL
+        lappend forbiddenMechs PLAIN LOGIN
     } elseif {$state(-digest) == 0} {
         foreach m [SASL::mechanisms] {
             switch -- $m {
                 PLAIN -
-                LOGIN -
-                EXTERNAL {}
+                LOGIN {}
                 default {lappend forbiddenMechs $m}
             }
         }

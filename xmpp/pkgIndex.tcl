@@ -3,7 +3,7 @@
 #       This file is part of the XMPP library. It registeres XMPP packages
 #       for Tcl.
 #
-# Copyright (c) 2008-2015 Sergei Golovan <sgolovan@nes.ru>
+# Copyright (c) 2008-2016 Sergei Golovan <sgolovan@nes.ru>
 #
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAMER OF ALL WARRANTIES.
@@ -12,7 +12,7 @@ package ifneeded pconnect 0.1                   [list source [file join $dir pco
 package ifneeded pconnect::https 0.1            [list source [file join $dir https.tcl]]
 package ifneeded pconnect::socks4 0.1           [list source [file join $dir socks4.tcl]]
 package ifneeded pconnect::socks5 0.1           [list source [file join $dir socks5.tcl]]
-package ifneeded xmpp 0.2                       [list source [file join $dir xmpp.tcl]]
+package ifneeded xmpp 0.3                       [list source [file join $dir xmpp.tcl]]
 package ifneeded xmpp::auth 0.2                 [list source [file join $dir auth.tcl]]
 package ifneeded xmpp::bob 0.1                  [list source [file join $dir bob.tcl]]
 package ifneeded xmpp::component 0.2            [list source [file join $dir component.tcl]]
@@ -52,11 +52,11 @@ package ifneeded xmpp::transport::tls 0.2       [list source [file join $dir tls
 package ifneeded xmpp::transport::zlib 0.2      [list source [file join $dir zlib.tcl]]
 package ifneeded xmpp::xml 0.1                  [list source [file join $dir xml.tcl]]
 
-package ifneeded xmpp::full 0.2 {
+package ifneeded xmpp::full 0.3 {
     package require pconnect::https 0.1
     package require pconnect::socks4 0.1
     package require pconnect::socks5 0.1
-    package require xmpp 0.2
+    package require xmpp 0.3
     package require xmpp::auth 0.2
     package require xmpp::bob 0.1
     package require xmpp::component 0.2
