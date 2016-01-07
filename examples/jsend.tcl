@@ -61,6 +61,7 @@ proc jsend::sendit {stayP to args} {
                             -bosh        ""    \
                             -tls         false \
                             -starttls    true  \
+                            -cert        ""    \
                             -sasl        true  \
                             -digest      true]
     array set options $args
@@ -193,9 +194,10 @@ proc jsend::sendit {stayP to args} {
         if {[string equal $options(-bosh) ""] && !$options(-tls) && $options(-starttls)} {
             # Open XMPP stream
             set sessionID [::xmpp::openStream $xlib $domain \
+                                                    -from [::xmpp::jid::jid $node $domain] \
                                                     -version 1.0]
 
-            ::xmpp::starttls::starttls $xlib
+            ::xmpp::starttls::starttls $xlib -certfile $options(-cert)
 
             ::xmpp::sasl::auth $xlib -username  $node \
                                      -password  $options(-password) \

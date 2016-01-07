@@ -49,19 +49,13 @@ namespace eval ::xmpp::sasl {
                     proc client {context challenge args} {
                         upvar #0 $context ctx
                         incr ctx(step)
-                        set authzid [eval $ctx(callback) [list $context login]]
-                        set ctx(response) $authzid
+                        set username [eval $ctx(callback) [list $context username]]
+                        set realm [eval $ctx(callback) [list $context realm]]
+                        set ctx(response) $username@$realm
                         return 0
                     }
 
-                    proc server {context clientrsp args} {
-                        # We don't need a server part
-
-                        return -code error "authentication failed"
-                    }
-
-                    ::SASL::register EXTERNAL 100 [namespace current]::client \
-                                                  [namespace current]::server
+                    ::SASL::register EXTERNAL 100 [namespace current]::client
                 }
             }
         }
@@ -436,6 +430,7 @@ proc ::xmpp::sasl::AuthContinue {token featuresList} {
                 switch -glob -- $state(mech) {
                     SCRAM-* -
                     PLAIN -
+                    EXTERNAL -
                     X-GOOGLE-TOKEN {
                         # Initial responce
                         set code [catch {SASL::step $state(token) ""} result]

@@ -1,3 +1,13 @@
+2016-01-07  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/sasl.tcl: Add the user's JID as cdata to the EXTERNAL SASL
+	  authentication response. This helps with prosody's mod_auth_ccert.
+	  Also, don't register the server part for the EXTERNAL SASL
+	  authentication mechaism.
+
+	* examples/jsend.tcl: Added -cert option with a path to a client
+	  certificate.
+
 2016-01-06  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/pkgIndex.tcl, xmpp/sasl.tcl, xmpp/xmpp.tcl: Added preliminary
