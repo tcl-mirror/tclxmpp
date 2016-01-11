@@ -1,3 +1,8 @@
+2016-01-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/xml.tcl: Replace a bunch of control characters by spaces when
+	  create XML data to send.
+
 2016-01-07  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/sasl.tcl: Add the user's JID as cdata to the EXTERNAL SASL
