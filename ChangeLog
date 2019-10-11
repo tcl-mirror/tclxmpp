@@ -1,3 +1,7 @@
+2019-10-11  Sergei Golovan  <sgolovan@nes.ru>
+
+	* examples/jsend.tcl: Add -xml option to send a prepared XML stanza.
+
 2016-01-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* xmpp/xml.tcl: Replace a bunch of control characters by spaces when

@@ -54,6 +54,7 @@ proc jsend::sendit {stayP to args} {
                             -type        chat  \
                             -subject     ""    \
                             -body        ""    \
+                            -xml         ""    \
                             -xhtml       ""    \
                             -date        ""    \
                             -description ""    \
@@ -112,8 +113,10 @@ proc jsend::sendit {stayP to args} {
         set resource "jsend"
     }
 
-    if {[string equal $options(-body) ""] && $stayP < 2} {
-        set options(-body) [read -nonewline stdin]
+    if {[string equal $options(-xml) ""]} {
+        if {[string equal $options(-body) ""] && $stayP < 2} {
+            set options(-body) [read -nonewline stdin]
+        }
     }
 
     set options(-xlist) {}
@@ -244,22 +247,27 @@ proc jsend::sendit {stayP to args} {
         return 1
     }
 
-    foreach to $options(-to) {
-        switch -- [eval [list ::xmpp::sendMessage $xlib $to] $params] {
-            -1 -
-            -2 {
-                if {$stayP} {
-                    set cmd [list ::LOG]
-                } else {
-                    set cmd [list error]
+    if {![string equal $options(-xml) ""]} {
+        ::xmpp::outText $xlib $options(-xml)
+    } else {
+        foreach to $options(-to) {
+            switch -- [eval [list ::xmpp::sendMessage $xlib $to] $params] {
+                -1 -
+                -2 {
+                    if {$stayP} {
+                        set cmd [list ::LOG]
+                    } else {
+                        set cmd [list error]
+                    }
+                    eval $cmd [list "error writing to socket, continuing..."]
+                    return 0
                 }
-                eval $cmd [list "error writing to socket, continuing..."]
-                return 0
-            }
 
-            default {}
+                default {}
+            }
         }
     }
+
     if {!$stayP} {
         set jsend::stayP 0
         ::xmpp::disconnect $xlib -wait 1
@@ -524,6 +532,7 @@ if {(([set x [lsearch -exact $argv -help]] >= 0) \
             -subject     string
             -body        string
             -xhtml       string
+            -xml         string
             -description string
             -url         string
             -bosh        string (BOSH URL)
