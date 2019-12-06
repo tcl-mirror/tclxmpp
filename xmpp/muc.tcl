@@ -550,11 +550,18 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
         }
     }
 
-    # JID, Label, Status
-    uplevel #0 $state(-rostercommand) \
-               [list $from $nick $status \
-                     -affiliation [affiliation $token $nick] \
-                     -role [role $token $nick]]
+    if {![string equal $nick ""]} {
+        # JID, Label, Status update only for non-empty nicknames,
+        # otherwise it's a presence from the room itself, and it may
+        # contain only auxiliary info like vcard-temp:x:update
+        # (see https://chiselapp.com/user/sgolovan/repository/tkabber/tktview?name=f350ab6c7d
+        # for details)
+        uplevel #0 $state(-rostercommand) \
+                   [list $from $nick $status \
+                         -affiliation [affiliation $token $nick] \
+                         -role [role $token $nick]]
+    }
+
     return
 }
 

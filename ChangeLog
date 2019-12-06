@@ -1,3 +1,9 @@
+2019-12-06  Sergei Golovan  <sgolovan@nes.ru>
+
+	* xmpp/muc.tcl: Do not call the roster callback if a presence stanza
+	  is received from the room itself (with empty resource part). these
+	  stanzas don't update the room roster.
+
 2019-10-11  Sergei Golovan  <sgolovan@nes.ru>
 
 	* examples/jsend.tcl: Add -xml option to send a prepared XML stanza.
