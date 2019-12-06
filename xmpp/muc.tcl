@@ -520,7 +520,7 @@ proc ::xmpp::muc::ParsePresence {token from type xmlElements args} {
 
             # Add user to the room users list
             set idx [lsearch -exact $state(users) $nick]
-            if {$idx < 0} {
+            if {![string equal $nick ""] && $idx < 0} {
                 lappend state(users) $nick
                 set action enter
                 if {[string equal [set RealJID [realJid $token $nick]] ""]} {
